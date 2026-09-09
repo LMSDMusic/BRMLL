@@ -758,7 +758,8 @@ const _urlLevel  = parseInt(_urlParams.get('level'))   || null;
 const _urlMode   = _urlParams.get('mode')              || null;
 const _urlMenu   = _urlParams.get('menu') === 'true';
 const _maxLevel  = parseFloat(_urlParams.get('maxLevel')) || null;
-const _bestLevel = parseFloat(_urlParams.get('bestLevel')) || 0;
+const _bestLevel   = parseFloat(_urlParams.get('bestLevel'))   || 0;
+const _bestPercent = parseFloat(_urlParams.get('bestPercent')) || 0;
 
 // Tracks the current sub-level mode (trainer / moderate / fast)
 let currentMode = 'moderate';
@@ -812,17 +813,25 @@ function applyModalLocks(lvl) {
     let locked = false;
 
     if (_bestLevel === 0) {
-      // Never played — only Trainer accessible at level 1, rest locked
-      locked = !(lvl === 1 && subOffset === 1);
+      // Never played — Slow (2) is entry point; Trainer and Fast locked
+      locked = !(lvl === 1 && subOffset === 2);
     } else if (lvl < bestBase) {
-      locked = false; // below best — all open
+      locked = false;                   // completed level — all speeds open
     } else if (lvl === bestBase) {
-      locked = subOffset > bestSub; // up to their best sub-level
+      if (subOffset === 2) {
+        locked = false;                 // Slow: always the entry point
+      } else if (subOffset === 3) {
+        // Fast: only after Slow was passed
+        locked = !(bestSub >= 2 && _bestPercent >= 81);
+      } else {
+        // Trainer: only if student bombed Slow (<50%) OR they're already in Trainer
+        locked = !(bestSub === 1 || (bestSub === 2 && _bestPercent < 50));
+      }
     } else if (lvl === bestBase + 1) {
-      // Trainer at N+1 only accessible after all 3 speeds at N are done
-      locked = bestSub < 3 || subOffset > 1;
+      // New level — Slow only (Fast at prev level was completed to get here)
+      locked = subOffset !== 2;
     } else {
-      locked = true; // shouldn't be reachable but just in case
+      locked = true;
     }
 
     opt.classList.toggle('locked', locked);
@@ -1124,9 +1133,9 @@ function goNextLevel() {
   const base = LEVELS[currentLevel].trainerFor || Number(currentLevel);
   const mode = currentMode;
   let nextMode, nextBase;
-  if (mode === 'trainer')   { nextMode = 'moderate'; nextBase = base; }
-  else if (mode === 'moderate') { nextMode = 'fast'; nextBase = base; }
-  else                      { nextMode = 'trainer'; nextBase = base + 1; }
+  if (mode === 'trainer')       { nextMode = 'moderate'; nextBase = base; }       // Trainer passed → Slow
+  else if (mode === 'moderate') { nextMode = 'fast';     nextBase = base; }       // Slow passed → Fast
+  else                          { nextMode = 'moderate'; nextBase = base + 1; }   // Fast passed → next level Slow
   window.location.href = 'rhythm.html?level=' + nextBase + '&mode=' + nextMode;
 }
 
@@ -1149,7 +1158,14 @@ function showResults() {
 
   // Show Next Level button if student passed (avg ≥ 81%)
   const nextBtn = document.getElementById('next-level-btn');
-  if (nextBtn) nextBtn.style.display = avg >= 81 ? '' : 'none';
+  if (nextBtn) {
+    nextBtn.style.display = avg >= 81 ? '' : 'none';
+    if (avg >= 81) {
+      nextBtn.textContent = currentMode === 'trainer' ? 'Try Slow →'
+                          : currentMode === 'moderate' ? 'Try Fast →'
+                          : 'Next Level →';
+    }
+  }
 
   const barsEl = document.getElementById('res-bars');
   barsEl.innerHTML = '';

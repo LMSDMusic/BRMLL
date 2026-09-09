@@ -650,12 +650,14 @@
     // maxLevel = student's base level + 1 (one level ahead is accessible).
     // bestLevel = their actual best decimal (e.g. 3.2) — used for modal sub-level locking.
     function buildRhythmMenuUrl(bestScore) {
-      if (!bestScore || bestScore.level === 0) return "rhythm.html?menu=true&maxLevel=1&bestLevel=0";
-      const baseLevel = Math.floor(bestScore.level);
-      const subLevel  = Math.round((bestScore.level - baseLevel) * 10);
-      // Level N+1 button only appears after all 3 speeds at level N are done (sub=3 = Fast)
-      const maxLevel  = subLevel >= 3 ? baseLevel + 1 : baseLevel;
-      return "rhythm.html?menu=true&maxLevel=" + maxLevel + "&bestLevel=" + bestScore.level.toFixed(1);
+      if (!bestScore || bestScore.level === 0) return "rhythm.html?menu=true&maxLevel=1&bestLevel=0&bestPercent=0";
+      const threshold = MASTERY_THRESHOLD["rhythm.html"] ?? DEFAULT_THRESHOLD;
+      const base  = Math.floor(bestScore.level);
+      const sub   = Math.round((bestScore.level - base) * 10);
+      const pct   = Math.round(bestScore.bestPercent);
+      // Next level card appears only after passing Fast
+      const maxLevel = (sub === 3 && bestScore.bestPercent >= threshold) ? base + 1 : base;
+      return "rhythm.html?menu=true&maxLevel=" + maxLevel + "&bestLevel=" + bestScore.level.toFixed(1) + "&bestPercent=" + pct;
     }
 
     // Returns the ensemble for a given instrument name
@@ -720,28 +722,21 @@
     // Rhythm uses float levels: 1.1=trainer, 1.2=moderate, 1.3=fast, 2.1=next level trainer...
     // Advancement steps through sub-levels before moving to the next level.
     function buildRhythmUrl(bestScore) {
+      // Entry = Slow. Pass Slow → Fast. Bomb Slow (<50%) → Trainer. Pass Trainer → Slow.
+      if (!bestScore || bestScore.level === 0) return "rhythm.html?level=1&mode=moderate";
       const threshold = MASTERY_THRESHOLD["rhythm.html"] ?? DEFAULT_THRESHOLD;
-      if (!bestScore || bestScore.level === 0) return "rhythm.html?level=1&mode=trainer";
-
-      const baseLevel = Math.floor(bestScore.level);
-      const subLevel  = Math.round((bestScore.level - baseLevel) * 10); // 1, 2, or 3
-
-      let nextBase = baseLevel;
-      let nextSub;
-
-      if (bestScore.bestPercent >= threshold) {
-        if (subLevel < 3) {
-          nextSub = subLevel + 1;           // advance sub-level: 1→2→3
-        } else {
-          nextBase = baseLevel + 1;         // advance to next full level
-          nextSub  = 1;                     // back to trainer
-        }
+      const base = Math.floor(bestScore.level);
+      const sub  = Math.round((bestScore.level - base) * 10);
+      const pct  = bestScore.bestPercent;
+      if (pct >= threshold) {
+        if (sub === 1) return "rhythm.html?level=" + base        + "&mode=moderate"; // Passed Trainer → Slow
+        if (sub === 2) return "rhythm.html?level=" + base        + "&mode=fast";     // Passed Slow → Fast
+        /* sub=3 */    return "rhythm.html?level=" + (base + 1)  + "&mode=moderate"; // Passed Fast → next Slow
       } else {
-        nextSub = subLevel;                 // stay at same sub-level
+        if (sub === 2 && pct < 50) return "rhythm.html?level=" + base + "&mode=trainer"; // Bombed Slow → Trainer
+        if (sub === 1)             return "rhythm.html?level=" + base + "&mode=trainer"; // Failed Trainer → retry
+        /* Slow 50-80% */          return "rhythm.html?level=" + base + "&mode=moderate"; // Retry Slow
       }
-
-      const mode = nextSub === 1 ? "trainer" : nextSub === 2 ? "moderate" : "fast";
-      return "rhythm.html?level=" + nextBase + "&mode=" + mode;
     }
 
     function escHtml(str) {
