@@ -333,6 +333,10 @@
     font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s;
   }
   .menu-btn:hover { background: #ddd8ce; }
+  .score-next-btn { flex:1; padding:14px; border-radius:10px; border:none; background:var(--blue); font-family:'DM Sans',sans-serif; font-size:1rem; font-weight:700; color:#fff; cursor:pointer; transition:background .15s; }
+  .score-next-btn:hover { background:var(--blue-dark); }
+  .score-menu-btn { width:100%; padding:12px; border-radius:10px; border:1.5px solid var(--border); background:var(--surface); font-family:'DM Sans',sans-serif; font-size:0.9rem; font-weight:600; color:var(--text); cursor:pointer; transition:all .15s; }
+  .score-menu-btn:hover { border-color:var(--blue); color:var(--blue); }
   /* ── TRAINER ── */
   .trainer-progress {
     display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;
@@ -1505,7 +1509,6 @@ const Q4_TREBLE_NOTE_POOL = [
 
 const Q4_ALTO_NOTE_POOL = [
   { noteFile: 'images/note3.png', answer: 'C', answerString:'C', label: 'C3', clefImg: 'images/alto1.png', clefLabel: 'G Major' },
-  { noteFile: 'images/note3.png', answer: 'C#', answerString:'C', label: 'C3', clefImg: 'images/alto2.png', clefLabel: 'D Major' },
   { noteFile: 'images/note4.png', answer: 'D', answerString:'C', label: 'D3', clefImg: 'images/alto0.png', clefLabel: 'C Major' },
   { noteFile: 'images/note5.png', answer: 'E', answerString:'C', label: 'E3', clefImg: 'images/alto1.png', clefLabel: 'G Major' },
   { noteFile: 'images/note6.png', answer: 'F', answerString:'C', label: 'F3', clefImg: 'images/alto0.png', clefLabel: 'C Major' },
@@ -1527,7 +1530,6 @@ const Q4_ALTO_NOTE_POOL = [
 
 const Q4_BASS_CELLO_NOTE_POOL = [
   { noteFile: 'images/note2.png', answer: 'C', answerString:'C', label: 'C2', clefImg: 'images/bass1.png', clefLabel: 'G Major' },
-  { noteFile: 'images/note2.png', answer: 'C#', answerString:'C', label: 'C2', clefImg: 'images/bass2.png', clefLabel: 'D Major' },
   { noteFile: 'images/note3.png', answer: 'D', answerString:'C', label: 'D2', clefImg: 'images/bass0.png', clefLabel: 'C Major' },
   { noteFile: 'images/note4.png', answer: 'E', answerString:'C', label: 'E2', clefImg: 'images/bass1.png', clefLabel: 'G Major' },
   { noteFile: 'images/note5.png', answer: 'F', answerString:'C', label: 'F2', clefImg: 'images/bass0.png', clefLabel: 'C Major' },
@@ -2041,13 +2043,13 @@ const FOLDERS = [
             { name:'C', y:170, buttons:[] },
           ],
         },
-        noteOptions: ['A', 'B', 'C#', 'D', 'E', 'F#', 'G'],
+        noteOptions: ['A', 'B', 'C', 'C#', 'D', 'E', 'F#', 'G'],
         trainer: true,
         trainerNotes: [
           { noteFile: 'images/note7.png', answer: 'G', answerString:'G', label: 'G3' },
           { noteFile: 'images/note8.png', answer: 'A', answerString:'G', label: 'A3' },
           { noteFile: 'images/note9.png', answer: 'B', answerString:'G', label: 'B3' },
-          { noteFile: 'images/note10.png', answer: 'C#', answerString:'G', label: 'C4' },
+          { noteFile: 'images/note10.png', answer: 'C',  answerString:'G', label: 'C4', clefImg: 'images/alto1.png', clefLabel: 'G Major' },
           { noteFile: 'images/note11.png', answer: 'D', answerString:'D', label: 'D4' },
           { noteFile: 'images/note12.png', answer: 'E', answerString:'D', label: 'E4' },
           { noteFile: 'images/note13.png', answer: 'F#', answerString:'D', label: 'F4' },
@@ -2061,7 +2063,7 @@ const FOLDERS = [
           { noteFile: 'images/note7.png',  answer: 'G', answerString:'G',  label: 'G3' },
           { noteFile: 'images/note8.png',  answer: 'A', answerString:'G',  label: 'A3' },
           { noteFile: 'images/note9.png',  answer: 'B', answerString:'G',  label: 'B3' },
-          { noteFile: 'images/note10.png', answer: 'C#', answerString:'G', label: 'C4' },
+          { noteFile: 'images/note10.png', answer: 'C',  answerString:'G', label: 'C4', clefImg: 'images/alto1.png', clefLabel: 'G Major' },
           { noteFile: 'images/note11.png', answer: 'D', answerString:'D',  label: 'D4' },
           { noteFile: 'images/note12.png', answer: 'E', answerString:'D',  label: 'E4' },
           { noteFile: 'images/note13.png', answer: 'F#', answerString:'D', label: 'F4' },
@@ -2590,7 +2592,7 @@ const FOLDERS = [
         noteOptions: ['0', 'Low 1', '1', 'Low 2', '2', '3'],
         fingerboard: {
           strings: [
-            { name:'E', y:50,  buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:5,finger:'3'}] },
+            { name:'E', y:50,  buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'},{semi:6,finger:'Low 4'}] },
             { name:'A', y:90,  buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'}] },
             { name:'D', y:130, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'}] },
             { name:'G', y:170, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:4,finger:'2'},{semi:5,finger:'3'}] },
@@ -4411,6 +4413,764 @@ const FOLDERS = [
     ],
   },
 
+
+  {
+    id: 'q1-6th',
+    title: '6th Grade',
+    subtitle: 'Quarter 1',
+    icon: '🎻',
+    desc: '8 quizzes · 5th Grade Review · C, G & D Major',
+    quizzes: [
+      {
+        id: 'violin',
+        title: 'Violin',
+        clefLabel: 'Treble Clef · Mixed Keys',
+        icon: '𝄞',
+        desc: 'Treble clef · 19 questions',
+        totalQuestions: 19,
+        noteOptions: ['C','C#','D','E','F','F#','G','A','B'],
+        noteFingerboard: {
+          strings: [
+            { name:'E', y:50, buttons:[{semi:0,note:'E'},{semi:1,note:'F'},{semi:2,note:'F#'},{semi:3,note:'G'},{semi:5,note:'A'}] },
+            { name:'A', y:90, buttons:[{semi:0,note:'A'},{semi:2,note:'B'},{semi:3,note:'C'},{semi:4,note:'C#'},{semi:5,note:'D'}] },
+            { name:'D', y:130, buttons:[{semi:0,note:'D'},{semi:2,note:'E'},{semi:3,note:'F'},{semi:4,note:'F#'},{semi:5,note:'G'}] },
+            { name:'G', y:170, buttons:[{semi:0,note:'G'},{semi:2,note:'A'},{semi:4,note:'B'},{semi:5,note:'C'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q4_TREBLE_NOTE_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'violin-fingering',
+        title: 'Violin Fingering',
+        clefLabel: 'Treble Clef · Mixed Keys',
+        icon: '𝄞',
+        desc: 'Treble clef · What finger?',
+        totalQuestions: 19,
+        questionText: 'What finger plays this note?',
+        noteOptions: ['0','Low 1','1','Low 2','2','3'],
+        fingerboard: {
+          strings: [
+            { name:'E', y:50, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:5,finger:'3'}] },
+            { name:'A', y:90, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'}] },
+            { name:'D', y:130, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'}] },
+            { name:'G', y:170, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:4,finger:'2'},{semi:5,finger:'3'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q4_VLN_FINGER_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'viola',
+        title: 'Viola',
+        clefLabel: 'Alto Clef · Mixed Keys',
+        icon: '𝄡',
+        desc: 'Alto clef · 18 questions',
+        totalQuestions: 18,
+        noteOptions: ['C','C#','D','E','F','F#','G','A','B'],
+        noteFingerboard: {
+          strings: [
+            { name:'A', y:50, buttons:[{semi:0,note:'A'},{semi:2,note:'B'},{semi:3,note:'C'},{semi:4,note:'C#'},{semi:5,note:'D'}] },
+            { name:'D', y:90, buttons:[{semi:0,note:'D'},{semi:2,note:'E'},{semi:3,note:'F'},{semi:4,note:'F#'},{semi:5,note:'G'}] },
+            { name:'G', y:130, buttons:[{semi:0,note:'G'},{semi:2,note:'A'},{semi:4,note:'B'},{semi:5,note:'C'}] },
+            { name:'C', y:170, buttons:[{semi:0,note:'C'},{semi:2,note:'D'},{semi:4,note:'E'},{semi:5,note:'F'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q4_ALTO_NOTE_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'viola-fingering',
+        title: 'Viola Fingering',
+        clefLabel: 'Alto Clef · Mixed Keys',
+        icon: '𝄡',
+        desc: 'Alto clef · What finger?',
+        totalQuestions: 18,
+        questionText: 'What finger plays this note?',
+        noteOptions: ['0','1','Low 2','2','3'],
+        fingerboard: {
+          strings: [
+            { name:'A', y:50, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'}] },
+            { name:'D', y:90, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'}] },
+            { name:'G', y:130, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:4,finger:'2'},{semi:5,finger:'3'}] },
+            { name:'C', y:170, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:4,finger:'2'},{semi:5,finger:'3'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q4_VLA_FINGER_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'cello',
+        title: 'Cello',
+        clefLabel: 'Bass Clef · Mixed Keys',
+        icon: '𝄢',
+        desc: 'Bass clef · 18 questions',
+        totalQuestions: 18,
+        noteOptions: ['C','C#','D','E','F','F#','G','A','B'],
+        noteFingerboard: {
+          strings: [
+            { name:'A', y:50, buttons:[{semi:0,note:'A'},{semi:2,note:'B'},{semi:3,note:'C'},{semi:4,note:'C#'},{semi:5,note:'D'}] },
+            { name:'D', y:90, buttons:[{semi:0,note:'D'},{semi:2,note:'E'},{semi:3,note:'F'},{semi:4,note:'F#'},{semi:5,note:'G'}] },
+            { name:'G', y:130, buttons:[{semi:0,note:'G'},{semi:2,note:'A'},{semi:4,note:'B'},{semi:5,note:'C'}] },
+            { name:'C', y:170, buttons:[{semi:0,note:'C'},{semi:2,note:'D'},{semi:4,note:'E'},{semi:5,note:'F'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q4_BASS_CELLO_NOTE_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'cello-fingering',
+        title: 'Cello Fingering',
+        clefLabel: 'Bass Clef · Mixed Keys',
+        icon: '𝄢',
+        desc: 'Bass clef · What finger?',
+        totalQuestions: 18,
+        questionText: 'What finger plays this note?',
+        noteOptions: ['0','1','2','3','4'],
+        fingerboard: {
+          strings: [
+            { name:'A', y:50, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'3'},{semi:5,finger:'4'}] },
+            { name:'D', y:90, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'3'},{semi:5,finger:'4'}] },
+            { name:'G', y:130, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:4,finger:'3'},{semi:5,finger:'4'}] },
+            { name:'C', y:170, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:4,finger:'3'},{semi:5,finger:'4'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q4_CELLO_FINGER_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'bass',
+        title: 'Bass',
+        clefLabel: 'Bass Clef · Mixed Keys',
+        icon: '𝄢',
+        desc: 'Bass clef · 17 questions',
+        totalQuestions: 17,
+        noteOptions: ['C','C#','D','E','F','F#','G','A','B'],
+        noteFingerboard: {
+          strings: [
+            { name:'G', y:50, buttons:[{semi:0,note:'G'},{semi:2,note:'A'},{semi:4,note:'B'},{semi:5,note:'C'},{semi:6,note:'C#'},{semi:7,note:'D'}] },
+            { name:'D', y:90, buttons:[{semi:0,note:'D'},{semi:2,note:'E'},{semi:3,note:'F'},{semi:4,note:'F#'}] },
+            { name:'A', y:130, buttons:[{semi:0,note:'A'},{semi:2,note:'B'},{semi:3,note:'C'},{semi:4,note:'C#'}] },
+            { name:'E', y:170, buttons:[{semi:0,note:'E'},{semi:2,note:'F#'},{semi:3,note:'G'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q4_BASS_BASS_NOTE_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'bass-fingering',
+        title: 'Bass Fingering',
+        clefLabel: 'Bass Clef · Mixed Keys',
+        icon: '𝄢',
+        desc: 'Bass clef · What finger?',
+        totalQuestions: 17,
+        questionText: 'What finger plays this note?',
+        noteOptions: ['0','1','2','4','Shift 1','Shift 2','Shift 4'],
+        fingerboard: {
+          strings: [
+            { name:'G', y:50, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:4,finger:'4'},{semi:5,finger:'Shift 1'},{semi:6,finger:'Shift 2'},{semi:7,finger:'Shift 4'}] },
+            { name:'D', y:90, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'4'}] },
+            { name:'A', y:130, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'4'}] },
+            { name:'E', y:170, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'2'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q4_BASS_FINGER_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+    ],
+  }, // end q1-6th
+  {
+    id: 'q2-6th',
+    title: '6th Grade',
+    subtitle: 'Quarter 2',
+    icon: '🎻',
+    desc: '8 quizzes · F & Bb Major added',
+    quizzes: [
+      {
+        id: 'violin',
+        title: 'Violin',
+        clefLabel: 'Treble Clef · Mixed Keys',
+        icon: '𝄞',
+        desc: 'Treble clef · 20 questions',
+        totalQuestions: 20,
+        noteOptions: ['C','C#','D','E','F','F#','G','A','Bb','B'],
+        noteFingerboard: {
+          strings: [
+            { name:'E', y:50, buttons:[{semi:0,note:'E'},{semi:1,note:'F'},{semi:2,note:'F#'},{semi:3,note:'G'},{semi:5,note:'A'}] },
+            { name:'A', y:90, buttons:[{semi:0,note:'A'},{semi:2,note:'B'},{semi:3,note:'C'},{semi:4,note:'C#'},{semi:5,note:'D'}] },
+            { name:'D', y:130, buttons:[{semi:0,note:'D'},{semi:2,note:'E'},{semi:3,note:'F'},{semi:4,note:'F#'},{semi:5,note:'G'}] },
+            { name:'G', y:170, buttons:[{semi:0,note:'G'},{semi:2,note:'A'},{semi:3,note:'Bb'},{semi:4,note:'B'},{semi:5,note:'C'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q2_6TH_TREBLE_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'violin-fingering',
+        title: 'Violin Fingering',
+        clefLabel: 'Treble Clef · Mixed Keys',
+        icon: '𝄞',
+        desc: 'Treble clef · What finger?',
+        totalQuestions: 20,
+        questionText: 'What finger plays this note?',
+        noteOptions: ['0','Low 1','1','Low 2','2','3'],
+        fingerboard: {
+          strings: [
+            { name:'E', y:50, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:5,finger:'3'}] },
+            { name:'A', y:90, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'}] },
+            { name:'D', y:130, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'}] },
+            { name:'G', y:170, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q2_6TH_VLN_FINGER_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'viola',
+        title: 'Viola',
+        clefLabel: 'Alto Clef · Mixed Keys',
+        icon: '𝄡',
+        desc: 'Alto clef · 20 questions',
+        totalQuestions: 20,
+        noteOptions: ['C','C#','D','Eb','E','F','F#','G','A','Bb','B'],
+        noteFingerboard: {
+          strings: [
+            { name:'A', y:50, buttons:[{semi:0,note:'A'},{semi:2,note:'B'},{semi:3,note:'C'},{semi:4,note:'C#'},{semi:5,note:'D'}] },
+            { name:'D', y:90, buttons:[{semi:0,note:'D'},{semi:2,note:'E'},{semi:3,note:'F'},{semi:4,note:'F#'},{semi:5,note:'G'}] },
+            { name:'G', y:130, buttons:[{semi:0,note:'G'},{semi:2,note:'A'},{semi:3,note:'Bb'},{semi:4,note:'B'},{semi:5,note:'C'}] },
+            { name:'C', y:170, buttons:[{semi:0,note:'C'},{semi:2,note:'D'},{semi:3,note:'Eb'},{semi:4,note:'E'},{semi:5,note:'F'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q2_6TH_ALTO_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'viola-fingering',
+        title: 'Viola Fingering',
+        clefLabel: 'Alto Clef · Mixed Keys',
+        icon: '𝄡',
+        desc: 'Alto clef · What finger?',
+        totalQuestions: 20,
+        questionText: 'What finger plays this note?',
+        noteOptions: ['0','1','Low 2','2','3'],
+        fingerboard: {
+          strings: [
+            { name:'A', y:50, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'}] },
+            { name:'D', y:90, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'}] },
+            { name:'G', y:130, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'}] },
+            { name:'C', y:170, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q2_6TH_VLA_FINGER_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'cello',
+        title: 'Cello',
+        clefLabel: 'Bass Clef · Mixed Keys',
+        icon: '𝄢',
+        desc: 'Bass clef · 20 questions',
+        totalQuestions: 20,
+        noteOptions: ['C','C#','D','Eb','E','F','F#','G','A','Bb','B'],
+        noteFingerboard: {
+          strings: [
+            { name:'A', y:50, buttons:[{semi:0,note:'A'},{semi:2,note:'B'},{semi:3,note:'C'},{semi:4,note:'C#'},{semi:5,note:'D'}] },
+            { name:'D', y:90, buttons:[{semi:0,note:'D'},{semi:2,note:'E'},{semi:3,note:'F'},{semi:4,note:'F#'},{semi:5,note:'G'}] },
+            { name:'G', y:130, buttons:[{semi:0,note:'G'},{semi:2,note:'A'},{semi:3,note:'Bb'},{semi:4,note:'B'},{semi:5,note:'C'}] },
+            { name:'C', y:170, buttons:[{semi:0,note:'C'},{semi:2,note:'D'},{semi:3,note:'Eb'},{semi:4,note:'E'},{semi:5,note:'F'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q2_6TH_BASS_CELLO_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'cello-fingering',
+        title: 'Cello Fingering',
+        clefLabel: 'Bass Clef · Mixed Keys',
+        icon: '𝄢',
+        desc: 'Bass clef · What finger?',
+        totalQuestions: 20,
+        questionText: 'What finger plays this note?',
+        noteOptions: ['0','1','2','3','4'],
+        fingerboard: {
+          strings: [
+            { name:'A', y:50, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'3'},{semi:5,finger:'4'}] },
+            { name:'D', y:90, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'3'},{semi:5,finger:'4'}] },
+            { name:'G', y:130, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'3'},{semi:5,finger:'4'}] },
+            { name:'C', y:170, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'3'},{semi:5,finger:'4'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q2_6TH_CELLO_FINGER_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'bass',
+        title: 'Bass',
+        clefLabel: 'Bass Clef · Mixed Keys',
+        icon: '𝄢',
+        desc: 'Bass clef · 19 questions',
+        totalQuestions: 19,
+        noteOptions: ['C','C#','D','E','F','F#','G','A','Bb','B'],
+        noteFingerboard: {
+          strings: [
+            { name:'G', y:50, buttons:[{semi:0,note:'G'},{semi:2,note:'A'},{semi:3,note:'Bb'},{semi:4,note:'B'},{semi:5,note:'C'},{semi:6,note:'C#'},{semi:7,note:'D'}] },
+            { name:'D', y:90, buttons:[{semi:0,note:'D'},{semi:2,note:'E'},{semi:3,note:'F'},{semi:4,note:'F#'}] },
+            { name:'A', y:130, buttons:[{semi:0,note:'A'},{semi:2,note:'B'},{semi:3,note:'C'},{semi:4,note:'C#'}] },
+            { name:'E', y:170, buttons:[{semi:0,note:'E'},{semi:1,note:'F'},{semi:2,note:'F#'},{semi:3,note:'G'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q2_6TH_BASS_BASS_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'bass-fingering',
+        title: 'Bass Fingering',
+        clefLabel: 'Bass Clef · Mixed Keys',
+        icon: '𝄢',
+        desc: 'Bass clef · What finger?',
+        totalQuestions: 19,
+        questionText: 'What finger plays this note?',
+        noteOptions: ['0','Low 1','1','2','4','Shift 1','Shift 2','Shift 4'],
+        fingerboard: {
+          strings: [
+            { name:'G', y:50, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'4'},{semi:5,finger:'Shift 1'},{semi:6,finger:'Shift 2'},{semi:7,finger:'Shift 4'}] },
+            { name:'D', y:90, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'4'}] },
+            { name:'A', y:130, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'4'}] },
+            { name:'E', y:170, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'2'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q2_6TH_BASS_FINGER_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+    ],
+  }, // end q2-6th
+  {
+    id: 'q3-6th',
+    title: '6th Grade',
+    subtitle: 'Quarter 3',
+    icon: '🎻',
+    desc: '8 quizzes · A Major added',
+    quizzes: [
+      {
+        id: 'violin',
+        title: 'Violin',
+        clefLabel: 'Treble Clef · Mixed Keys',
+        icon: '𝄞',
+        desc: 'Treble clef · 23 questions',
+        totalQuestions: 23,
+        noteOptions: ['C','C#','D','Eb','E','F','F#','G','G#','A','Bb','B'],
+        noteFingerboard: {
+          strings: [
+            { name:'E', y:50, buttons:[{semi:0,note:'E'},{semi:1,note:'F'},{semi:2,note:'F#'},{semi:3,note:'G'},{semi:5,note:'A'}] },
+            { name:'A', y:90, buttons:[{semi:0,note:'A'},{semi:1,note:'Bb'},{semi:2,note:'B'},{semi:3,note:'C'},{semi:4,note:'C#'},{semi:5,note:'D'}] },
+            { name:'D', y:130, buttons:[{semi:0,note:'D'},{semi:1,note:'Eb'},{semi:2,note:'E'},{semi:3,note:'F'},{semi:4,note:'F#'},{semi:5,note:'G'}] },
+            { name:'G', y:170, buttons:[{semi:0,note:'G'},{semi:1,note:'G#'},{semi:2,note:'A'},{semi:3,note:'Bb'},{semi:4,note:'B'},{semi:5,note:'C'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q3_6TH_TREBLE_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'violin-fingering',
+        title: 'Violin Fingering',
+        clefLabel: 'Treble Clef · Mixed Keys',
+        icon: '𝄞',
+        desc: 'Treble clef · What finger?',
+        totalQuestions: 23,
+        questionText: 'What finger plays this note?',
+        noteOptions: ['0','Low 1','1','Low 2','2','3'],
+        fingerboard: {
+          strings: [
+            { name:'E', y:50, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:5,finger:'3'}] },
+            { name:'A', y:90, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'}] },
+            { name:'D', y:130, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'}] },
+            { name:'G', y:170, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q3_6TH_VLN_FINGER_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'viola',
+        title: 'Viola',
+        clefLabel: 'Alto Clef · Mixed Keys',
+        icon: '𝄡',
+        desc: 'Alto clef · 24 questions',
+        totalQuestions: 24,
+        noteOptions: ['C','C#','D','Eb','E','F','F#','G','G#','A','Bb','B'],
+        noteFingerboard: {
+          strings: [
+            { name:'A', y:50, buttons:[{semi:0,note:'A'},{semi:1,note:'Bb'},{semi:2,note:'B'},{semi:3,note:'C'},{semi:4,note:'C#'},{semi:5,note:'D'}] },
+            { name:'D', y:90, buttons:[{semi:0,note:'D'},{semi:1,note:'Eb'},{semi:2,note:'E'},{semi:3,note:'F'},{semi:4,note:'F#'},{semi:5,note:'G'}] },
+            { name:'G', y:130, buttons:[{semi:0,note:'G'},{semi:1,note:'G#'},{semi:2,note:'A'},{semi:3,note:'Bb'},{semi:4,note:'B'},{semi:5,note:'C'}] },
+            { name:'C', y:170, buttons:[{semi:0,note:'C'},{semi:1,note:'C#'},{semi:2,note:'D'},{semi:3,note:'Eb'},{semi:4,note:'E'},{semi:5,note:'F'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q3_6TH_ALTO_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'viola-fingering',
+        title: 'Viola Fingering',
+        clefLabel: 'Alto Clef · Mixed Keys',
+        icon: '𝄡',
+        desc: 'Alto clef · What finger?',
+        totalQuestions: 24,
+        questionText: 'What finger plays this note?',
+        noteOptions: ['0','Low 1','1','Low 2','2','3'],
+        fingerboard: {
+          strings: [
+            { name:'A', y:50, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'}] },
+            { name:'D', y:90, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'}] },
+            { name:'G', y:130, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'}] },
+            { name:'C', y:170, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q3_6TH_VLA_FINGER_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'cello',
+        title: 'Cello',
+        clefLabel: 'Bass Clef · Mixed Keys',
+        icon: '𝄢',
+        desc: 'Bass clef · 24 questions',
+        totalQuestions: 24,
+        noteOptions: ['C','C#','D','Eb','E','F','F#','G','G#','A','Bb','B'],
+        noteFingerboard: {
+          strings: [
+            { name:'A', y:50, buttons:[{semi:0,note:'A'},{semi:1,note:'Bb'},{semi:2,note:'B'},{semi:3,note:'C'},{semi:4,note:'C#'},{semi:5,note:'D'}] },
+            { name:'D', y:90, buttons:[{semi:0,note:'D'},{semi:1,note:'Eb'},{semi:2,note:'E'},{semi:3,note:'F'},{semi:4,note:'F#'},{semi:5,note:'G'}] },
+            { name:'G', y:130, buttons:[{semi:0,note:'G'},{semi:1,note:'G#'},{semi:2,note:'A'},{semi:3,note:'Bb'},{semi:4,note:'B'},{semi:5,note:'C'}] },
+            { name:'C', y:170, buttons:[{semi:0,note:'C'},{semi:1,note:'C#'},{semi:2,note:'D'},{semi:3,note:'Eb'},{semi:4,note:'E'},{semi:5,note:'F'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q3_6TH_BASS_CELLO_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'cello-fingering',
+        title: 'Cello Fingering',
+        clefLabel: 'Bass Clef · Mixed Keys',
+        icon: '𝄢',
+        desc: 'Bass clef · What finger?',
+        totalQuestions: 24,
+        questionText: 'What finger plays this note?',
+        noteOptions: ['0','Low 1','1','2','3','4'],
+        fingerboard: {
+          strings: [
+            { name:'A', y:50, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'3'},{semi:5,finger:'4'}] },
+            { name:'D', y:90, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'3'},{semi:5,finger:'4'}] },
+            { name:'G', y:130, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'3'},{semi:5,finger:'4'}] },
+            { name:'C', y:170, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'3'},{semi:5,finger:'4'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q3_6TH_CELLO_FINGER_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'bass',
+        title: 'Bass',
+        clefLabel: 'Bass Clef · Mixed Keys',
+        icon: '𝄢',
+        desc: 'Bass clef · 22 questions',
+        totalQuestions: 22,
+        noteOptions: ['C','C#','D','Eb','E','F','F#','G','G#','A','Bb','B'],
+        noteFingerboard: {
+          strings: [
+            { name:'G', y:50, buttons:[{semi:0,note:'G'},{semi:2,note:'A'},{semi:3,note:'Bb'},{semi:4,note:'B'},{semi:5,note:'C'},{semi:6,note:'C#'},{semi:7,note:'D'}] },
+            { name:'D', y:90, buttons:[{semi:0,note:'D'},{semi:1,note:'Eb'},{semi:2,note:'E'},{semi:3,note:'F'},{semi:4,note:'F#'}] },
+            { name:'A', y:130, buttons:[{semi:0,note:'A'},{semi:1,note:'Bb'},{semi:2,note:'B'},{semi:3,note:'C'},{semi:4,note:'C#'}] },
+            { name:'E', y:170, buttons:[{semi:0,note:'E'},{semi:1,note:'F'},{semi:2,note:'F#'},{semi:3,note:'G'},{semi:4,note:'G#'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q3_6TH_BASS_BASS_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'bass-fingering',
+        title: 'Bass Fingering',
+        clefLabel: 'Bass Clef · Mixed Keys',
+        icon: '𝄢',
+        desc: 'Bass clef · What finger?',
+        totalQuestions: 22,
+        questionText: 'What finger plays this note?',
+        noteOptions: ['0','Low 1','1','2','4','Shift 1','Shift 2','Shift 4'],
+        fingerboard: {
+          strings: [
+            { name:'G', y:50, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'4'},{semi:5,finger:'Shift 1'},{semi:6,finger:'Shift 2'},{semi:7,finger:'Shift 4'}] },
+            { name:'D', y:90, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'4'}] },
+            { name:'A', y:130, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'4'}] },
+            { name:'E', y:170, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'2'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q3_6TH_BASS_FINGER_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+    ],
+  }, // end q3-6th
+  {
+    id: 'q4-6th',
+    title: '6th Grade',
+    subtitle: 'Quarter 4',
+    icon: '🎻',
+    desc: '8 quizzes · All keys · Full chromatic range',
+    quizzes: [
+      {
+        id: 'violin',
+        title: 'Violin',
+        clefLabel: 'Treble Clef · Mixed Keys',
+        icon: '𝄞',
+        desc: 'Treble clef · 28 questions',
+        totalQuestions: 28,
+        noteOptions: ['C','C#','D','Eb','E','F','F#','G','G#','A','Bb','B'],
+        noteFingerboard: {
+          strings: [
+            { name:'E', y:50, buttons:[{semi:0,note:'E'},{semi:1,note:'F'},{semi:2,note:'F#'},{semi:3,note:'G'},{semi:4,note:'G#'},{semi:5,note:'A'},{semi:6,note:'Bb'}] },
+            { name:'A', y:90, buttons:[{semi:0,note:'A'},{semi:1,note:'Bb'},{semi:2,note:'B'},{semi:3,note:'C'},{semi:4,note:'C#'},{semi:5,note:'D'},{semi:6,note:'Eb'}] },
+            { name:'D', y:130, buttons:[{semi:0,note:'D'},{semi:1,note:'Eb'},{semi:2,note:'E'},{semi:3,note:'F'},{semi:4,note:'F#'},{semi:5,note:'G'},{semi:6,note:'G#'}] },
+            { name:'G', y:170, buttons:[{semi:0,note:'G'},{semi:1,note:'G#'},{semi:2,note:'A'},{semi:3,note:'Bb'},{semi:4,note:'B'},{semi:5,note:'C'},{semi:6,note:'C#'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q4_6TH_TREBLE_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'violin-fingering',
+        title: 'Violin Fingering',
+        clefLabel: 'Treble Clef · Mixed Keys',
+        icon: '𝄞',
+        desc: 'Treble clef · What finger?',
+        totalQuestions: 28,
+        questionText: 'What finger plays this note?',
+        noteOptions: ['0','Low 1','1','Low 2','2','3','x3','Low 4'],
+        fingerboard: {
+          strings: [
+            { name:'E', y:50, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'},{semi:6,finger:'Low 4'}] },
+            { name:'A', y:90, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'},{semi:6,finger:'Low 4'}] },
+            { name:'D', y:130, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'},{semi:6,finger:'x3'}] },
+            { name:'G', y:170, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'},{semi:6,finger:'x3'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q4_6TH_VLN_FINGER_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'viola',
+        title: 'Viola',
+        clefLabel: 'Alto Clef · Mixed Keys',
+        icon: '𝄡',
+        desc: 'Alto clef · 28 questions',
+        totalQuestions: 28,
+        noteOptions: ['C','C#','D','Eb','E','F','F#','G','G#','A','Bb','B'],
+        noteFingerboard: {
+          strings: [
+            { name:'A', y:50, buttons:[{semi:0,note:'A'},{semi:1,note:'Bb'},{semi:2,note:'B'},{semi:3,note:'C'},{semi:4,note:'C#'},{semi:5,note:'D'},{semi:6,note:'Eb'}] },
+            { name:'D', y:90, buttons:[{semi:0,note:'D'},{semi:1,note:'Eb'},{semi:2,note:'E'},{semi:3,note:'F'},{semi:4,note:'F#'},{semi:5,note:'G'},{semi:6,note:'G#'}] },
+            { name:'G', y:130, buttons:[{semi:0,note:'G'},{semi:1,note:'G#'},{semi:2,note:'A'},{semi:3,note:'Bb'},{semi:4,note:'B'},{semi:5,note:'C'},{semi:6,note:'C#'}] },
+            { name:'C', y:170, buttons:[{semi:0,note:'C'},{semi:1,note:'C#'},{semi:2,note:'D'},{semi:3,note:'Eb'},{semi:4,note:'E'},{semi:5,note:'F'},{semi:6,note:'F#'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q4_6TH_ALTO_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'viola-fingering',
+        title: 'Viola Fingering',
+        clefLabel: 'Alto Clef · Mixed Keys',
+        icon: '𝄡',
+        desc: 'Alto clef · What finger?',
+        totalQuestions: 28,
+        questionText: 'What finger plays this note?',
+        noteOptions: ['0','Low 1','1','Low 2','2','3','x3','Low 4'],
+        fingerboard: {
+          strings: [
+            { name:'A', y:50, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'},{semi:6,finger:'Low 4'}] },
+            { name:'D', y:90, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'},{semi:6,finger:'x3'}] },
+            { name:'G', y:130, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'},{semi:6,finger:'x3'}] },
+            { name:'C', y:170, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'Low 2'},{semi:4,finger:'2'},{semi:5,finger:'3'},{semi:6,finger:'x3'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q4_6TH_VLA_FINGER_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'cello',
+        title: 'Cello',
+        clefLabel: 'Bass Clef · Mixed Keys',
+        icon: '𝄢',
+        desc: 'Bass clef · 28 questions',
+        totalQuestions: 28,
+        noteOptions: ['C','C#','D','Eb','E','F','F#','G','G#','A','Bb','B'],
+        noteFingerboard: {
+          strings: [
+            { name:'A', y:50, buttons:[{semi:0,note:'A'},{semi:1,note:'Bb'},{semi:2,note:'B'},{semi:3,note:'C'},{semi:4,note:'C#'},{semi:5,note:'D'},{semi:6,note:'Eb'}] },
+            { name:'D', y:90, buttons:[{semi:0,note:'D'},{semi:1,note:'Eb'},{semi:2,note:'E'},{semi:3,note:'F'},{semi:4,note:'F#'},{semi:5,note:'G'},{semi:6,note:'G#'}] },
+            { name:'G', y:130, buttons:[{semi:0,note:'G'},{semi:1,note:'G#'},{semi:2,note:'A'},{semi:3,note:'Bb'},{semi:4,note:'B'},{semi:5,note:'C'},{semi:6,note:'C#'}] },
+            { name:'C', y:170, buttons:[{semi:0,note:'C'},{semi:1,note:'C#'},{semi:2,note:'D'},{semi:3,note:'Eb'},{semi:4,note:'E'},{semi:5,note:'F'},{semi:6,note:'F#'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q4_6TH_BASS_CELLO_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'cello-fingering',
+        title: 'Cello Fingering',
+        clefLabel: 'Bass Clef · Mixed Keys',
+        icon: '𝄢',
+        desc: 'Bass clef · What finger?',
+        totalQuestions: 28,
+        questionText: 'What finger plays this note?',
+        noteOptions: ['0','Low 1','1','2','3','4'],
+        fingerboard: {
+          strings: [
+            { name:'A', y:50, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'3'},{semi:5,finger:'4'},{semi:6,finger:'x4'}] },
+            { name:'D', y:90, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'3'},{semi:5,finger:'4'},{semi:6,finger:'x4'}] },
+            { name:'G', y:130, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'3'},{semi:5,finger:'4'},{semi:6,finger:'x4'}] },
+            { name:'C', y:170, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'3'},{semi:5,finger:'4'},{semi:6,finger:'x4'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q4_6TH_CELLO_FINGER_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'bass',
+        title: 'Bass',
+        clefLabel: 'Bass Clef · Mixed Keys',
+        icon: '𝄢',
+        desc: 'Bass clef · 23 questions',
+        totalQuestions: 23,
+        noteOptions: ['C','C#','D','Eb','E','F','F#','G','G#','A','Bb','B'],
+        noteFingerboard: {
+          strings: [
+            { name:'G', y:50, buttons:[{semi:0,note:'G'},{semi:1,note:'G#'},{semi:2,note:'A'},{semi:3,note:'Bb'},{semi:4,note:'B'},{semi:5,note:'C'},{semi:6,note:'C#'},{semi:7,note:'D'}] },
+            { name:'D', y:90, buttons:[{semi:0,note:'D'},{semi:1,note:'Eb'},{semi:2,note:'E'},{semi:3,note:'F'},{semi:4,note:'F#'}] },
+            { name:'A', y:130, buttons:[{semi:0,note:'A'},{semi:1,note:'Bb'},{semi:2,note:'B'},{semi:3,note:'C'},{semi:4,note:'C#'}] },
+            { name:'E', y:170, buttons:[{semi:0,note:'E'},{semi:1,note:'F'},{semi:2,note:'F#'},{semi:3,note:'G'},{semi:4,note:'G#'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q4_6TH_BASS_BASS_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+      {
+        id: 'bass-fingering',
+        title: 'Bass Fingering',
+        clefLabel: 'Bass Clef · Mixed Keys',
+        icon: '𝄢',
+        desc: 'Bass clef · What finger?',
+        totalQuestions: 23,
+        questionText: 'What finger plays this note?',
+        noteOptions: ['0','Low 1','1','2','4','Shift 1','Shift 2','Shift 4'],
+        fingerboard: {
+          strings: [
+            { name:'G', y:50, buttons:[{semi:0,finger:'0'},{semi:1,finger:'1'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'4'},{semi:5,finger:'Shift 1'},{semi:6,finger:'Shift 2'},{semi:7,finger:'Shift 4'}] },
+            { name:'D', y:90, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'4'}] },
+            { name:'A', y:130, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'4'}] },
+            { name:'E', y:170, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'2'}] },
+          ],
+        },
+        buildQuiz: function() {
+          var pool=Q4_6TH_BASS_FINGER_POOL.slice();
+          for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+          return pool;
+        },
+      },
+    ],
+  }, // end q4-6th
+
 ];
 
 // ── NAVIGATION STRUCTURE ───────────────────────────────────────────
@@ -4448,11 +5208,649 @@ const INSTRUMENTS = [
 ];
 
 // Maps ensembleId|grade|quarter → folderId
+
+// ── 6TH GRADE POOLS ────────────────────────────────────────────────────────
+
+const Q2_6TH_TREBLE_POOL = [
+  { noteFile:'images/note1.png', answer:'G', answerString:'G', label:'G3', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note2.png', answer:'A', answerString:'G', label:'A3', clefImg:'images/treble-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note3.png', answer:'B', answerString:'G', label:'B3', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note4.png', answer:'C', answerString:'G', label:'C4', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note5.png', answer:'D', answerString:'D', label:'D4', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note6.png', answer:'E', answerString:'D', label:'E4', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note7.png', answer:'F', answerString:'D', label:'F4', clefImg:'images/treble-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note7.png', answer:'F#', answerString:'D', label:'F#4', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note8.png', answer:'G', answerString:'D', label:'G4', clefImg:'images/treble-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note9.png', answer:'A', answerString:'A', label:'A4', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note10.png', answer:'B', answerString:'A', label:'B4', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note11.png', answer:'C', answerString:'A', label:'C5', clefImg:'images/treble-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note11.png', answer:'C#', answerString:'A', label:'C#5', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note12.png', answer:'D', answerString:'A', label:'D5', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note13.png', answer:'E', answerString:'E', label:'E5', clefImg:'images/treble-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note14.png', answer:'F', answerString:'E', label:'F5', clefImg:'images/treble-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note14.png', answer:'F#', answerString:'E', label:'F#5', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note15.png', answer:'G', answerString:'E', label:'G5', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note16.png', answer:'A', answerString:'E', label:'A5', clefImg:'images/treble-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note3.png', answer:'Bb', answerString:'G', label:'Bb3', clefImg:'images/treble-2.png', clefLabel:'Bb Major' },
+];
+
+const Q3_6TH_TREBLE_POOL = [
+  { noteFile:'images/note1.png', answer:'G', answerString:'G', label:'G3', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note2.png', answer:'A', answerString:'G', label:'A3', clefImg:'images/treble3.png', clefLabel:'A Major' },
+  { noteFile:'images/note3.png', answer:'B', answerString:'G', label:'B3', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note4.png', answer:'C', answerString:'G', label:'C4', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note5.png', answer:'D', answerString:'D', label:'D4', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note6.png', answer:'E', answerString:'D', label:'E4', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note7.png', answer:'F', answerString:'D', label:'F4', clefImg:'images/treble-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note7.png', answer:'F#', answerString:'D', label:'F#4', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note8.png', answer:'G', answerString:'D', label:'G4', clefImg:'images/treble-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note9.png', answer:'A', answerString:'A', label:'A4', clefImg:'images/treble3.png', clefLabel:'A Major' },
+  { noteFile:'images/note10.png', answer:'B', answerString:'A', label:'B4', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note11.png', answer:'C', answerString:'A', label:'C5', clefImg:'images/treble-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note11.png', answer:'C#', answerString:'A', label:'C#5', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note12.png', answer:'D', answerString:'A', label:'D5', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note13.png', answer:'E', answerString:'E', label:'E5', clefImg:'images/treble-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note14.png', answer:'F', answerString:'E', label:'F5', clefImg:'images/treble-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note14.png', answer:'F#', answerString:'E', label:'F#5', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note15.png', answer:'G', answerString:'E', label:'G5', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note16.png', answer:'A', answerString:'E', label:'A5', clefImg:'images/treble3.png', clefLabel:'A Major' },
+  { noteFile:'images/note3.png', answer:'Bb', answerString:'G', label:'Bb3', clefImg:'images/treble-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note1.png', answer:'G#', answerString:'G', label:'G#3', clefImg:'images/treble3.png', clefLabel:'A Major' },
+  { noteFile:'images/note10.png', answer:'Bb', answerString:'A', label:'Bb4', clefImg:'images/treble-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note6.png', answer:'Eb', answerString:'D', label:'Eb4', clefImg:'images/treble-2.png', clefLabel:'Bb Major' },
+];
+
+const Q4_6TH_TREBLE_POOL = [
+  { noteFile:'images/note1.png', answer:'G', answerString:'G', label:'G3', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note2.png', answer:'A', answerString:'G', label:'A3', clefImg:'images/treble3.png', clefLabel:'A Major' },
+  { noteFile:'images/note3.png', answer:'B', answerString:'G', label:'B3', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note4.png', answer:'C', answerString:'G', label:'C4', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note5.png', answer:'D', answerString:'D', label:'D4', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note6.png', answer:'E', answerString:'D', label:'E4', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note7.png', answer:'F', answerString:'D', label:'F4', clefImg:'images/treble-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note7.png', answer:'F#', answerString:'D', label:'F#4', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note8.png', answer:'G', answerString:'D', label:'G4', clefImg:'images/treble-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note9.png', answer:'A', answerString:'A', label:'A4', clefImg:'images/treble3.png', clefLabel:'A Major' },
+  { noteFile:'images/note10.png', answer:'B', answerString:'A', label:'B4', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note11.png', answer:'C', answerString:'A', label:'C5', clefImg:'images/treble-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note11.png', answer:'C#', answerString:'A', label:'C#5', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note12.png', answer:'D', answerString:'A', label:'D5', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note13.png', answer:'E', answerString:'E', label:'E5', clefImg:'images/treble-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note14.png', answer:'F', answerString:'E', label:'F5', clefImg:'images/treble-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note14.png', answer:'F#', answerString:'E', label:'F#5', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note15.png', answer:'G', answerString:'E', label:'G5', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note16.png', answer:'A', answerString:'E', label:'A5', clefImg:'images/treble3.png', clefLabel:'A Major' },
+  { noteFile:'images/note3.png', answer:'Bb', answerString:'G', label:'Bb3', clefImg:'images/treble-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note1.png', answer:'G#', answerString:'G', label:'G#3', clefImg:'images/treble3.png', clefLabel:'A Major' },
+  { noteFile:'images/note10.png', answer:'Bb', answerString:'A', label:'Bb4', clefImg:'images/treble-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note6.png', answer:'Eb', answerString:'D', label:'Eb4', clefImg:'images/treble-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note4.png', answer:'C#', answerString:'G', label:'C#4', clefImg:'images/treble3.png', clefLabel:'A Major' },
+  { noteFile:'images/note8.png', answer:'G#', answerString:'D', label:'G#4', clefImg:'images/treble3.png', clefLabel:'A Major' },
+  { noteFile:'images/note13.png', answer:'Eb', answerString:'A', label:'Eb5', clefImg:'images/treble-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note15.png', answer:'G#', answerString:'E', label:'G#5', clefImg:'images/treble3.png', clefLabel:'A Major' },
+  { noteFile:'images/note17.png', answer:'Bb', answerString:'E', label:'Bb5', clefImg:'images/treble-2.png', clefLabel:'Bb Major' },
+];
+
+const Q2_6TH_ALTO_POOL = [
+  { noteFile:'images/note3.png', answer:'C', answerString:'C', label:'C3', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note4.png', answer:'D', answerString:'C', label:'D3', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note5.png', answer:'E', answerString:'C', label:'E3', clefImg:'images/alto-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note6.png', answer:'F', answerString:'C', label:'F3', clefImg:'images/alto-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note7.png', answer:'G', answerString:'G', label:'G3', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note8.png', answer:'A', answerString:'G', label:'A3', clefImg:'images/alto-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note9.png', answer:'B', answerString:'G', label:'B3', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note10.png', answer:'C', answerString:'G', label:'C4', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note11.png', answer:'D', answerString:'D', label:'D4', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note12.png', answer:'E', answerString:'D', label:'E4', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note13.png', answer:'F', answerString:'D', label:'F4', clefImg:'images/alto-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note13.png', answer:'F#', answerString:'D', label:'F#4', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note14.png', answer:'G', answerString:'D', label:'G4', clefImg:'images/alto-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note15.png', answer:'A', answerString:'A', label:'A4', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note16.png', answer:'B', answerString:'A', label:'B4', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note17.png', answer:'C', answerString:'A', label:'C5', clefImg:'images/alto-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note17.png', answer:'C#', answerString:'A', label:'C#5', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note18.png', answer:'D', answerString:'A', label:'D5', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note9.png', answer:'Bb', answerString:'G', label:'Bb3', clefImg:'images/alto-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note5.png', answer:'Eb', answerString:'C', label:'Eb3', clefImg:'images/alto-2.png', clefLabel:'Bb Major' },
+];
+
+const Q3_6TH_ALTO_POOL = [
+  { noteFile:'images/note3.png', answer:'C', answerString:'C', label:'C3', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note4.png', answer:'D', answerString:'C', label:'D3', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note5.png', answer:'E', answerString:'C', label:'E3', clefImg:'images/alto-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note6.png', answer:'F', answerString:'C', label:'F3', clefImg:'images/alto-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note7.png', answer:'G', answerString:'G', label:'G3', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note8.png', answer:'A', answerString:'G', label:'A3', clefImg:'images/alto3.png', clefLabel:'A Major' },
+  { noteFile:'images/note9.png', answer:'B', answerString:'G', label:'B3', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note10.png', answer:'C', answerString:'G', label:'C4', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note11.png', answer:'D', answerString:'D', label:'D4', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note12.png', answer:'E', answerString:'D', label:'E4', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note13.png', answer:'F', answerString:'D', label:'F4', clefImg:'images/alto-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note13.png', answer:'F#', answerString:'D', label:'F#4', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note14.png', answer:'G', answerString:'D', label:'G4', clefImg:'images/alto-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note15.png', answer:'A', answerString:'A', label:'A4', clefImg:'images/alto3.png', clefLabel:'A Major' },
+  { noteFile:'images/note16.png', answer:'B', answerString:'A', label:'B4', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note17.png', answer:'C', answerString:'A', label:'C5', clefImg:'images/alto-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note17.png', answer:'C#', answerString:'A', label:'C#5', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note18.png', answer:'D', answerString:'A', label:'D5', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note9.png', answer:'Bb', answerString:'G', label:'Bb3', clefImg:'images/alto-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note5.png', answer:'Eb', answerString:'C', label:'Eb3', clefImg:'images/alto-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note7.png', answer:'G#', answerString:'G', label:'G#3', clefImg:'images/alto3.png', clefLabel:'A Major' },
+  { noteFile:'images/note16.png', answer:'Bb', answerString:'A', label:'Bb4', clefImg:'images/alto-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note12.png', answer:'Eb', answerString:'D', label:'Eb4', clefImg:'images/alto-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note3.png', answer:'C#', answerString:'C', label:'C#3', clefImg:'images/alto2.png', clefLabel:'D Major' },
+];
+
+const Q4_6TH_ALTO_POOL = [
+  { noteFile:'images/note3.png', answer:'C', answerString:'C', label:'C3', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note4.png', answer:'D', answerString:'C', label:'D3', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note5.png', answer:'E', answerString:'C', label:'E3', clefImg:'images/alto-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note6.png', answer:'F', answerString:'C', label:'F3', clefImg:'images/alto-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note7.png', answer:'G', answerString:'G', label:'G3', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note8.png', answer:'A', answerString:'G', label:'A3', clefImg:'images/alto3.png', clefLabel:'A Major' },
+  { noteFile:'images/note9.png', answer:'B', answerString:'G', label:'B3', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note10.png', answer:'C', answerString:'G', label:'C4', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note11.png', answer:'D', answerString:'D', label:'D4', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note12.png', answer:'E', answerString:'D', label:'E4', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note13.png', answer:'F', answerString:'D', label:'F4', clefImg:'images/alto-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note13.png', answer:'F#', answerString:'D', label:'F#4', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note14.png', answer:'G', answerString:'D', label:'G4', clefImg:'images/alto-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note15.png', answer:'A', answerString:'A', label:'A4', clefImg:'images/alto3.png', clefLabel:'A Major' },
+  { noteFile:'images/note16.png', answer:'B', answerString:'A', label:'B4', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note17.png', answer:'C', answerString:'A', label:'C5', clefImg:'images/alto-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note17.png', answer:'C#', answerString:'A', label:'C#5', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note18.png', answer:'D', answerString:'A', label:'D5', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note9.png', answer:'Bb', answerString:'G', label:'Bb3', clefImg:'images/alto-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note5.png', answer:'Eb', answerString:'C', label:'Eb3', clefImg:'images/alto-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note7.png', answer:'G#', answerString:'G', label:'G#3', clefImg:'images/alto3.png', clefLabel:'A Major' },
+  { noteFile:'images/note16.png', answer:'Bb', answerString:'A', label:'Bb4', clefImg:'images/alto-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note12.png', answer:'Eb', answerString:'D', label:'Eb4', clefImg:'images/alto-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note3.png', answer:'C#', answerString:'C', label:'C#3', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note6.png', answer:'F#', answerString:'C', label:'F#3', clefImg:'images/alto3.png', clefLabel:'A Major' },
+  { noteFile:'images/note10.png', answer:'C#', answerString:'G', label:'C#4', clefImg:'images/alto3.png', clefLabel:'A Major' },
+  { noteFile:'images/note14.png', answer:'G#', answerString:'D', label:'G#4', clefImg:'images/alto3.png', clefLabel:'A Major' },
+  { noteFile:'images/note19.png', answer:'Eb', answerString:'A', label:'Eb5', clefImg:'images/alto-2.png', clefLabel:'Bb Major' },
+];
+
+const Q2_6TH_BASS_CELLO_POOL = [
+  { noteFile:'images/note2.png', answer:'C', answerString:'C', label:'C2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note3.png', answer:'D', answerString:'C', label:'D2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note4.png', answer:'E', answerString:'C', label:'E2', clefImg:'images/bass-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note5.png', answer:'F', answerString:'C', label:'F2', clefImg:'images/bass-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note6.png', answer:'G', answerString:'G', label:'G2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note7.png', answer:'A', answerString:'G', label:'A2', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note8.png', answer:'B', answerString:'G', label:'B2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note9.png', answer:'C', answerString:'G', label:'C3', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note10.png', answer:'D', answerString:'D', label:'D3', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note11.png', answer:'E', answerString:'D', label:'E3', clefImg:'images/bass-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note12.png', answer:'F', answerString:'D', label:'F3', clefImg:'images/bass-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note12.png', answer:'F#', answerString:'D', label:'F#3', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note13.png', answer:'G', answerString:'D', label:'G3', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note14.png', answer:'A', answerString:'A', label:'A3', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note15.png', answer:'B', answerString:'A', label:'B3', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note16.png', answer:'C', answerString:'A', label:'C4', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note16.png', answer:'C#', answerString:'A', label:'C#4', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note17.png', answer:'D', answerString:'A', label:'D4', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note8.png', answer:'Bb', answerString:'G', label:'Bb2', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note4.png', answer:'Eb', answerString:'C', label:'Eb2', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+];
+
+const Q3_6TH_BASS_CELLO_POOL = [
+  { noteFile:'images/note2.png', answer:'C', answerString:'C', label:'C2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note3.png', answer:'D', answerString:'C', label:'D2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note4.png', answer:'E', answerString:'C', label:'E2', clefImg:'images/bass-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note5.png', answer:'F', answerString:'C', label:'F2', clefImg:'images/bass-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note6.png', answer:'G', answerString:'G', label:'G2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note7.png', answer:'A', answerString:'G', label:'A2', clefImg:'images/bass3.png', clefLabel:'A Major' },
+  { noteFile:'images/note8.png', answer:'B', answerString:'G', label:'B2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note9.png', answer:'C', answerString:'G', label:'C3', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note10.png', answer:'D', answerString:'D', label:'D3', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note11.png', answer:'E', answerString:'D', label:'E3', clefImg:'images/bass-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note12.png', answer:'F', answerString:'D', label:'F3', clefImg:'images/bass-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note12.png', answer:'F#', answerString:'D', label:'F#3', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note13.png', answer:'G', answerString:'D', label:'G3', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note14.png', answer:'A', answerString:'A', label:'A3', clefImg:'images/bass3.png', clefLabel:'A Major' },
+  { noteFile:'images/note15.png', answer:'B', answerString:'A', label:'B3', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note16.png', answer:'C', answerString:'A', label:'C4', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note16.png', answer:'C#', answerString:'A', label:'C#4', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note17.png', answer:'D', answerString:'A', label:'D4', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note8.png', answer:'Bb', answerString:'G', label:'Bb2', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note4.png', answer:'Eb', answerString:'C', label:'Eb2', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note15.png', answer:'Bb', answerString:'A', label:'Bb3', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note11.png', answer:'Eb', answerString:'D', label:'Eb3', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note6.png', answer:'G#', answerString:'G', label:'G#2', clefImg:'images/bass3.png', clefLabel:'A Major' },
+  { noteFile:'images/note2.png', answer:'C#', answerString:'C', label:'C#2', clefImg:'images/bass2.png', clefLabel:'D Major' },
+];
+
+const Q4_6TH_BASS_CELLO_POOL = [
+  { noteFile:'images/note2.png', answer:'C', answerString:'C', label:'C2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note3.png', answer:'D', answerString:'C', label:'D2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note4.png', answer:'E', answerString:'C', label:'E2', clefImg:'images/bass-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note5.png', answer:'F', answerString:'C', label:'F2', clefImg:'images/bass-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note6.png', answer:'G', answerString:'G', label:'G2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note7.png', answer:'A', answerString:'G', label:'A2', clefImg:'images/bass3.png', clefLabel:'A Major' },
+  { noteFile:'images/note8.png', answer:'B', answerString:'G', label:'B2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note9.png', answer:'C', answerString:'G', label:'C3', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note10.png', answer:'D', answerString:'D', label:'D3', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note11.png', answer:'E', answerString:'D', label:'E3', clefImg:'images/bass-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note12.png', answer:'F', answerString:'D', label:'F3', clefImg:'images/bass-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note12.png', answer:'F#', answerString:'D', label:'F#3', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note13.png', answer:'G', answerString:'D', label:'G3', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note14.png', answer:'A', answerString:'A', label:'A3', clefImg:'images/bass3.png', clefLabel:'A Major' },
+  { noteFile:'images/note15.png', answer:'B', answerString:'A', label:'B3', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note16.png', answer:'C', answerString:'A', label:'C4', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note16.png', answer:'C#', answerString:'A', label:'C#4', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note17.png', answer:'D', answerString:'A', label:'D4', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note8.png', answer:'Bb', answerString:'G', label:'Bb2', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note4.png', answer:'Eb', answerString:'C', label:'Eb2', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note15.png', answer:'Bb', answerString:'A', label:'Bb3', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note11.png', answer:'Eb', answerString:'D', label:'Eb3', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note6.png', answer:'G#', answerString:'G', label:'G#2', clefImg:'images/bass3.png', clefLabel:'A Major' },
+  { noteFile:'images/note2.png', answer:'C#', answerString:'C', label:'C#2', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note5.png', answer:'F#', answerString:'C', label:'F#2', clefImg:'images/bass3.png', clefLabel:'A Major' },
+  { noteFile:'images/note9.png', answer:'C#', answerString:'G', label:'C#3', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note13.png', answer:'G#', answerString:'D', label:'G#3', clefImg:'images/bass3.png', clefLabel:'A Major' },
+  { noteFile:'images/note18.png', answer:'Eb', answerString:'A', label:'Eb4', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+];
+
+const Q2_6TH_BASS_BASS_POOL = [
+  { noteFile:'images/note4.png', answer:'E', answerString:'E', label:'E1', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note5.png', answer:'F#', answerString:'E', label:'F#1', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note6.png', answer:'G', answerString:'E', label:'G1', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note7.png', answer:'A', answerString:'A', label:'A1', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note8.png', answer:'B', answerString:'A', label:'B1', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note9.png', answer:'C', answerString:'A', label:'C2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note9.png', answer:'C#', answerString:'A', label:'C#2', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note10.png', answer:'D', answerString:'D', label:'D2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note11.png', answer:'E', answerString:'D', label:'E2', clefImg:'images/bass-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note12.png', answer:'F', answerString:'D', label:'F2', clefImg:'images/bass-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note12.png', answer:'F#', answerString:'D', label:'F#2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note13.png', answer:'G', answerString:'G', label:'G2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note14.png', answer:'A', answerString:'G', label:'A2', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note15.png', answer:'B', answerString:'G', label:'B2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note16.png', answer:'C', answerString:'G', label:'C3', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note16.png', answer:'C#', answerString:'G', label:'C#3', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note17.png', answer:'D', answerString:'G', label:'D3', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note15.png', answer:'Bb', answerString:'G', label:'Bb2', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note5.png', answer:'F', answerString:'E', label:'F1', clefImg:'images/bass-1.png', clefLabel:'F Major' },
+];
+
+const Q3_6TH_BASS_BASS_POOL = [
+  { noteFile:'images/note4.png', answer:'E', answerString:'E', label:'E1', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note5.png', answer:'F#', answerString:'E', label:'F#1', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note6.png', answer:'G', answerString:'E', label:'G1', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note7.png', answer:'A', answerString:'A', label:'A1', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note8.png', answer:'B', answerString:'A', label:'B1', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note9.png', answer:'C', answerString:'A', label:'C2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note9.png', answer:'C#', answerString:'A', label:'C#2', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note10.png', answer:'D', answerString:'D', label:'D2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note11.png', answer:'E', answerString:'D', label:'E2', clefImg:'images/bass-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note12.png', answer:'F', answerString:'D', label:'F2', clefImg:'images/bass-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note12.png', answer:'F#', answerString:'D', label:'F#2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note13.png', answer:'G', answerString:'G', label:'G2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note14.png', answer:'A', answerString:'G', label:'A2', clefImg:'images/bass3.png', clefLabel:'A Major' },
+  { noteFile:'images/note15.png', answer:'B', answerString:'G', label:'B2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note16.png', answer:'C', answerString:'G', label:'C3', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note16.png', answer:'C#', answerString:'G', label:'C#3', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note17.png', answer:'D', answerString:'G', label:'D3', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note15.png', answer:'Bb', answerString:'G', label:'Bb2', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note5.png', answer:'F', answerString:'E', label:'F1', clefImg:'images/bass-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note11.png', answer:'Eb', answerString:'D', label:'Eb2', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note8.png', answer:'Bb', answerString:'A', label:'Bb1', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note6.png', answer:'G#', answerString:'E', label:'G#1', clefImg:'images/bass3.png', clefLabel:'A Major' },
+];
+
+const Q4_6TH_BASS_BASS_POOL = [
+  { noteFile:'images/note4.png', answer:'E', answerString:'E', label:'E1', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note5.png', answer:'F#', answerString:'E', label:'F#1', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note6.png', answer:'G', answerString:'E', label:'G1', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note7.png', answer:'A', answerString:'A', label:'A1', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note8.png', answer:'B', answerString:'A', label:'B1', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note9.png', answer:'C', answerString:'A', label:'C2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note9.png', answer:'C#', answerString:'A', label:'C#2', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note10.png', answer:'D', answerString:'D', label:'D2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note11.png', answer:'E', answerString:'D', label:'E2', clefImg:'images/bass-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note12.png', answer:'F', answerString:'D', label:'F2', clefImg:'images/bass-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note12.png', answer:'F#', answerString:'D', label:'F#2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note13.png', answer:'G', answerString:'G', label:'G2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note14.png', answer:'A', answerString:'G', label:'A2', clefImg:'images/bass3.png', clefLabel:'A Major' },
+  { noteFile:'images/note15.png', answer:'B', answerString:'G', label:'B2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note16.png', answer:'C', answerString:'G', label:'C3', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note16.png', answer:'C#', answerString:'G', label:'C#3', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note17.png', answer:'D', answerString:'G', label:'D3', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note15.png', answer:'Bb', answerString:'G', label:'Bb2', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note5.png', answer:'F', answerString:'E', label:'F1', clefImg:'images/bass-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note11.png', answer:'Eb', answerString:'D', label:'Eb2', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note8.png', answer:'Bb', answerString:'A', label:'Bb1', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note6.png', answer:'G#', answerString:'E', label:'G#1', clefImg:'images/bass3.png', clefLabel:'A Major' },
+  { noteFile:'images/note13.png', answer:'G#', answerString:'G', label:'G#2', clefImg:'images/bass3.png', clefLabel:'A Major' },
+];
+
+const Q2_6TH_VLN_FINGER_POOL = [
+  { noteFile:'images/note1.png', answer:'0', answerString:'G', label:'G3', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note2.png', answer:'1', answerString:'G', label:'A3', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note3.png', answer:'2', answerString:'G', label:'B3', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note4.png', answer:'3', answerString:'G', label:'C4', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note5.png', answer:'0', answerString:'D', label:'D4', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note6.png', answer:'1', answerString:'D', label:'E4', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note8.png', answer:'3', answerString:'D', label:'G4', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note9.png', answer:'0', answerString:'A', label:'A4', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note10.png', answer:'1', answerString:'A', label:'B4', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note12.png', answer:'3', answerString:'A', label:'D5', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note13.png', answer:'0', answerString:'E', label:'E5', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note16.png', answer:'3', answerString:'E', label:'A5', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note7.png', answer:'Low 2', answerString:'D', label:'F4', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note7.png', answer:'2', answerString:'D', label:'F#4', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note11.png', answer:'Low 2', answerString:'A', label:'C5', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note11.png', answer:'2', answerString:'A', label:'C#5', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note14.png', answer:'Low 1', answerString:'E', label:'F5', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note14.png', answer:'1', answerString:'E', label:'F#5', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note15.png', answer:'Low 2', answerString:'E', label:'G5', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note3.png', answer:'Low 2', answerString:'G', label:'Bb3', clefImg:'images/treble-2.png', clefLabel:'Bb Major' },
+];
+
+const Q3_6TH_VLN_FINGER_POOL = [
+  { noteFile:'images/note1.png', answer:'0', answerString:'G', label:'G3', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note2.png', answer:'1', answerString:'G', label:'A3', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note3.png', answer:'2', answerString:'G', label:'B3', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note4.png', answer:'3', answerString:'G', label:'C4', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note5.png', answer:'0', answerString:'D', label:'D4', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note6.png', answer:'1', answerString:'D', label:'E4', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note8.png', answer:'3', answerString:'D', label:'G4', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note9.png', answer:'0', answerString:'A', label:'A4', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note10.png', answer:'1', answerString:'A', label:'B4', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note12.png', answer:'3', answerString:'A', label:'D5', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note13.png', answer:'0', answerString:'E', label:'E5', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note16.png', answer:'3', answerString:'E', label:'A5', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note7.png', answer:'Low 2', answerString:'D', label:'F4', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note7.png', answer:'2', answerString:'D', label:'F#4', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note11.png', answer:'Low 2', answerString:'A', label:'C5', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note11.png', answer:'2', answerString:'A', label:'C#5', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note14.png', answer:'Low 1', answerString:'E', label:'F5', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note14.png', answer:'1', answerString:'E', label:'F#5', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note15.png', answer:'Low 2', answerString:'E', label:'G5', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note3.png', answer:'Low 2', answerString:'G', label:'Bb3', clefImg:'images/treble-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note1.png', answer:'Low 1', answerString:'G', label:'G#3', clefImg:'images/treble3.png', clefLabel:'A Major' },
+  { noteFile:'images/note10.png', answer:'Low 1', answerString:'A', label:'Bb4', clefImg:'images/treble-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note6.png', answer:'Low 1', answerString:'D', label:'Eb4', clefImg:'images/treble-2.png', clefLabel:'Bb Major' },
+];
+
+const Q4_6TH_VLN_FINGER_POOL = [
+  { noteFile:'images/note1.png', answer:'0', answerString:'G', label:'G3', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note2.png', answer:'1', answerString:'G', label:'A3', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note3.png', answer:'2', answerString:'G', label:'B3', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note4.png', answer:'3', answerString:'G', label:'C4', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note5.png', answer:'0', answerString:'D', label:'D4', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note6.png', answer:'1', answerString:'D', label:'E4', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note8.png', answer:'3', answerString:'D', label:'G4', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note9.png', answer:'0', answerString:'A', label:'A4', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note10.png', answer:'1', answerString:'A', label:'B4', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note12.png', answer:'3', answerString:'A', label:'D5', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note13.png', answer:'0', answerString:'E', label:'E5', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note16.png', answer:'3', answerString:'E', label:'A5', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note7.png', answer:'Low 2', answerString:'D', label:'F4', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note7.png', answer:'2', answerString:'D', label:'F#4', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note11.png', answer:'Low 2', answerString:'A', label:'C5', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note11.png', answer:'2', answerString:'A', label:'C#5', clefImg:'images/treble2.png', clefLabel:'D Major' },
+  { noteFile:'images/note14.png', answer:'Low 1', answerString:'E', label:'F5', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note14.png', answer:'1', answerString:'E', label:'F#5', clefImg:'images/treble1.png', clefLabel:'G Major' },
+  { noteFile:'images/note15.png', answer:'Low 2', answerString:'E', label:'G5', clefImg:'images/treble0.png', clefLabel:'C Major' },
+  { noteFile:'images/note3.png', answer:'Low 2', answerString:'G', label:'Bb3', clefImg:'images/treble-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note1.png', answer:'Low 1', answerString:'G', label:'G#3', clefImg:'images/treble3.png', clefLabel:'A Major' },
+  { noteFile:'images/note10.png', answer:'Low 1', answerString:'A', label:'Bb4', clefImg:'images/treble-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note6.png', answer:'Low 1', answerString:'D', label:'Eb4', clefImg:'images/treble-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note4.png', answer:'x3', answerString:'G', label:'C#4', clefImg:'images/treble3.png', clefLabel:'A Major' },
+  { noteFile:'images/note8.png', answer:'x3', answerString:'D', label:'G#4', clefImg:'images/treble3.png', clefLabel:'A Major' },
+  { noteFile:'images/note13.png', answer:'Low 4', answerString:'A', label:'Eb5', clefImg:'images/treble-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note15.png', answer:'2', answerString:'E', label:'G#5', clefImg:'images/treble3.png', clefLabel:'A Major' },
+  { noteFile:'images/note17.png', answer:'Low 4', answerString:'E', label:'Bb5', clefImg:'images/treble-2.png', clefLabel:'Bb Major' },
+];
+
+const Q2_6TH_VLA_FINGER_POOL = [
+  { noteFile:'images/note3.png', answer:'0', answerString:'C', label:'C3', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note4.png', answer:'1', answerString:'C', label:'D3', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note5.png', answer:'2', answerString:'C', label:'E3', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note6.png', answer:'3', answerString:'C', label:'F3', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note7.png', answer:'0', answerString:'G', label:'G3', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note8.png', answer:'1', answerString:'G', label:'A3', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note9.png', answer:'2', answerString:'G', label:'B3', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note10.png', answer:'3', answerString:'G', label:'C4', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note11.png', answer:'0', answerString:'D', label:'D4', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note12.png', answer:'1', answerString:'D', label:'E4', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note14.png', answer:'3', answerString:'D', label:'G4', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note15.png', answer:'0', answerString:'A', label:'A4', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note16.png', answer:'1', answerString:'A', label:'B4', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note18.png', answer:'3', answerString:'A', label:'D5', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note13.png', answer:'Low 2', answerString:'D', label:'F4', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note13.png', answer:'2', answerString:'D', label:'F#4', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note17.png', answer:'Low 2', answerString:'A', label:'C5', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note17.png', answer:'2', answerString:'A', label:'C#5', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note9.png', answer:'Low 2', answerString:'G', label:'Bb3', clefImg:'images/alto-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note5.png', answer:'Low 2', answerString:'C', label:'Eb3', clefImg:'images/alto-2.png', clefLabel:'Bb Major' },
+];
+
+const Q3_6TH_VLA_FINGER_POOL = [
+  { noteFile:'images/note3.png', answer:'0', answerString:'C', label:'C3', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note4.png', answer:'1', answerString:'C', label:'D3', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note5.png', answer:'2', answerString:'C', label:'E3', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note6.png', answer:'3', answerString:'C', label:'F3', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note7.png', answer:'0', answerString:'G', label:'G3', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note8.png', answer:'1', answerString:'G', label:'A3', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note9.png', answer:'2', answerString:'G', label:'B3', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note10.png', answer:'3', answerString:'G', label:'C4', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note11.png', answer:'0', answerString:'D', label:'D4', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note12.png', answer:'1', answerString:'D', label:'E4', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note14.png', answer:'3', answerString:'D', label:'G4', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note15.png', answer:'0', answerString:'A', label:'A4', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note16.png', answer:'1', answerString:'A', label:'B4', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note18.png', answer:'3', answerString:'A', label:'D5', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note13.png', answer:'Low 2', answerString:'D', label:'F4', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note13.png', answer:'2', answerString:'D', label:'F#4', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note17.png', answer:'Low 2', answerString:'A', label:'C5', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note17.png', answer:'2', answerString:'A', label:'C#5', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note9.png', answer:'Low 2', answerString:'G', label:'Bb3', clefImg:'images/alto-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note5.png', answer:'Low 2', answerString:'C', label:'Eb3', clefImg:'images/alto-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note7.png', answer:'Low 1', answerString:'G', label:'G#3', clefImg:'images/alto3.png', clefLabel:'A Major' },
+  { noteFile:'images/note16.png', answer:'Low 1', answerString:'A', label:'Bb4', clefImg:'images/alto-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note12.png', answer:'Low 1', answerString:'D', label:'Eb4', clefImg:'images/alto-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note3.png', answer:'Low 1', answerString:'C', label:'C#3', clefImg:'images/alto2.png', clefLabel:'D Major' },
+];
+
+const Q4_6TH_VLA_FINGER_POOL = [
+  { noteFile:'images/note3.png', answer:'0', answerString:'C', label:'C3', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note4.png', answer:'1', answerString:'C', label:'D3', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note5.png', answer:'2', answerString:'C', label:'E3', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note6.png', answer:'3', answerString:'C', label:'F3', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note7.png', answer:'0', answerString:'G', label:'G3', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note8.png', answer:'1', answerString:'G', label:'A3', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note9.png', answer:'2', answerString:'G', label:'B3', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note10.png', answer:'3', answerString:'G', label:'C4', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note11.png', answer:'0', answerString:'D', label:'D4', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note12.png', answer:'1', answerString:'D', label:'E4', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note14.png', answer:'3', answerString:'D', label:'G4', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note15.png', answer:'0', answerString:'A', label:'A4', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note16.png', answer:'1', answerString:'A', label:'B4', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note18.png', answer:'3', answerString:'A', label:'D5', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note13.png', answer:'Low 2', answerString:'D', label:'F4', clefImg:'images/alto0.png', clefLabel:'C Major' },
+  { noteFile:'images/note13.png', answer:'2', answerString:'D', label:'F#4', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note17.png', answer:'Low 2', answerString:'A', label:'C5', clefImg:'images/alto1.png', clefLabel:'G Major' },
+  { noteFile:'images/note17.png', answer:'2', answerString:'A', label:'C#5', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note9.png', answer:'Low 2', answerString:'G', label:'Bb3', clefImg:'images/alto-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note5.png', answer:'Low 2', answerString:'C', label:'Eb3', clefImg:'images/alto-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note7.png', answer:'Low 1', answerString:'G', label:'G#3', clefImg:'images/alto3.png', clefLabel:'A Major' },
+  { noteFile:'images/note16.png', answer:'Low 1', answerString:'A', label:'Bb4', clefImg:'images/alto-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note12.png', answer:'Low 1', answerString:'D', label:'Eb4', clefImg:'images/alto-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note3.png', answer:'Low 1', answerString:'C', label:'C#3', clefImg:'images/alto2.png', clefLabel:'D Major' },
+  { noteFile:'images/note6.png', answer:'x3', answerString:'C', label:'F#3', clefImg:'images/alto3.png', clefLabel:'A Major' },
+  { noteFile:'images/note10.png', answer:'x3', answerString:'G', label:'C#4', clefImg:'images/alto3.png', clefLabel:'A Major' },
+  { noteFile:'images/note14.png', answer:'x3', answerString:'D', label:'G#4', clefImg:'images/alto3.png', clefLabel:'A Major' },
+  { noteFile:'images/note19.png', answer:'Low 4', answerString:'A', label:'Eb5', clefImg:'images/alto-2.png', clefLabel:'Bb Major' },
+];
+
+const Q2_6TH_CELLO_FINGER_POOL = [
+  { noteFile:'images/note2.png', answer:'0', answerString:'C', label:'C2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note3.png', answer:'1', answerString:'C', label:'D2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note4.png', answer:'3', answerString:'C', label:'E2', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note5.png', answer:'4', answerString:'C', label:'F2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note6.png', answer:'0', answerString:'G', label:'G2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note7.png', answer:'1', answerString:'G', label:'A2', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note8.png', answer:'3', answerString:'G', label:'B2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note9.png', answer:'4', answerString:'G', label:'C3', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note10.png', answer:'0', answerString:'D', label:'D3', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note11.png', answer:'1', answerString:'D', label:'E3', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note13.png', answer:'4', answerString:'D', label:'G3', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note14.png', answer:'0', answerString:'A', label:'A3', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note15.png', answer:'1', answerString:'A', label:'B3', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note17.png', answer:'4', answerString:'A', label:'D4', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note12.png', answer:'2', answerString:'D', label:'F3', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note12.png', answer:'3', answerString:'D', label:'F#3', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note16.png', answer:'2', answerString:'A', label:'C4', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note16.png', answer:'3', answerString:'A', label:'C#4', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note8.png', answer:'2', answerString:'G', label:'Bb2', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note4.png', answer:'2', answerString:'C', label:'Eb2', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+];
+
+const Q3_6TH_CELLO_FINGER_POOL = [
+  { noteFile:'images/note2.png', answer:'0', answerString:'C', label:'C2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note3.png', answer:'1', answerString:'C', label:'D2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note4.png', answer:'3', answerString:'C', label:'E2', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note5.png', answer:'4', answerString:'C', label:'F2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note6.png', answer:'0', answerString:'G', label:'G2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note7.png', answer:'1', answerString:'G', label:'A2', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note8.png', answer:'3', answerString:'G', label:'B2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note9.png', answer:'4', answerString:'G', label:'C3', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note10.png', answer:'0', answerString:'D', label:'D3', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note11.png', answer:'1', answerString:'D', label:'E3', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note13.png', answer:'4', answerString:'D', label:'G3', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note14.png', answer:'0', answerString:'A', label:'A3', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note15.png', answer:'1', answerString:'A', label:'B3', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note17.png', answer:'4', answerString:'A', label:'D4', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note12.png', answer:'2', answerString:'D', label:'F3', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note12.png', answer:'3', answerString:'D', label:'F#3', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note16.png', answer:'2', answerString:'A', label:'C4', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note16.png', answer:'3', answerString:'A', label:'C#4', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note8.png', answer:'2', answerString:'G', label:'Bb2', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note4.png', answer:'2', answerString:'C', label:'Eb2', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note15.png', answer:'Low 1', answerString:'A', label:'Bb3', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note11.png', answer:'Low 1', answerString:'D', label:'Eb3', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note6.png', answer:'Low 1', answerString:'G', label:'G#2', clefImg:'images/bass3.png', clefLabel:'A Major' },
+  { noteFile:'images/note2.png', answer:'Low 1', answerString:'C', label:'C#2', clefImg:'images/bass2.png', clefLabel:'D Major' },
+];
+
+const Q4_6TH_CELLO_FINGER_POOL = [
+  { noteFile:'images/note2.png', answer:'0', answerString:'C', label:'C2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note3.png', answer:'1', answerString:'C', label:'D2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note4.png', answer:'3', answerString:'C', label:'E2', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note5.png', answer:'4', answerString:'C', label:'F2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note6.png', answer:'0', answerString:'G', label:'G2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note7.png', answer:'1', answerString:'G', label:'A2', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note8.png', answer:'3', answerString:'G', label:'B2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note9.png', answer:'4', answerString:'G', label:'C3', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note10.png', answer:'0', answerString:'D', label:'D3', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note11.png', answer:'1', answerString:'D', label:'E3', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note13.png', answer:'4', answerString:'D', label:'G3', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note14.png', answer:'0', answerString:'A', label:'A3', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note15.png', answer:'1', answerString:'A', label:'B3', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note17.png', answer:'4', answerString:'A', label:'D4', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note12.png', answer:'2', answerString:'D', label:'F3', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note12.png', answer:'3', answerString:'D', label:'F#3', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note16.png', answer:'2', answerString:'A', label:'C4', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note16.png', answer:'3', answerString:'A', label:'C#4', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note8.png', answer:'2', answerString:'G', label:'Bb2', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note4.png', answer:'2', answerString:'C', label:'Eb2', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note15.png', answer:'Low 1', answerString:'A', label:'Bb3', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note11.png', answer:'Low 1', answerString:'D', label:'Eb3', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note6.png', answer:'Low 1', answerString:'G', label:'G#2', clefImg:'images/bass3.png', clefLabel:'A Major' },
+  { noteFile:'images/note2.png', answer:'Low 1', answerString:'C', label:'C#2', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note5.png', answer:'x4', answerString:'C', label:'F#2', clefImg:'images/bass3.png', clefLabel:'A Major' },
+  { noteFile:'images/note9.png', answer:'x4', answerString:'G', label:'C#3', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note13.png', answer:'x4', answerString:'D', label:'G#3', clefImg:'images/bass3.png', clefLabel:'A Major' },
+  { noteFile:'images/note18.png', answer:'x4', answerString:'A', label:'Eb4', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+];
+
+const Q2_6TH_BASS_FINGER_POOL = [
+  { noteFile:'images/note4.png', answer:'0', answerString:'E', label:'E1', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note5.png', answer:'1', answerString:'E', label:'F#1', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note6.png', answer:'2', answerString:'E', label:'G1', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note7.png', answer:'0', answerString:'A', label:'A1', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note8.png', answer:'1', answerString:'A', label:'B1', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note10.png', answer:'0', answerString:'D', label:'D2', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note11.png', answer:'1', answerString:'D', label:'E2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note13.png', answer:'0', answerString:'G', label:'G2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note14.png', answer:'1', answerString:'G', label:'A2', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note15.png', answer:'4', answerString:'G', label:'B2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note17.png', answer:'Shift 4', answerString:'G', label:'D3', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note9.png', answer:'2', answerString:'A', label:'C2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note9.png', answer:'4', answerString:'A', label:'C#2', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note12.png', answer:'2', answerString:'D', label:'F2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note12.png', answer:'4', answerString:'D', label:'F#2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note16.png', answer:'Shift 1', answerString:'G', label:'C3', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note16.png', answer:'Shift 2', answerString:'G', label:'C#3', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note15.png', answer:'2', answerString:'G', label:'Bb2', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note5.png', answer:'Low 1', answerString:'E', label:'F1', clefImg:'images/bass-1.png', clefLabel:'F Major' },
+];
+
+const Q3_6TH_BASS_FINGER_POOL = [
+  { noteFile:'images/note4.png', answer:'0', answerString:'E', label:'E1', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note5.png', answer:'1', answerString:'E', label:'F#1', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note6.png', answer:'2', answerString:'E', label:'G1', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note7.png', answer:'0', answerString:'A', label:'A1', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note8.png', answer:'1', answerString:'A', label:'B1', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note10.png', answer:'0', answerString:'D', label:'D2', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note11.png', answer:'1', answerString:'D', label:'E2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note13.png', answer:'0', answerString:'G', label:'G2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note14.png', answer:'1', answerString:'G', label:'A2', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note15.png', answer:'4', answerString:'G', label:'B2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note17.png', answer:'Shift 4', answerString:'G', label:'D3', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note9.png', answer:'2', answerString:'A', label:'C2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note9.png', answer:'4', answerString:'A', label:'C#2', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note12.png', answer:'2', answerString:'D', label:'F2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note12.png', answer:'4', answerString:'D', label:'F#2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note16.png', answer:'Shift 1', answerString:'G', label:'C3', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note16.png', answer:'Shift 2', answerString:'G', label:'C#3', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note15.png', answer:'2', answerString:'G', label:'Bb2', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note5.png', answer:'Low 1', answerString:'E', label:'F1', clefImg:'images/bass-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note11.png', answer:'Low 1', answerString:'D', label:'Eb2', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note8.png', answer:'Low 1', answerString:'A', label:'Bb1', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note6.png', answer:'2', answerString:'E', label:'G#1', clefImg:'images/bass3.png', clefLabel:'A Major' },
+];
+
+const Q4_6TH_BASS_FINGER_POOL = [
+  { noteFile:'images/note4.png', answer:'0', answerString:'E', label:'E1', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note5.png', answer:'1', answerString:'E', label:'F#1', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note6.png', answer:'2', answerString:'E', label:'G1', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note7.png', answer:'0', answerString:'A', label:'A1', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note8.png', answer:'1', answerString:'A', label:'B1', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note10.png', answer:'0', answerString:'D', label:'D2', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note11.png', answer:'1', answerString:'D', label:'E2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note13.png', answer:'0', answerString:'G', label:'G2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note14.png', answer:'1', answerString:'G', label:'A2', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note15.png', answer:'4', answerString:'G', label:'B2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note17.png', answer:'Shift 4', answerString:'G', label:'D3', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note9.png', answer:'2', answerString:'A', label:'C2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note9.png', answer:'4', answerString:'A', label:'C#2', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note12.png', answer:'2', answerString:'D', label:'F2', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note12.png', answer:'4', answerString:'D', label:'F#2', clefImg:'images/bass1.png', clefLabel:'G Major' },
+  { noteFile:'images/note16.png', answer:'Shift 1', answerString:'G', label:'C3', clefImg:'images/bass0.png', clefLabel:'C Major' },
+  { noteFile:'images/note16.png', answer:'Shift 2', answerString:'G', label:'C#3', clefImg:'images/bass2.png', clefLabel:'D Major' },
+  { noteFile:'images/note15.png', answer:'2', answerString:'G', label:'Bb2', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note5.png', answer:'Low 1', answerString:'E', label:'F1', clefImg:'images/bass-1.png', clefLabel:'F Major' },
+  { noteFile:'images/note11.png', answer:'Low 1', answerString:'D', label:'Eb2', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note8.png', answer:'Low 1', answerString:'A', label:'Bb1', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
+  { noteFile:'images/note6.png', answer:'2', answerString:'E', label:'G#1', clefImg:'images/bass3.png', clefLabel:'A Major' },
+  { noteFile:'images/note13.png', answer:'1', answerString:'G', label:'G#2', clefImg:'images/bass3.png', clefLabel:'A Major' },
+];
+
+
 const FOLDER_MAP = {
   'orchestra|5th|q1': 'q1-5th',
   'orchestra|5th|q2': 'q2-5th',
   'orchestra|5th|q3': 'q3-5th',
   'orchestra|5th|q4': 'q4-5th',
+  'orchestra|6th|q1': 'q1-6th',
+  'orchestra|6th|q2': 'q2-6th',
+  'orchestra|6th|q3': 'q3-6th',
+  'orchestra|6th|q4': 'q4-6th',
   'band|5th|q1':      'band-q1-5th',
   'band|5th|q2':      'band-q2-5th',
   'band|5th|q3':      'band-q3-5th',
@@ -5254,7 +6652,7 @@ function selectAnswer(chosen, btn, chosenString) {
     document.getElementById('feedback').className = 'feedback wrong';
   }
 
-  setTimeout(nextQuestion, 1000);
+  setTimeout(nextQuestion, correct ? 1000 : 2000);
 }
 
 function buildAnswerButtons(opts) {
@@ -5467,6 +6865,23 @@ function loadProfile()   { return { firstName: sessionStorage.getItem('studentFi
 function saveProfile()   {}
 function clearProfile()  {}
 
+function getNextLevelUrl() {
+  // Find the next level in LEVEL_SEQUENCE, skipping orchOnly for band students
+  const orchInstr = ['Violin','Viola','Cello','Bass'];
+  const instrName = sessionStorage.getItem('studentInstrument') || 'Violin';
+  const isOrch    = orchInstr.includes(instrName);
+  const curLevel  = getCurrentLevel();
+  const idx       = LEVEL_SEQUENCE.findIndex(function(e) { return Math.abs(e.level - curLevel) < 0.01; });
+  if (idx === -1) return null;
+  var next = idx + 1;
+  while (next < LEVEL_SEQUENCE.length) {
+    if (!LEVEL_SEQUENCE[next].orchOnly || isOrch) break;
+    next++;
+  }
+  if (next >= LEVEL_SEQUENCE.length) return null;
+  return 'pitch.html?level=' + LEVEL_SEQUENCE[next].level.toFixed(1);
+}
+
 function renderScore() {
   elapsed = formatTime(Date.now() - quizStartTime);
   const p = loadProfile();
@@ -5515,7 +6930,10 @@ function renderScore() {
 
       <div class="score-btn-row">
         <button class="replay-btn" onclick="launchQuiz('${activeFolder.id}', '${activeQuiz.id}')">Retry</button>
-        <button class="menu-btn"   onclick="window.location.href='dashboard.html'">Dashboard</button>
+        ${getNextLevelUrl() ? `<button class="score-next-btn" onclick="window.location.href=getNextLevelUrl()">Next Quiz →</button>` : ''}
+      </div>
+      <div style="margin-top:10px;">
+        <button class="score-menu-btn" onclick="window.location.href='dashboard.html'">Dashboard</button>
       </div>
     </div>
   `;
@@ -5665,22 +7083,22 @@ window.addEventListener('hashchange', function() {
 // Defines the ordered progression of quizzes mapped to decimal levels.
 // orchOnly: true means band students skip this entry.
 const LEVEL_SEQUENCE = [
-  { level: 1.1, grade: '5th', quarter: 'q1', type: 'notes',     label: '5th Grade · Q1 · Notes' },
-  { level: 1.2, grade: '5th', quarter: 'q1', type: 'fingering', label: '5th Grade · Q1 · Fingering', orchOnly: true },
-  { level: 2.1, grade: '5th', quarter: 'q2', type: 'notes',     label: '5th Grade · Q2 · Notes' },
-  { level: 2.2, grade: '5th', quarter: 'q2', type: 'fingering', label: '5th Grade · Q2 · Fingering', orchOnly: true },
-  { level: 3.1, grade: '5th', quarter: 'q3', type: 'notes',     label: '5th Grade · Q3 · Notes' },
-  { level: 3.2, grade: '5th', quarter: 'q3', type: 'fingering', label: '5th Grade · Q3 · Fingering', orchOnly: true },
-  { level: 4.1, grade: '5th', quarter: 'q4', type: 'notes',     label: '5th Grade · Q4 · Notes' },
-  { level: 4.2, grade: '5th', quarter: 'q4', type: 'fingering', label: '5th Grade · Q4 · Fingering', orchOnly: true },
-  { level: 5.1, grade: '6th', quarter: 'q1', type: 'notes',     label: '6th Grade · Q1 · Notes' },
-  { level: 5.2, grade: '6th', quarter: 'q1', type: 'fingering', label: '6th Grade · Q1 · Fingering', orchOnly: true },
-  { level: 6.1, grade: '6th', quarter: 'q2', type: 'notes',     label: '6th Grade · Q2 · Notes' },
-  { level: 6.2, grade: '6th', quarter: 'q2', type: 'fingering', label: '6th Grade · Q2 · Fingering', orchOnly: true },
-  { level: 7.1, grade: '6th', quarter: 'q3', type: 'notes',     label: '6th Grade · Q3 · Notes' },
-  { level: 7.2, grade: '6th', quarter: 'q3', type: 'fingering', label: '6th Grade · Q3 · Fingering', orchOnly: true },
-  { level: 8.1, grade: '6th', quarter: 'q4', type: 'notes',     label: '6th Grade · Q4 · Notes' },
-  { level: 8.2, grade: '6th', quarter: 'q4', type: 'fingering', label: '6th Grade · Q4 · Fingering', orchOnly: true },
+  { level: 5.1, grade: '5th', quarter: 'q1', type: 'notes',     label: '5th Grade · Q1 · Notes' },
+  { level: 5.2, grade: '5th', quarter: 'q1', type: 'fingering', label: '5th Grade · Q1 · Fingering', orchOnly: true },
+  { level: 5.3, grade: '5th', quarter: 'q2', type: 'notes',     label: '5th Grade · Q2 · Notes' },
+  { level: 5.4, grade: '5th', quarter: 'q2', type: 'fingering', label: '5th Grade · Q2 · Fingering', orchOnly: true },
+  { level: 5.5, grade: '5th', quarter: 'q3', type: 'notes',     label: '5th Grade · Q3 · Notes' },
+  { level: 5.6, grade: '5th', quarter: 'q3', type: 'fingering', label: '5th Grade · Q3 · Fingering', orchOnly: true },
+  { level: 5.7, grade: '5th', quarter: 'q4', type: 'notes',     label: '5th Grade · Q4 · Notes' },
+  { level: 5.8, grade: '5th', quarter: 'q4', type: 'fingering', label: '5th Grade · Q4 · Fingering', orchOnly: true },
+  { level: 6.1, grade: '6th', quarter: 'q1', type: 'notes',     label: '6th Grade · Q1 · Notes' },
+  { level: 6.2, grade: '6th', quarter: 'q1', type: 'fingering', label: '6th Grade · Q1 · Fingering', orchOnly: true },
+  { level: 6.3, grade: '6th', quarter: 'q2', type: 'notes',     label: '6th Grade · Q2 · Notes' },
+  { level: 6.4, grade: '6th', quarter: 'q2', type: 'fingering', label: '6th Grade · Q2 · Fingering', orchOnly: true },
+  { level: 6.5, grade: '6th', quarter: 'q3', type: 'notes',     label: '6th Grade · Q3 · Notes' },
+  { level: 6.6, grade: '6th', quarter: 'q3', type: 'fingering', label: '6th Grade · Q3 · Fingering', orchOnly: true },
+  { level: 6.7, grade: '6th', quarter: 'q4', type: 'notes',     label: '6th Grade · Q4 · Notes' },
+  { level: 6.8, grade: '6th', quarter: 'q4', type: 'fingering', label: '6th Grade · Q4 · Fingering', orchOnly: true },
 ];
 
 // Returns the INSTRUMENTS entry for the current student's instrument

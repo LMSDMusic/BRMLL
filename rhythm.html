@@ -33,12 +33,11 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    background-color: var(--bg);
+    background-color: #f0f4ff;
     background-image:
-      linear-gradient(var(--border) 1px, transparent 1px),
-      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      linear-gradient(#dde3f0 1px, transparent 1px),
+      linear-gradient(90deg, #dde3f0 1px, transparent 1px);
     background-size: 40px 40px;
-    background-image: repeating-linear-gradient(transparent, transparent 39px, #c8c0b0 39px, #c8c0b0 40px);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -711,6 +710,7 @@
   </div>
   <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;margin-top:.5rem;">
     <button style="padding:.75rem 1.8rem;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;border:none;background:var(--text);color:white;box-shadow:0 4px 16px rgba(26,39,68,.25);" onclick="retryLevel()">Try Again</button>
+    <button id="next-level-btn" style="display:none;padding:.75rem 1.8rem;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;border:none;background:var(--blue);color:white;" onclick="goNextLevel()">Next Level →</button>
     <button style="padding:.75rem 1.8rem;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;border:2px solid var(--border);background:var(--border);color:var(--text);" onclick="window.location.href='dashboard.html'">Dashboard</button>
   </div>
 </div>
@@ -726,17 +726,17 @@
       <button class="modal-opt" onclick="startLevelMode('trainer')">
         <span class="modal-opt-icon">👂</span>
         <span class="modal-opt-label">Trainer</span>
-        <span class="modal-opt-bpm">90 BPM</span>
+        <span class="modal-opt-bpm">80 BPM</span>
       </button>
       <button class="modal-opt" onclick="startLevelMode('moderate')">
         <span class="modal-opt-icon">🎵</span>
-        <span class="modal-opt-label">Moderate</span>
-        <span class="modal-opt-bpm">90 BPM</span>
+        <span class="modal-opt-label">Slow</span>
+        <span class="modal-opt-bpm">80 BPM</span>
       </button>
       <button class="modal-opt" onclick="startLevelMode('fast')">
         <span class="modal-opt-icon">⚡</span>
         <span class="modal-opt-label">Fast</span>
-        <span class="modal-opt-bpm">120 BPM</span>
+        <span class="modal-opt-bpm">100 BPM</span>
       </button>
     </div>
     <button class="modal-cancel" onclick="closeModal()">Cancel</button>
@@ -763,11 +763,11 @@ const _bestLevel = parseFloat(_urlParams.get('bestLevel')) || 0;
 // Tracks the current sub-level mode (trainer / moderate / fast)
 let currentMode = 'moderate';
 
-// Returns the decimal level string for display: e.g. "1.2" for Level 1 Moderate
-function decimalLevel() {
-  const base   = LEVELS[currentLevel].trainerFor || Number(currentLevel);
-  const offset = currentMode === 'trainer' ? 0.1 : currentMode === 'fast' ? 0.3 : 0.2;
-  return (base + offset).toFixed(1);
+// Returns a formatted level label: e.g. "1 - Slow" for Level 1 Moderate
+function rhythmLevelLabel() {
+  const base    = LEVELS[currentLevel].trainerFor || Number(currentLevel);
+  const subName = currentMode === 'trainer' ? 'Trainer' : currentMode === 'fast' ? 'Fast' : 'Slow';
+  return base + ' - ' + subName;
 }
 
 // Applies transparent lock overlay to level buttons above student's max accessible level.
@@ -819,7 +819,8 @@ function applyModalLocks(lvl) {
     } else if (lvl === bestBase) {
       locked = subOffset > bestSub; // up to their best sub-level
     } else if (lvl === bestBase + 1) {
-      locked = subOffset > 1; // one above best — Trainer only
+      // Trainer at N+1 only accessible after all 3 speeds at N are done
+      locked = bestSub < 3 || subOffset > 1;
     } else {
       locked = true; // shouldn't be reachable but just in case
     }
@@ -913,6 +914,51 @@ async function autoSubmitScore() {
 }
 
 const actx = new (window.AudioContext || window.webkitAudioContext)();
+
+// ── COUNTING AUDIO ────────────────────────────────────────────────────────────
+// Pre-loads syllable audio files into AudioBuffers for sample-accurate playback.
+// Missing files are skipped silently so it won't break before files are recorded.
+const COUNT_SYLLABLES = ['1','2','3','4','and','e','a'];
+const countBuffers    = {};
+
+async function loadCountingAudio() {
+  for (const syl of COUNT_SYLLABLES) {
+    try {
+      const res = await fetch('audio/' + syl + '.mp3');
+      if (!res.ok) continue;
+      const buf = await res.arrayBuffer();
+      countBuffers[syl] = await actx.decodeAudioData(buf);
+    } catch(_) { /* file not ready yet — skip */ }
+  }
+}
+loadCountingAudio();
+
+// Maps a startBeat position to its spoken syllable name.
+// e.g. beat 0 → "1", beat 1.5 → "and", beat 2.25 → "e", beat 2.75 → "a"
+function beatToSyllable(startBeat, bpm) {
+  const inMeasure = startBeat % bpm;
+  const beatNum   = Math.floor(inMeasure) + 1;          // 1–4
+  const sub       = Math.round((inMeasure % 1) * 100) / 100;
+  if (sub < 0.01)                   return String(beatNum); // "1","2","3","4"
+  if (Math.abs(sub - 0.5)  < 0.01) return 'and';
+  if (Math.abs(sub - 0.25) < 0.01) return 'e';
+  if (Math.abs(sub - 0.75) < 0.01) return 'a';
+  return null;
+}
+
+// Schedules spoken counting syllables on every note attack in the rhythm.
+// Rests produce silence. Uses AudioBufferSource.start() for sample-accurate timing.
+function scheduleCountingAudio(rhythm, contextStartTime, bpm) {
+  rhythm.forEach(note => {
+    if (note.type === 'qrest') return;           // rest → silence
+    const syl = beatToSyllable(note.startBeat, bpm);
+    if (!syl || !countBuffers[syl]) return;      // file not loaded yet → skip
+    const src = actx.createBufferSource();
+    src.buffer = countBuffers[syl];
+    src.connect(actx.destination);
+    src.start(contextStartTime + (note.startBeat * BEAT_MS) / 1000);
+  });
+}
 function playClick(accent, time) {
   time = time || actx.currentTime;
   const osc = actx.createOscillator(), g = actx.createGain();
@@ -933,7 +979,7 @@ function playTap() {
 }
 
 // ── Config ────────────────────────────────────────────────────────────────────
-let BPM = 90, BEAT_MS = 60000 / BPM;
+let BPM = 80, BEAT_MS = 60000 / BPM;
 const PERFECT_ATK = 100;  // ms — full attack score
 const PERFECT_REL = 100;  // ms — full release score
 const MISS_WIN    = 101;  // ms — zero score (anything over 100ms is a miss)
@@ -987,7 +1033,54 @@ function showScreen(id) {
   if (lm) lm.style.display = 'none';
   document.getElementById(id).style.display = 'flex';
 }
-function goMenu()      { gamePhase = 'idle'; setRhythmHash(''); showScreen('menu-screen'); }
+function goMenu()      { gamePhase = 'idle'; removePlaybar(); setRhythmHash(''); showScreen('menu-screen'); }
+// ── PLAYBAR ───────────────────────────────────────────────────────────────────
+function startPlaybar(demoStartMs, totalMs) {
+  const svg = document.getElementById('notation-svg');
+  if (!svg) return;
+  const old = document.getElementById('playbar');
+  if (old) old.remove();
+
+  const off = 20;
+  const m1s = STAFF_L + 42 + off;
+  const m1e = MID_BAR  - 18;
+  const m2s = MID_BAR  + 18 + off;
+  const m2e = STAFF_R  - 14;
+  const halfMs = totalMs / 2;
+
+  const line = svgEl('line', {
+    id:             'playbar',
+    x1:             m1s, x2: m1s,
+    y1:             sY(0) - 8,
+    y2:             sY(4) + 8,
+    stroke:         '#3b6ef8',
+    'stroke-width': '2.5',
+    opacity:        '0.55',
+  });
+  svg.appendChild(line);
+
+  const startTime = performance.now() + demoStartMs;
+  function animate(now) {
+    const bar = document.getElementById('playbar');
+    if (!bar) return;
+    const elapsed = now - startTime;
+    if (elapsed < 0)        { requestAnimationFrame(animate); return; }
+    if (elapsed >= totalMs) { bar.remove(); return; }
+    const x = elapsed <= halfMs
+      ? m1s + (elapsed / halfMs) * (m1e - m1s)
+      : m2s + ((elapsed - halfMs) / halfMs) * (m2e - m2s);
+    bar.setAttribute('x1', x);
+    bar.setAttribute('x2', x);
+    requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+}
+
+function removePlaybar() {
+  const bar = document.getElementById('playbar');
+  if (bar) bar.remove();
+}
+
 function retryLevel()  { chooseLevel(currentLevel); }
 
 function chooseLevel(lvl) {
@@ -1010,7 +1103,7 @@ function chooseLevel(lvl) {
 }
 
 function refreshHeader() {
-  document.getElementById('lvl-badge').textContent  = 'Level ' + decimalLevel() + ' · ' + BPM + ' BPM';
+  document.getElementById('lvl-badge').textContent  = 'Level ' + rhythmLevelLabel() + ' · ' + BPM + ' BPM';
   document.getElementById('rhy-counter').textContent = (roundIndex + 1) + ' of ' + ROUNDS;
   const dc = document.getElementById('progress-dots');
   dc.innerHTML = '';
@@ -1027,6 +1120,16 @@ function gradeClass(s) {
   return s >= 80 ? 'scored-a' : s >= 60 ? 'scored-b' : s >= 40 ? 'scored-c' : 'scored-d';
 }
 
+function goNextLevel() {
+  const base = LEVELS[currentLevel].trainerFor || Number(currentLevel);
+  const mode = currentMode;
+  let nextMode, nextBase;
+  if (mode === 'trainer')   { nextMode = 'moderate'; nextBase = base; }
+  else if (mode === 'moderate') { nextMode = 'fast'; nextBase = base; }
+  else                      { nextMode = 'trainer'; nextBase = base + 1; }
+  window.location.href = 'rhythm.html?level=' + nextBase + '&mode=' + nextMode;
+}
+
 function showResults() {
   // Stop the level timer
   if (levelStartTime > 0) {
@@ -1040,9 +1143,13 @@ function showResults() {
   autoSubmitScore();
   const avg = levelScores.length ? Math.round(levelScores.reduce((a,b) => a+b, 0) / levelScores.length) : 0;
   const gc  = 'grade-' + (avg >= 80 ? 'a' : avg >= 60 ? 'b' : avg >= 40 ? 'c' : 'd');
-  document.getElementById('res-lvl-label').textContent = 'Level ' + decimalLevel();
+  document.getElementById('res-lvl-label').textContent = 'Level ' + rhythmLevelLabel();
   const avgEl = document.getElementById('res-avg');
   avgEl.textContent = avg + '%'; avgEl.className = 'avg-score ' + gc;
+
+  // Show Next Level button if student passed (avg ≥ 81%)
+  const nextBtn = document.getElementById('next-level-btn');
+  if (nextBtn) nextBtn.style.display = avg >= 81 ? '' : 'none';
 
   const barsEl = document.getElementById('res-bars');
   barsEl.innerHTML = '';
@@ -1139,7 +1246,7 @@ function generateMeasure(offset, size) {
   }
   return notes;
 }
-const LEVEL_REQUIRED = { '1t': null, 1: null, '2t': null, 2: 'qrest', '3t': null, 3: 'half', '4t': null, 4: null, '5t': null, 5: 'sixteenth', '6t': null, 6: 'sixteenth', '7t': null, 7: 'mixed16', '8t': null, 8: 'dotted-combo', '9t': null, 9: 'dotted-combo', '10t': 'synco2', 10: 'synco2' };
+const LEVEL_REQUIRED = { '1t': null, 1: null, '2t': 'qrest', 2: 'qrest', '3t': 'half', 3: 'half', '4t': 'dotted-half', 4: 'dotted-half', '5t': 'sixteenth', 5: 'sixteenth', '6t': 'sixteenth', 6: 'sixteenth', '7t': 'mixed16', 7: 'mixed16', '8t': 'dotted-combo', 8: 'dotted-combo', '9t': 'dotted-combo', 9: 'dotted-combo', '10t': 'synco2', 10: 'synco2' };
 
 function generateRhythm() {
   const required = LEVEL_REQUIRED[currentLevel];
@@ -1189,10 +1296,16 @@ function buildNoteXMap(r) {
   function assignX(startGlobal, endGlobal, start, end) {
     const ws    = weights.slice(startGlobal, endGlobal);
     const total = ws.reduce((a,b) => a+b, 0);
+    // Cap how far the first note's center can be from the bar line.
+    // Without this, a half or dotted-half note at the start of a measure
+    // gets centered far to the right of the bar line.
+    const MAX_FIRST_OFFSET = 50;
     let acc = 0;
     for (let i = startGlobal; i < endGlobal; i++) {
       const wi = weights[i];
-      noteXMap[i] = start + (acc + wi/2) / total * (end - start);
+      let x = start + (acc + wi/2) / total * (end - start);
+      if (i === startGlobal) x = Math.min(x, start + MAX_FIRST_OFFSET);
+      noteXMap[i] = x;
       acc += wi;
     }
   }
@@ -1219,12 +1332,32 @@ function drawStaff(svg){
   svg.appendChild(svgEl('line',{x1:STAFF_R,  y1:sY(0),x2:STAFF_R,  y2:sY(4),stroke:INK,'stroke-width':3.5}));
 }
 function drawTimeSig(svg){
-  const top = (LEVELS[currentLevel].beats || 4).toString();
+  const beats = LEVELS[currentLevel].beats || 4;
+  const top   = beats.toString();
   [0,1].forEach(i=>{
     const t=svgEl('text',{x:STAFF_L+16,y:sY(i===0?1:3)+7,'font-family':'Georgia,serif',
-      'font-size':26,'font-weight':'bold','text-anchor':'middle',fill:INK});
+      'font-size':26,'font-weight':'bold','text-anchor':'middle',fill:INK,
+      id: i===0 ? 'timesig-top' : 'timesig-bot'});
     t.textContent = i===0 ? top : '4'; svg.appendChild(t);
   });
+}
+
+// Flashes the time signature green twice when time sig changes between levels.
+// Pulses the time signature green on a single count-off beat
+function pulseTimeSig() {
+  const ids    = ['timesig-top', 'timesig-bot'];
+  const GREEN  = '#2f855a';
+  const onMs   = Math.min(Math.round(BEAT_MS * 0.38), 160);
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.setAttribute('fill', GREEN); el.setAttribute('font-size', '33'); }
+  });
+  setTimeout(() => {
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.setAttribute('fill', INK); el.setAttribute('font-size', '26'); }
+    });
+  }, onMs);
 }
 
 
@@ -1366,6 +1499,33 @@ function renderNotation(r){
       g.indices.forEach(idx=>drawNote(svg,r[idx],idx,false,r));
     }
     else { g.indices.forEach(idx=>drawNote(svg,r[idx],idx,true,r)); drawBeam(svg,g.indices,r); }
+  });
+  // Trainer mode: draw count labels above each non-rest note
+  if (LEVELS[currentLevel] && LEVELS[currentLevel].trainerFor) {
+    drawCountLabels(svg, r);
+  }
+}
+
+function drawCountLabels(svg, r) {
+  const bpm = LEVELS[currentLevel].beats || 4;
+  r.forEach((note, idx) => {
+    if (note.type === 'qrest') return;          // rests: no label
+    const x = noteXMap[idx];
+    if (x === undefined) return;
+    const syl = beatToSyllable(note.startBeat, bpm);
+    if (!syl) return;
+    const label = svgEl('text', {
+      x: x,
+      y: sY(0) - 14,                            // above top staff line
+      'text-anchor': 'middle',
+      'font-family': "'DM Sans', sans-serif",
+      'font-size':   '20',
+      'font-weight': '700',
+      'font-style':  'normal',
+      fill:          '#1a1f36',
+    });
+    label.textContent = syl === 'and' ? '+' : syl;
+    svg.appendChild(label);
   });
 }
 
@@ -1517,19 +1677,32 @@ function startTrainerRound(){
   document.getElementById('countdown-word').classList.add('flash');
   for(let i=0;i<countInBeats;i++){
     playClick(i===0, actx.currentTime+(i*BEAT_MS)/1000);
+    setTimeout(pulseTimeSig, i*BEAT_MS);
   }
 
-  // ── Phase 2: play demo (metronome + note clicks + note highlights) ──
+  // ── Phase 2: play demo ──────────────────────────────────────────────────────
   const demoStart = countInBeats * BEAT_MS;
-  // Metronome beats during demo
-  for(let i=0;i<totalBeats();i++){
-    playClick(i%bpm===0, actx.currentTime+(demoStart+i*BEAT_MS)/1000);
+  const isTrainer = !!LEVELS[currentLevel].trainerFor;
+
+  if (isTrainer) {
+    // Trainer mode: spoken counting syllables + soft metronome + playbar
+    scheduleCountingAudio(rhythm, actx.currentTime + demoStart / 1000, bpm);
+    for(let i=0;i<totalBeats();i++){
+      playClick(i%bpm===0, actx.currentTime+(demoStart+i*BEAT_MS)/1000);
+    }
+    startPlaybar(demoStart, totalMs);
+  } else {
+    // Standard mode: metronome clicks on every beat
+    for(let i=0;i<totalBeats();i++){
+      playClick(i%bpm===0, actx.currentTime+(demoStart+i*BEAT_MS)/1000);
+    }
   }
-  // Note-attack clicks + green highlight on each note
+
+  // Note highlights + note-attack clicks (clicks only in non-trainer mode)
   rhythm.forEach((n, noteIdx) => {
     if(n.type==='qrest') return;
-    const noteMs = demoStart + n.startBeat * BEAT_MS;
-    playNoteClick(actx.currentTime + noteMs/1000);
+    const noteMs     = demoStart + n.startBeat * BEAT_MS;
+    if (!isTrainer) playNoteClick(actx.currentTime + noteMs/1000);
     const durationMs = Math.max(n.beats * BEAT_MS * 0.85, 120);
     setTimeout(() => lightNoteGreen(noteIdx, durationMs), noteMs);
   });
@@ -1545,6 +1718,8 @@ function startTrainerRound(){
 
   // ── Phase 3: gap + second count-in ──
   const tapCountInStart = demoStart + totalMs + gapMs;
+  // Revert to 'countdown' so early taps to the first note are accepted
+  setTimeout(() => { if (gamePhase === 'demo') gamePhase = 'countdown'; }, tapCountInStart);
   for(let i=0;i<countInBeats;i++){
     const t = tapCountInStart + i*BEAT_MS;
     playClick(i===0, actx.currentTime+t/1000);
@@ -1597,8 +1772,8 @@ function startLevelMode(mode) {
   currentMode  = mode; // track for score submission (trainer / moderate / fast)
   backingTrack = null;
 
-  if      (mode === 'fast')    { BPM = 120; BEAT_MS = 60000 / BPM; }
-  else                         { BPM = 90;  BEAT_MS = 60000 / BPM; }
+  if      (mode === 'fast')    { BPM = 100; BEAT_MS = 60000 / BPM; }
+  else                         { BPM = 80;  BEAT_MS = 60000 / BPM; }
 
   const lvlKey = mode === 'trainer' ? pendingLevel + 't' : pendingLevel;
   chooseLevel(lvlKey);
@@ -1639,6 +1814,7 @@ function startRound(){
   for(let i=0;i<countInBeats;i++){
     playClick(i===0, actx.currentTime+(i*BEAT_MS)/1000);
     setTimeout(()=>flashCountdownWord(i, countInWords), i*BEAT_MS);
+    setTimeout(pulseTimeSig, i*BEAT_MS);
   }
   for(let i=0;i<totalBeats();i++){
     const delay=countInBeats*BEAT_MS+i*BEAT_MS;
@@ -1693,8 +1869,10 @@ function handlePress(){
   pressNoteIdx=-1;
   if(bestIdx<0) return;
 
-  // Too far from any note = extra tap
-  if(bestDist>=MISS_WIN){ tapResults.push('extra'); return; }
+  // Too far from any note = extra tap.
+  // First note gets a doubled early buffer so slightly-early taps still register.
+  const effectiveWin = (bestIdx===0 && elapsed < (expectedTaps[0]||0)) ? MISS_WIN*2 : MISS_WIN;
+  if(bestDist>=effectiveWin){ tapResults.push('extra'); return; }
 
   // Map tap index → rhythm note index
   let noteIdx=-1, cnt=0;

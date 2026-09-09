@@ -216,6 +216,51 @@
       font-weight: 600;
     }
 
+    .module-col {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .score-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+    }
+    .score-list-header {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .score-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .score-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.72rem;
+      color: var(--muted);
+      padding: 1px 0;
+    }
+    .score-list .sl-pct {
+      font-weight: 700;
+      font-size: 0.73rem;
+    }
+    .score-list .sl-pct.pass { color: var(--green); }
+    .score-list .sl-pct.fail { color: #b45309; }
+
     /* ── Color themes for icons ── */
     .theme-blue   { background: #e8effe; } .theme-blue   .emoji { filter: none; }
     .theme-teal   { background: #e1f5ee; }
@@ -373,14 +418,12 @@
       const nextLevel   = (nextUrl.match(/level=([\d.]+)/) || [])[1] || "1";
       const nextMode    = (nextUrl.match(/mode=(\w+)/)     || [])[1] || null;
       // For rhythm, combine level + mode offset to get the true decimal (e.g. 2 + trainer → 2.1)
-      const modeOffset  = nextMode === 'trainer' ? 0.1 : nextMode === 'fast' ? 0.3 : nextMode === 'moderate' ? 0.2 : 0;
+      const subName     = nextMode === 'trainer' ? 'Trainer' : nextMode === 'fast' ? 'Fast' : 'Slow';
       const nextLabel   = nextMode
-        ? "Level " + (parseFloat(nextLevel) + modeOffset).toFixed(1)
+        ? "Level " + parseFloat(nextLevel) + " - " + subName
         : "Level " + nextLevel;
 
-      const meta = bestScore
-        ? nextLabel + " · Best " + Math.round(bestScore.bestPercent) + "%"
-        : nextLabel + " · Not Started";
+      const meta = nextLabel;
 
       const upNextUrl = buildModuleUrl(module.filename, bestScore);
       area.innerHTML = `
@@ -395,7 +438,7 @@
     }
 
     // ── RENDER MODULE GRID ───────────────────────────────────
-    function renderGrid(modules, bestScoresMap) {
+    function renderGrid(modules, bestScoresMap, allScoresMap) {
       const grid = document.getElementById("moduleGrid");
       grid.innerHTML = "";
 
@@ -403,9 +446,20 @@
         const theme = MODULE_THEMES[index % MODULE_THEMES.length];
         const bs    = bestScoresMap[mod.moduleId];
 
+        // Show next available level (same logic as Up Next), no score
         let metaHtml;
         if (bs) {
-          metaHtml = `${levelLabel(mod.filename, bs.level)} &nbsp;·&nbsp; Best <strong>${Math.round(bs.bestPercent)}%</strong>`;
+          const cardUrl    = (mod.filename === "rhythm.html") ? buildRhythmUrl(bs)
+                           : (mod.filename === "staffhero.html") ? buildStaffHeroUrl(bs)
+                           : (mod.filename === "pitch.html") ? buildPitchUrl(bs)
+                           : buildModuleUrl(mod.filename, bs);
+          const cardLevel  = (cardUrl.match(/level=([\d.]+)/) || [])[1] || "1";
+          const cardMode   = (cardUrl.match(/mode=(\w+)/)     || [])[1] || null;
+          const cardOffset = cardMode === 'trainer' ? 0.1 : cardMode === 'fast' ? 0.3 : cardMode === 'moderate' ? 0.2 : 0;
+          const cardSubName = cardMode === 'trainer' ? 'Trainer' : cardMode === 'fast' ? 'Fast' : 'Slow';
+          metaHtml = cardMode
+            ? "Level " + parseFloat(cardLevel) + " - " + cardSubName
+            : "Level " + cardLevel;
         } else {
           metaHtml = "Not Started";
         }
@@ -419,12 +473,40 @@
             : (mod.filename === "pitch.html")
               ? buildPitchMenuUrl(bs)
               : buildModuleUrl(mod.filename, bs);
-        card.innerHTML   = `
+        // Build per-level score list (all completed levels, highest first)
+        const allEntries  = (allScoresMap && allScoresMap[mod.moduleId]) || [];
+        const threshold   = MASTERY_THRESHOLD[mod.filename] ?? DEFAULT_THRESHOLD;
+        let scoreListHtml = '';
+        if (allEntries.length) {
+          const items = allEntries.map(e => {
+            const lbl  = levelLabel(mod.filename, e.level);
+            const pct  = Math.round(e.bestPercent);
+            const cls  = pct >= threshold ? 'pass' : 'fail';
+            return `<li><span>${lbl}</span><span class="sl-pct ${cls}">${pct}%</span></li>`;
+          }).join('');
+          scoreListHtml = `
+            <div class="score-list-header">Completed Levels</div>
+            <ul class="score-list">${items}</ul>`;
+        }
+
+        card.innerHTML = `
           <div class="mod-icon ${theme.color}">${theme.emoji}</div>
           <div class="card-title">${escHtml(mod.title)}</div>
           <div class="card-meta">${metaHtml}</div>`;
 
-        grid.appendChild(card);
+        // Wrap module card + score card in a column container (one grid cell)
+        const col = document.createElement('div');
+        col.className = 'module-col';
+        col.appendChild(card);
+
+        if (scoreListHtml) {
+          const scoreCard = document.createElement('div');
+          scoreCard.className = 'score-card';
+          scoreCard.innerHTML = scoreListHtml;
+          col.appendChild(scoreCard);
+        }
+
+        grid.appendChild(col);
       });
     }
 
@@ -474,10 +556,18 @@
 
         if (!data.success) throw new Error(data.error || "Unknown error");
 
-        // Build a quick lookup map: moduleId → bestScore
-        const bestScoresMap = {};
+        // Build allScoresMap: moduleId → all entries sorted by level desc
+        const allScoresMap = {};
         (data.bestScores || []).forEach(bs => {
-          bestScoresMap[bs.moduleId] = bs;
+          if (!allScoresMap[bs.moduleId]) allScoresMap[bs.moduleId] = [];
+          allScoresMap[bs.moduleId].push(bs);
+        });
+        Object.values(allScoresMap).forEach(arr => arr.sort((a, b) => b.level - a.level));
+
+        // bestScoresMap: moduleId → highest-level entry (for URL building)
+        const bestScoresMap = {};
+        Object.entries(allScoresMap).forEach(([mid, arr]) => {
+          bestScoresMap[mid] = arr[0];
         });
 
         const modules = data.modules || [];
@@ -489,7 +579,7 @@
         renderUpNext(upNextModule, bestScoresMap[upNextModule?.moduleId], upNextTheme);
 
         // Module grid
-        renderGrid(modules, bestScoresMap);
+        renderGrid(modules, bestScoresMap, allScoresMap);
 
       } catch (err) {
         document.getElementById("upNextArea").innerHTML = "";
@@ -508,7 +598,7 @@
     const MASTERY_THRESHOLD = {
       "staffhero.html" : 81,
       "rhythm.html"    : 81,
-      "pitch.html"     : 81,   // module ID in sheet: note_id
+      "pitch.html"     : 90,   // module ID in sheet: note_id
     };
     const DEFAULT_THRESHOLD = 81;
 
@@ -517,7 +607,13 @@
     // For rhythm, decodes float sub-levels: 1.1 → "Level 1.1"
     // For all others (staff hero etc.), shows integer level: "Level 3"
     function levelLabel(filename, level) {
-      if ((filename === "rhythm.html" || filename === "pitch.html") && level > 0) {
+      if (filename === "rhythm.html" && level > 0) {
+        const base    = Math.floor(level);
+        const sub     = Math.round((level - base) * 10);
+        const subName = sub === 1 ? 'Trainer' : sub === 3 ? 'Fast' : 'Slow';
+        return "Level <strong>" + base + "</strong> - " + subName;
+      }
+      if (filename === "pitch.html" && level > 0) {
         return "Level <strong>" + parseFloat(level).toFixed(1) + "</strong>";
       }
       return "Level <strong>" + level + "</strong>";
@@ -556,7 +652,10 @@
     function buildRhythmMenuUrl(bestScore) {
       if (!bestScore || bestScore.level === 0) return "rhythm.html?menu=true&maxLevel=1&bestLevel=0";
       const baseLevel = Math.floor(bestScore.level);
-      return "rhythm.html?menu=true&maxLevel=" + (baseLevel + 1) + "&bestLevel=" + bestScore.level.toFixed(1);
+      const subLevel  = Math.round((bestScore.level - baseLevel) * 10);
+      // Level N+1 button only appears after all 3 speeds at level N are done (sub=3 = Fast)
+      const maxLevel  = subLevel >= 3 ? baseLevel + 1 : baseLevel;
+      return "rhythm.html?menu=true&maxLevel=" + maxLevel + "&bestLevel=" + bestScore.level.toFixed(1);
     }
 
     // Returns the ensemble for a given instrument name
@@ -571,7 +670,7 @@
       const instrName  = sessionStorage.getItem('studentInstrument') || 'Violin';
       const isOrch     = getEnsembleForInstrument(instrName) === 'orchestra';
       if (!bestScore || bestScore.level === 0) {
-        return "pitch.html?menu=true&maxLevel=1.1&bestLevel=0";
+        return "pitch.html?menu=true&maxLevel=5.1&bestLevel=0";
       }
       const baseLevel  = Math.floor(bestScore.level);
       const subLevel   = Math.round((bestScore.level - baseLevel) * 10);
@@ -603,14 +702,17 @@
     function buildPitchUrl(bestScore) {
       const instrName = sessionStorage.getItem('studentInstrument') || 'Violin';
       const isOrch    = getEnsembleForInstrument(instrName) === 'orchestra';
-      if (!bestScore || bestScore.level === 0) return "pitch.html?level=1.1";
+      if (!bestScore || bestScore.level === 0) return "pitch.html?level=5.1";
       const threshold = MASTERY_THRESHOLD["pitch.html"] ?? DEFAULT_THRESHOLD;
       const baseLevel = Math.floor(bestScore.level);
       const subLevel  = Math.round((bestScore.level - baseLevel) * 10);
+      // Sub-levels 1-8 per grade; orch step=1 (notes→finger), band step=2 (notes only)
       let nextBase = baseLevel, nextSub;
       if (bestScore.bestPercent >= threshold) {
-        if (isOrch && subLevel === 1) { nextSub = 2; }
-        else { nextBase = baseLevel + 1; nextSub = 1; }
+        const step = isOrch ? 1 : 2;
+        const ns   = subLevel + step;
+        if (ns > 8) { nextBase = baseLevel + 1; nextSub = 1; }
+        else        { nextSub = ns; }
       } else { nextSub = subLevel; }
       return "pitch.html?level=" + (nextBase + nextSub * 0.1).toFixed(1);
     }
