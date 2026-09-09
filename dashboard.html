@@ -427,7 +427,9 @@
 
       const meta = nextLabel;
 
-      const upNextUrl = buildModuleUrl(module.filename, bestScore);
+      const upNextUrl = (module.filename === 'rhythm.html' && allScoresMap)
+        ? buildRhythmNextUrl(allScoresMap[module.moduleId])
+        : buildModuleUrl(module.filename, bestScore);
       area.innerHTML = `
         <a class="up-next" href="${upNextUrl}" style="display:flex;">
           <div class="mod-icon up-next-icon ${theme.color}">${theme.emoji}</div>
