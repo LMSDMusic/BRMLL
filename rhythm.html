@@ -153,12 +153,27 @@
   .staff-wrap {
     background: white;
     border: 2px solid var(--border);
-    border-radius: 14px; padding: 1rem 1.5rem;
+    border-radius: 14px; padding: 1rem 1rem 1rem 1.5rem;
     width: 100%;
     box-shadow: 0 4px 16px rgba(26,39,68,.08);
     margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
-  #notation-svg { width: 100%; height: 130px; display: block; }
+  #notation-svg { flex: 1; }
+  #metro-wrap {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  #pendulum-g {
+    transform-origin: 25px 80px;
+    transform: rotate(22deg);
+  }
+  #notation-svg { height: 130px; display: block; }
 
   #countdown-display {
     height: 4.4rem; display: flex; align-items: center; justify-content: center;
@@ -687,6 +702,26 @@
   <div id="score-display"></div>
   <div class="staff-wrap">
     <svg id="notation-svg" viewBox="0 0 680 110" preserveAspectRatio="xMidYMid meet"></svg>
+    <div id="metro-wrap">
+      <svg viewBox="-4 0 58 102" width="56" height="90" aria-hidden="true">
+        <!-- Tick marks -->
+        <line x1="25" y1="10" x2="15" y2="14" stroke="#cbd0dc" stroke-width="1.2" stroke-linecap="round"/>
+        <line x1="25" y1="10" x2="35" y2="14" stroke="#cbd0dc" stroke-width="1.2" stroke-linecap="round"/>
+        <!-- Base trapezoid -->
+        <polygon points="7,100 43,100 39,80 11,80" fill="#1a1f36" rx="2"/>
+        <!-- Pivot circle -->
+        <circle cx="25" cy="80" r="3.5" fill="#6b7aa0"/>
+        <!-- Pendulum (rotates around pivot 25,80) -->
+        <g id="pendulum-g">
+          <!-- Rod -->
+          <rect x="23.5" y="10" width="3" height="70" rx="1.5" fill="#3b4b6b"/>
+          <!-- Weight -->
+          <rect x="17" y="14" width="16" height="12" rx="6" fill="#3b6ef8"/>
+          <!-- Tip dot -->
+          <circle cx="25" cy="11" r="2.5" fill="#3b4b6b"/>
+        </g>
+      </svg>
+    </div>
   </div>
   <div id="countdown-display"><span id="countdown-word"></span></div>
   <div id="status"></div>
@@ -1360,6 +1395,25 @@ function drawTimeSig(svg){
 
 // Flashes the time signature green twice when time sig changes between levels.
 // Pulses the time signature green on a single count-off beat
+let _pendulumSide = 1;
+
+function initPendulum() {
+  const el = document.getElementById('pendulum-g');
+  if (!el) return;
+  _pendulumSide = 1;
+  el.style.transition = 'none';
+  el.style.transform   = 'rotate(22deg)';
+  void el.getBoundingClientRect(); // flush style before enabling transition
+}
+
+function swingPendulum() {
+  const el = document.getElementById('pendulum-g');
+  if (!el) return;
+  _pendulumSide *= -1;
+  el.style.transition = 'none';
+  el.style.transform  = 'rotate(' + (22 * _pendulumSide) + 'deg)';
+}
+
 function pulseTimeSig() {
   const ids    = ['timesig-top', 'timesig-bot'];
   const GREEN  = '#2f855a';
@@ -1691,9 +1745,11 @@ function startTrainerRound(){
   document.getElementById('countdown-word').textContent = 'Listen';
   document.getElementById('countdown-word').className = '';
   document.getElementById('countdown-word').classList.add('flash');
+  initPendulum();
   for(let i=0;i<countInBeats;i++){
     playClick(i===0, actx.currentTime+(i*BEAT_MS)/1000);
     setTimeout(pulseTimeSig, i*BEAT_MS);
+    setTimeout(swingPendulum, i*BEAT_MS);
   }
 
   // ── Phase 2: play demo ──────────────────────────────────────────────────────
@@ -1705,6 +1761,8 @@ function startTrainerRound(){
     scheduleCountingAudio(rhythm, actx.currentTime + demoStart / 1000, bpm);
     for(let i=0;i<totalBeats();i++){
       playClick(i%bpm===0, actx.currentTime+(demoStart+i*BEAT_MS)/1000);
+      setTimeout(swingPendulum, demoStart+i*BEAT_MS);
+      setTimeout(swingPendulum, demoStart+i*BEAT_MS);
     }
     startPlaybar(demoStart, totalMs);
   } else {
@@ -1740,6 +1798,7 @@ function startTrainerRound(){
     const t = tapCountInStart + i*BEAT_MS;
     playClick(i===0, actx.currentTime+t/1000);
     setTimeout(()=>{ if(gamePhase==='idle'||gamePhase==='done') return; flashCountdownWord(i, countInWords); }, t);
+    setTimeout(swingPendulum, t);
   }
 
   // ── Phase 4: tapping phase ──
@@ -1827,14 +1886,17 @@ function startRound(){
   startTime=performance.now()+countInBeats*BEAT_MS;
   gamePhase='countdown';
 
+  initPendulum();
   for(let i=0;i<countInBeats;i++){
     playClick(i===0, actx.currentTime+(i*BEAT_MS)/1000);
     setTimeout(()=>flashCountdownWord(i, countInWords), i*BEAT_MS);
     setTimeout(pulseTimeSig, i*BEAT_MS);
+    setTimeout(swingPendulum, i*BEAT_MS);
   }
   for(let i=0;i<totalBeats();i++){
     const delay=countInBeats*BEAT_MS+i*BEAT_MS;
     playClick(i%LEVELS[currentLevel].beats===0, actx.currentTime+delay/1000);
+    setTimeout(swingPendulum, delay);
     setTimeout(()=>{
       if(gamePhase==='idle'||gamePhase==='done') return;
       if(i===0){
