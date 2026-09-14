@@ -804,13 +804,13 @@
 // ── Session & Submission ─────────────────────────────────────────────────────
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx_REo7dnRZo3fny_xv3uyhCUlImo4-4RM3x8W9Nu0JQHvBNv3HYRlzquLzm-PVCxzg/exec';
 
-// Redirect to login if no session
-const _sessionNumber = sessionStorage.getItem('studentNumber');
-if (!_sessionNumber) { window.location.href = 'index.html'; throw new Error('No session'); }
-
-// Read level + mode from URL params (passed by dashboard)
+// Read URL params first so teacher mode can bypass the session check
 const _urlParams    = new URLSearchParams(window.location.search);
 const _teacherMode  = _urlParams.get('teacher') === 'true';
+
+// Redirect to login if no session (teacher mode skips this)
+const _sessionNumber = sessionStorage.getItem('studentNumber');
+if (!_sessionNumber && !_teacherMode) { window.location.href = 'index.html'; throw new Error('No session'); }
 const _urlLevel  = parseInt(_urlParams.get('level'))   || null;
 const _urlMode   = _urlParams.get('mode')              || null;
 const _urlMenu   = _urlParams.get('menu') === 'true';
