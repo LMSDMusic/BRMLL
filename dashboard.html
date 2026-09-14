@@ -761,6 +761,10 @@
 
     function signOut() {
       sessionStorage.clear();
+      // Also clear any saved auto-login credentials
+      localStorage.removeItem('brmll_studentNumber');
+      localStorage.removeItem('brmll_passcode');
+      localStorage.removeItem('brmll_firstName');
       window.location.href = "index.html";
     }
 
