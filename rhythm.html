@@ -2185,10 +2185,17 @@ async function initTeacherMode() {
       body: JSON.stringify({ action:'getClasses' }), redirect:'follow' });
     const data = await res.json();
     const sel  = document.getElementById('teacher-class-select');
+    const errEl = document.getElementById('teacher-setup-error');
+    if (!data.success) {
+      sel.innerHTML = '<option value="">— no classes found —</option>';
+      errEl.textContent = 'Apps Script returned: ' + (data.error || 'unknown error') + '. Redeploy Code.gs.';
+      errEl.style.display = 'block';
+      return;
+    }
     sel.innerHTML = '<option value="">— select a class —</option>' +
       (data.classes || []).map(c => `<option value="${c}">${c}</option>`).join('');
   } catch(e) {
-    document.getElementById('teacher-setup-error').textContent = 'Could not load classes. Check connection.';
+    document.getElementById('teacher-setup-error').textContent = 'Could not load classes: ' + e.message;
     document.getElementById('teacher-setup-error').style.display = 'block';
   }
 }
