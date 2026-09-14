@@ -743,10 +743,12 @@
     <div class="bars" id="res-bars"></div>
     <div class="submit-status" id="submit-status" style="margin-top:.75rem"></div>
   </div>
-  <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;margin-top:.5rem;">
-    <button style="padding:.75rem 1.8rem;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;border:none;background:var(--text);color:white;box-shadow:0 4px 16px rgba(26,39,68,.25);" onclick="retryLevel()">Try Again</button>
+  <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;margin-top:.5rem;" id="results-btn-row">
+    <button id="res-retry-btn" style="padding:.75rem 1.8rem;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;border:none;background:var(--text);color:white;box-shadow:0 4px 16px rgba(26,39,68,.25);" onclick="retryLevel()">Try Again</button>
     <button id="next-level-btn" style="display:none;padding:.75rem 1.8rem;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;border:none;background:var(--blue);color:white;" onclick="goNextLevel()">Next Level →</button>
-    <button style="padding:.75rem 1.8rem;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;border:2px solid var(--border);background:var(--border);color:var(--text);" onclick="window.location.href='dashboard.html'">Dashboard</button>
+    <button id="res-random-btn" style="display:none;padding:.75rem 1.8rem;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;border:none;background:var(--blue);color:white;" onclick="teacherShowRandom()">🎲 Random Student</button>
+    <button id="res-dashboard-btn" style="padding:.75rem 1.8rem;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;border:2px solid var(--border);background:var(--border);color:var(--text);" onclick="window.location.href='dashboard.html'">Dashboard</button>
+    <button id="res-back-teacher-btn" style="display:none;padding:.75rem 1.8rem;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;border:2px solid var(--border);background:var(--border);color:var(--text);" onclick="goMenu()">← Class Display</button>
   </div>
 </div>
 
@@ -778,6 +780,25 @@
   </div>
 </div>
 
+<!-- ── Teacher Setup Screen ──────────────────────────────────────── -->
+<div id="teacher-setup-screen" style="display:none;">
+  <div style="max-width:480px;margin:60px auto;padding:0 1rem;">
+    <div style="background:white;border-radius:18px;border:1.5px solid #dde3f0;padding:2rem 2rem 1.75rem;box-shadow:0 4px 24px rgba(26,39,68,.10);">
+      <h2 style="font-size:1.3rem;font-weight:700;color:#1a1f36;margin-bottom:4px;">Class Rhythm Display</h2>
+      <p style="color:#6b7aa0;font-size:0.85rem;margin-bottom:1.5rem;">Select a class and display mode.</p>
+      <label style="font-size:0.78rem;font-weight:600;color:#6b7aa0;letter-spacing:.05em;text-transform:uppercase;">Class</label>
+      <select id="teacher-class-select" style="display:block;width:100%;margin:6px 0 1.25rem;padding:10px 12px;border-radius:10px;border:1.5px solid #dde3f0;font-family:'DM Sans',sans-serif;font-size:0.95rem;color:#1a1f36;background:white;">
+        <option value="">Loading classes…</option>
+      </select>
+      <div style="display:flex;gap:10px;">
+        <button onclick="teacherLaunch('median')" style="flex:1;padding:13px;border-radius:12px;border:none;background:#1a1f36;color:white;font-family:'DM Sans',sans-serif;font-weight:700;font-size:0.95rem;cursor:pointer;">📊 Median Student</button>
+        <button onclick="teacherLaunch('random')" style="flex:1;padding:13px;border-radius:12px;border:none;background:#3b6ef8;color:white;font-family:'DM Sans',sans-serif;font-weight:700;font-size:0.95rem;cursor:pointer;">🎲 Random Student</button>
+      </div>
+      <p id="teacher-setup-error" style="display:none;color:#b45309;font-size:0.82rem;margin-top:10px;text-align:center;"></p>
+    </div>
+  </div>
+</div>
+
 <script>
 
 // ── Session & Submission ─────────────────────────────────────────────────────
@@ -788,7 +809,8 @@ const _sessionNumber = sessionStorage.getItem('studentNumber');
 if (!_sessionNumber) { window.location.href = 'index.html'; throw new Error('No session'); }
 
 // Read level + mode from URL params (passed by dashboard)
-const _urlParams = new URLSearchParams(window.location.search);
+const _urlParams    = new URLSearchParams(window.location.search);
+const _teacherMode  = _urlParams.get('teacher') === 'true';
 const _urlLevel  = parseInt(_urlParams.get('level'))   || null;
 const _urlMode   = _urlParams.get('mode')              || null;
 const _urlMenu   = _urlParams.get('menu') === 'true';
@@ -914,6 +936,7 @@ function initApp() {
 //   Fast     → level + 0.3  (e.g. Level 3 Fast     = 3.3)
 // This lets MAXIFS in BestScores correctly rank levels numerically.
 async function autoSubmitScore() {
+  if (_teacherMode) return; // never log teacher/class play-throughs
   const studentNumber = sessionStorage.getItem('studentNumber');
   if (!studentNumber) return;
 
@@ -1071,13 +1094,16 @@ let keyIsDown = false, pressNoteIdx = -1;
 
 // ── Screen helpers ────────────────────────────────────────────────────────────
 function showScreen(id) {
-  ['menu-screen','game-screen','results-screen'].forEach(s =>
+  ['menu-screen','game-screen','results-screen','teacher-setup-screen'].forEach(s =>
     document.getElementById(s).style.display = 'none');
   const lm = document.getElementById('level-modal');
   if (lm) lm.style.display = 'none';
   document.getElementById(id).style.display = 'flex';
 }
-function goMenu()      { gamePhase = 'idle'; removePlaybar(); setRhythmHash(''); showScreen('menu-screen'); }
+function goMenu() {
+  gamePhase = 'idle'; removePlaybar(); setRhythmHash('');
+  if (_teacherMode) { showScreen('teacher-setup-screen'); } else { showScreen('menu-screen'); }
+}
 // ── PLAYBAR ───────────────────────────────────────────────────────────────────
 function startPlaybar(demoStartMs, totalMs) {
   const svg = document.getElementById('notation-svg');
@@ -1194,13 +1220,22 @@ function showResults() {
   // Show Next Level button if student passed (avg ≥ 81%)
   const nextBtn = document.getElementById('next-level-btn');
   if (nextBtn) {
-    nextBtn.style.display = avg >= 81 ? '' : 'none';
-    if (avg >= 81) {
+    nextBtn.style.display = (!_teacherMode && avg >= 81) ? '' : 'none';
+    if (!_teacherMode && avg >= 81) {
       nextBtn.textContent = currentMode === 'trainer' ? 'Try Slow →'
                           : currentMode === 'moderate' ? 'Try Fast →'
                           : 'Next Level →';
     }
   }
+  // Teacher mode: show/hide teacher-specific buttons
+  const randBtn    = document.getElementById('res-random-btn');
+  const dashBtn    = document.getElementById('res-dashboard-btn');
+  const backBtn    = document.getElementById('res-back-teacher-btn');
+  const retryBtn   = document.getElementById('res-retry-btn');
+  if (randBtn)  randBtn.style.display  = (_teacherMode && _teacherType === 'random') ? '' : 'none';
+  if (dashBtn)  dashBtn.style.display  = _teacherMode ? 'none' : '';
+  if (backBtn)  backBtn.style.display  = _teacherMode ? '' : 'none';
+  if (retryBtn) retryBtn.textContent   = _teacherMode ? '↩ Try Again' : 'Try Again';
 
   const barsEl = document.getElementById('res-bars');
   barsEl.innerHTML = '';
@@ -2136,7 +2171,140 @@ window.addEventListener('hashchange', function() {
   navigateRhythmHash(window.location.hash);
 });
 
-// ── Init ──────────────────────────────────────────────────────────────────────
+// ── Teacher Mode ─────────────────────────────────────────────────────────────
+
+let _teacherStudents  = [];   // [{firstName, highestLevel}] for current class
+let _teacherType      = '';   // 'median' or 'random'
+let _teacherStudent   = null; // current random student
+
+async function initTeacherMode() {
+  showScreen('teacher-setup-screen');
+  try {
+    const res  = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({ action:'getClasses' }), redirect:'follow' });
+    const data = await res.json();
+    const sel  = document.getElementById('teacher-class-select');
+    sel.innerHTML = '<option value="">— select a class —</option>' +
+      (data.classes || []).map(c => `<option value="${c}">${c}</option>`).join('');
+  } catch(e) {
+    document.getElementById('teacher-setup-error').textContent = 'Could not load classes. Check connection.';
+    document.getElementById('teacher-setup-error').style.display = 'block';
+  }
+}
+
+async function teacherLaunch(type) {
+  const sel = document.getElementById('teacher-class-select');
+  const cls = sel.value;
+  const err = document.getElementById('teacher-setup-error');
+  if (!cls) { err.textContent = 'Please select a class first.'; err.style.display = 'block'; return; }
+  err.style.display = 'none';
+
+  try {
+    const res  = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({ action:'getClassRhythmProgress', className: cls }), redirect:'follow' });
+    const data = await res.json();
+    _teacherStudents = data.students || [];
+    _teacherType     = type;
+    if (type === 'median') teacherShowMedian();
+    else                   teacherShowRandom();
+  } catch(e) {
+    err.textContent = 'Could not load class data.'; err.style.display = 'block';
+  }
+}
+
+function teacherBaseLevel(students) {
+  // Compute median base level; default to 1 if more than half haven't started
+  const baseLevels = students.map(s => Math.floor(s.highestLevel));
+  baseLevels.sort((a, b) => a - b);
+  const unstarted  = baseLevels.filter(l => l === 0).length;
+  if (unstarted > students.length / 2) return 1;
+  const mid = Math.floor(baseLevels.length / 2);
+  const median = baseLevels.length % 2 === 0
+    ? Math.floor((baseLevels[mid - 1] + baseLevels[mid]) / 2) // floor if between two
+    : baseLevels[mid];
+  return Math.max(1, median); // minimum level 1
+}
+
+function teacherSetupDisplay(name) {
+  // Build teacher overlay inside game-screen (header + footer)
+  const gs = document.getElementById('game-screen');
+
+  // Remove any existing teacher overlay
+  const old = gs.querySelector('.teacher-overlay');
+  if (old) old.remove();
+
+  const wrap = document.createElement('div');
+  wrap.className = 'teacher-overlay';
+  wrap.style.cssText = 'display:flex;flex-direction:column;gap:0;width:100%;';
+
+  // Name banner (hidden for median)
+  const nameBanner = document.createElement('div');
+  nameBanner.id = 'teacher-name-banner';
+  nameBanner.style.cssText = 'text-align:center;font-size:2.2rem;font-weight:800;color:#1a1f36;padding:0.5rem 0 0.25rem;letter-spacing:-0.01em;';
+  nameBanner.textContent = name || '';
+  nameBanner.style.display = name ? 'block' : 'none';
+  wrap.appendChild(nameBanner);
+
+  // Action buttons row
+  const btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:10px;margin-top:0.75rem;';
+  btnRow.innerHTML = `
+    <button onclick="teacherNewRhythm()" style="flex:1;padding:12px;border-radius:10px;border:1.5px solid #dde3f0;background:white;font-family:'DM Sans',sans-serif;font-weight:700;font-size:0.88rem;color:#1a1f36;cursor:pointer;">🔄 New Rhythm</button>
+    <button id="teacher-new-student-btn" onclick="${_teacherType==='random'?'teacherShowRandom()':''}" style="flex:1;padding:12px;border-radius:10px;border:1.5px solid #dde3f0;background:white;font-family:'DM Sans',sans-serif;font-weight:700;font-size:0.88rem;color:#1a1f36;cursor:pointer;${_teacherType==='random'?'':'opacity:0.35;pointer-events:none;'}">🎲 New Student</button>
+    <button onclick="teacherTry()" style="flex:1;padding:12px;border-radius:10px;border:none;background:#3b6ef8;color:white;font-family:'DM Sans',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">▶ Try</button>
+  `;
+  wrap.appendChild(btnRow);
+
+  // Insert before the staff-wrap
+  const staffWrap = gs.querySelector('.staff-wrap');
+  gs.insertBefore(wrap, staffWrap);
+
+  // Hide normal game UI elements
+  gs.querySelector('.game-header').style.display   = 'none';
+  document.getElementById('score-display').style.display = 'none';
+}
+
+function teacherShowMedian() {
+  const level = teacherBaseLevel(_teacherStudents);
+  currentMode  = 'moderate';
+  chooseLevel(String(level));
+  teacherSetupDisplay(null); // no name for median
+  showScreen('game-screen');
+}
+
+function teacherShowRandom() {
+  if (!_teacherStudents.length) return;
+  const idx = Math.floor(Math.random() * _teacherStudents.length);
+  _teacherStudent = _teacherStudents[idx];
+  const base = Math.max(1, Math.floor(_teacherStudent.highestLevel));
+  currentMode = 'moderate';
+  chooseLevel(String(base));
+  teacherSetupDisplay(_teacherStudent.firstName);
+  showScreen('game-screen');
+}
+
+function teacherNewRhythm() {
+  // Regenerate rhythm at same level/student, re-render
+  rhythmReady = false;
+  const banner = document.getElementById('teacher-name-banner');
+  const name   = banner ? banner.textContent : '';
+  currentMode  = 'moderate';
+  rhythm = generateRhythm(); renderNotation(rhythm);
+  rhythmReady  = true;
+  initPendulum();
+}
+
+function teacherTry() {
+  // Remove overlay, restore normal game header, launch round
+  const gs = document.getElementById('game-screen');
+  const overlay = gs.querySelector('.teacher-overlay');
+  if (overlay) overlay.remove();
+  gs.querySelector('.game-header').style.display    = '';
+  document.getElementById('score-display').style.display = '';
+  startRound();
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────────
 initApp();
 </script>
 
