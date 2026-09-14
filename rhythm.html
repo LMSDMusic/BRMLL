@@ -2268,9 +2268,8 @@ function teacherSetupDisplay(name) {
   const btnRow = document.createElement('div');
   btnRow.style.cssText = 'display:flex;gap:10px;margin-top:0.75rem;';
   btnRow.innerHTML = `
-    <button onclick="teacherNewRhythm()" style="flex:1;padding:12px;border-radius:10px;border:1.5px solid #dde3f0;background:white;font-family:'DM Sans',sans-serif;font-weight:700;font-size:0.88rem;color:#1a1f36;cursor:pointer;">🔄 New Rhythm</button>
-    <button id="teacher-new-student-btn" onclick="${_teacherType==='random'?'teacherShowRandom()':''}" style="flex:1;padding:12px;border-radius:10px;border:1.5px solid #dde3f0;background:white;font-family:'DM Sans',sans-serif;font-weight:700;font-size:0.88rem;color:#1a1f36;cursor:pointer;${_teacherType==='random'?'':'opacity:0.35;pointer-events:none;'}">🎲 New Student</button>
-    <button onclick="teacherTry()" style="flex:1;padding:12px;border-radius:10px;border:none;background:#3b6ef8;color:white;font-family:'DM Sans',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">▶ Try</button>
+    <button onclick="teacherNewRhythm()" style="flex:1;padding:12px;border-radius:10px;border:1.5px solid #dde3f0;background:white;font-family:'DM Sans',sans-serif;font-weight:700;font-size:0.88rem;color:#1a1f36;cursor:pointer;">New Rhythm</button>
+    <button id="teacher-new-student-btn" onclick="${_teacherType==='random'?'teacherShowRandom()':''}" style="flex:1;padding:12px;border-radius:10px;border:1.5px solid #dde3f0;background:white;font-family:'DM Sans',sans-serif;font-weight:700;font-size:0.88rem;color:#1a1f36;cursor:pointer;${_teacherType==='random'?'':'opacity:0.35;pointer-events:none;'}">New Student</button>
   `;
   wrap.appendChild(btnRow);
 
