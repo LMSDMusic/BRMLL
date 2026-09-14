@@ -2180,6 +2180,28 @@ let _teacherStudent   = null; // current random student
 let _teacherAllData   = null; // cached getTeacherData response
 
 async function initTeacherMode() {
+  // If launched from teacher.html with class+mode params — skip setup screen entirely
+  const classParam = _urlParams.get('teacherClass');
+  const modeParam  = _urlParams.get('teacherMode');
+  if (classParam && modeParam) {
+    try {
+      const res  = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain'},
+        body: JSON.stringify({ action:'getTeacherData' }), redirect:'follow' });
+      const data = await res.json();
+      if (data.success) _teacherAllData = data;
+    } catch(e) { console.error('Teacher init error:', e); }
+    const bestScores = (_teacherAllData && _teacherAllData.bestScores || []);
+    _teacherStudents = ((_teacherAllData && _teacherAllData.students || [])
+      .filter(s => s.class === classParam))
+      .map(s => {
+        const rl = bestScores.filter(b => b.studentNumber === s.studentNumber && b.moduleId === 'rhythm_tap');
+        return { firstName: s.firstName, highestLevel: rl.reduce((m,b) => Math.max(m, b.level||0), 0) };
+      });
+    _teacherType = modeParam;
+    if (modeParam === 'median') teacherShowMedian();
+    else                        teacherShowRandom();
+    return;
+  }
   showScreen('teacher-setup-screen');
   const errEl = document.getElementById('teacher-setup-error');
   try {

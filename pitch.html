@@ -638,11 +638,13 @@
 const SCRIPT_URL  = 'https://script.google.com/macros/s/AKfycbx_REo7dnRZo3fny_xv3uyhCUlImo4-4RM3x8W9Nu0JQHvBNv3HYRlzquLzm-PVCxzg/exec';
 
 // Redirect to login if no session
-const _sessionNumber = sessionStorage.getItem('studentNumber');
-if (!_sessionNumber) { window.location.href = 'index.html'; throw new Error('No session'); }
+const _urlParams     = new URLSearchParams(window.location.search);
+const _teacherMode   = _urlParams.get('teacher') === 'true';
 
-// URL params
-const _urlParams  = new URLSearchParams(window.location.search);
+// Bypass session check for teacher display mode
+const _sessionNumber = sessionStorage.getItem('studentNumber');
+if (!_sessionNumber && !_teacherMode) { window.location.href = 'index.html'; throw new Error('No session'); }
+
 const _urlLevel   = parseFloat(_urlParams.get('level')) || null;
 const _urlMenu    = _urlParams.get('menu') === 'true';
 const _maxLevel   = parseFloat(_urlParams.get('maxLevel')) || null;
@@ -6820,6 +6822,7 @@ function noteWithKey(label, keyLabel) {
 }
 
 async function autoSubmitScore() {
+  if (_teacherMode) return; // never log teacher/class sessions
   const studentNumber = sessionStorage.getItem('studentNumber');
   if (!studentNumber) return;
 
@@ -7215,8 +7218,160 @@ function renderLevelMenu() {
     </div>`;
 }
 
+// ── PITCH TEACHER MODE ───────────────────────────────────────────────────────
+let _ptPool      = [];   // shuffled note pool for current card session
+let _ptPoolIdx   = 0;    // current position in pool
+let _ptStudents  = [];   // [{firstName, instrument, highestLevel}] for class
+let _ptMode      = '';   // 'median' or 'random'
+let _ptRevealed  = false;
+
+function _ptInstrumentQuizId(instr) {
+  return instr.toLowerCase(); // 'violin','viola','cello','bass'
+}
+
+function _ptLevelToNotesLevel(lvl) {
+  // Find closest notes-type entry in LEVEL_SEQUENCE at or below this level
+  const notes = LEVEL_SEQUENCE.filter(e => e.type === 'notes' && e.level <= lvl + 0.05);
+  if (!notes.length) return LEVEL_SEQUENCE.find(e => e.type === 'notes') || LEVEL_SEQUENCE[0];
+  return notes.reduce((best, e) => (e.level > best.level ? e : best));
+}
+
+function _ptBuildPool(lvl, instrName) {
+  const entry    = _ptLevelToNotesLevel(lvl);
+  if (!entry) return [];
+  const instrObj = (() => {
+    // Map instrument name to ensemble + quiz ID
+    const lo = instrName.toLowerCase();
+    const eid = (lo === 'violin' || lo === 'viola' || lo === 'cello' || lo === 'bass')
+      ? 'orchestra' : 'band';
+    return { ensembleId: eid, quizId: lo };
+  })();
+  const folderId = FOLDER_MAP[instrObj.ensembleId + '|' + entry.grade + '|' + entry.quarter];
+  const folder   = FOLDERS.find(f => f.id === folderId);
+  if (!folder) return [];
+  const quiz = folder.quizzes.find(q => q.id === instrObj.quizId);
+  if (!quiz || !quiz.buildQuiz) return [];
+  return quiz.buildQuiz();
+}
+
+function _ptMedianLevel(students) {
+  const levels = students.map(s => parseFloat(s.highestLevel) || 0).sort((a,b) => a-b);
+  const unstarted = levels.filter(l => l === 0).length;
+  if (unstarted > students.length / 2) return 5.1; // default
+  const mid = Math.floor(levels.length / 2);
+  return levels.length % 2 === 0 ? (levels[mid-1] + levels[mid]) / 2 : levels[mid];
+}
+
+function _ptShowCard(entry) {
+  document.getElementById('pt-clef').src = entry.clefImg;
+  document.getElementById('pt-note').src = entry.noteFile;
+  document.getElementById('pt-note-name').textContent = entry.label || entry.answer;
+  document.getElementById('pt-clef-label').textContent = entry.clefLabel || '';
+  document.getElementById('pt-answer').style.display   = 'none';
+  document.getElementById('pt-reveal-hint').style.display = 'block';
+  _ptRevealed = false;
+}
+
+function _ptNextCard() {
+  if (!_ptPool.length) return;
+  if (_ptPoolIdx >= _ptPool.length) {
+    // Reshuffle when exhausted
+    _ptPool = _ptPool.slice().sort(() => Math.random() - 0.5);
+    _ptPoolIdx = 0;
+  }
+  _ptShowCard(_ptPool[_ptPoolIdx++]);
+}
+
+function ptReveal() {
+  if (_ptRevealed) return;
+  _ptRevealed = true;
+  document.getElementById('pt-answer').style.display      = 'block';
+  document.getElementById('pt-reveal-hint').style.display = 'none';
+}
+
+function ptNewNote() {
+  _ptNextCard();
+}
+
+function ptNewStudent() {
+  if (!_ptStudents.length) return;
+  const instrParam = new URLSearchParams(window.location.search).get('teacherInstrument') || 'violin';
+  const s = _ptStudents[Math.floor(Math.random() * _ptStudents.length)];
+  document.getElementById('pt-student-name').textContent = s.firstName;
+  const instr = s.instrument || instrParam;
+  _ptPool    = _ptBuildPool(parseFloat(s.highestLevel) || 5.1, instr);
+  _ptPoolIdx = 0;
+  _ptNextCard();
+}
+
+function ptBack() {
+  // Return to the level menu (or parent teacher.html handles it)
+  if (window.parent !== window) window.parent.postMessage({ type:'ptBack' }, '*');
+  else renderLevelMenu();
+}
+
+async function initPitchTeacherMode() {
+  const params   = new URLSearchParams(window.location.search);
+  const cls      = params.get('teacherClass')      || '';
+  const mode     = params.get('teacherMode')       || 'median';
+  const instrDef = params.get('teacherInstrument') || 'violin';
+  _ptMode = mode;
+
+  // Show screen
+  const el = document.getElementById('pitch-teacher-screen');
+  if (el) el.style.display = 'flex';
+  document.getElementById('pt-new-student-btn').style.display = mode === 'random' ? '' : 'none';
+
+  if (!cls) {
+    // No class specified — just show first card from level 5.1
+    _ptPool = _ptBuildPool(5.1, instrDef);
+    _ptPoolIdx = 0;
+    _ptNextCard();
+    return;
+  }
+
+  // Fetch class data
+  try {
+    const res  = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({ action:'getTeacherData' }), redirect:'follow' });
+    const data = await res.json();
+    const pitchScores = (data.bestScores || []).filter(b => b.moduleId === 'note_id');
+
+    _ptStudents = (data.students || [])
+      .filter(s => s.class === cls)
+      .map(s => {
+        const entry = pitchScores.filter(b => b.studentNumber === s.studentNumber)
+          .reduce((best, b) => (!best || b.level > best.level ? b : best), null);
+        return { firstName: s.firstName, instrument: s.instrument || instrDef,
+                 highestLevel: entry ? entry.level : 0 };
+      });
+
+    if (mode === 'median') {
+      const lvl  = _ptMedianLevel(_ptStudents);
+      _ptPool    = _ptBuildPool(lvl, instrDef);
+      _ptPoolIdx = 0;
+      document.getElementById('pt-student-name').style.display = 'none';
+    } else {
+      // Random: pick first student immediately
+      const s    = _ptStudents[Math.floor(Math.random() * _ptStudents.length)];
+      const instr = s.instrument || instrDef;
+      document.getElementById('pt-student-name').textContent = s.firstName;
+      document.getElementById('pt-student-name').style.display = 'block';
+      _ptPool    = _ptBuildPool(parseFloat(s.highestLevel) || 5.1, instr);
+      _ptPoolIdx = 0;
+    }
+    _ptNextCard();
+  } catch(e) {
+    console.error('Pitch teacher mode error:', e);
+    _ptPool = _ptBuildPool(5.1, instrDef);
+    _ptPoolIdx = 0;
+    _ptNextCard();
+  }
+}
+
 // ── INIT ─────────────────────────────────────────────────────────
 function initApp() {
+  if (_teacherMode) { initPitchTeacherMode(); return; }
   if (_urlLevel && !_urlMenu) {
     launchLevel(_urlLevel);
     return;
@@ -7226,5 +7381,49 @@ function initApp() {
 
 initApp();
 </script>
+
+<!-- ── Pitch Teacher Flashcard Screen ─────────────────────────── -->
+<div id="pitch-teacher-screen" style="display:none;min-height:100dvh;background:#f0f4ff;
+  background-image:linear-gradient(#dde3f0 1px,transparent 1px),linear-gradient(90deg,#dde3f0 1px,transparent 1px);
+  background-size:40px 40px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:1.5rem;padding:2rem;">
+
+  <!-- Student name banner (random mode only) -->
+  <div id="pt-student-name" style="display:none;font-size:2.6rem;font-weight:800;
+    color:#1a1f36;letter-spacing:-0.02em;text-align:center;"></div>
+
+  <!-- Flashcard -->
+  <div id="pt-card" style="background:white;border:2px solid #dde3f0;border-radius:20px;
+    padding:2rem 2.5rem;box-shadow:0 8px 40px rgba(26,39,68,.12);
+    display:flex;align-items:center;gap:0;cursor:pointer;" onclick="ptReveal()">
+    <img id="pt-clef" src="" style="height:300px;object-fit:contain;display:block;" alt="Clef">
+    <img id="pt-note" src="" style="height:300px;object-fit:contain;display:block;" alt="Note">
+  </div>
+
+  <!-- Answer (hidden until reveal) -->
+  <div id="pt-answer" style="display:none;text-align:center;">
+    <div id="pt-note-name" style="font-size:3.5rem;font-weight:900;color:#1a1f36;letter-spacing:-0.02em;"></div>
+    <div id="pt-clef-label" style="font-size:1rem;color:#6b7aa0;font-weight:500;margin-top:4px;"></div>
+  </div>
+
+  <!-- Tap to reveal hint -->
+  <div id="pt-reveal-hint" style="font-size:0.85rem;color:#9ba3b8;font-style:italic;">
+    Tap the card to reveal
+  </div>
+
+  <!-- Buttons -->
+  <div style="display:flex;gap:10px;margin-top:0.5rem;">
+    <button onclick="ptNewNote()" style="padding:13px 22px;border-radius:10px;border:1.5px solid #dde3f0;
+      background:white;font-family:'DM Sans',sans-serif;font-weight:700;font-size:0.95rem;
+      color:#1a1f36;cursor:pointer;">New Note</button>
+    <button id="pt-new-student-btn" style="display:none;padding:13px 22px;border-radius:10px;
+      border:none;background:#1a1f36;font-family:'DM Sans',sans-serif;font-weight:700;
+      font-size:0.95rem;color:white;cursor:pointer;" onclick="ptNewStudent()">New Student</button>
+    <button onclick="ptBack()" style="padding:13px 22px;border-radius:10px;border:1.5px solid #dde3f0;
+      background:white;font-family:'DM Sans',sans-serif;font-weight:700;font-size:0.95rem;
+      color:#6b7aa0;cursor:pointer;">← Back</button>
+  </div>
+</div>
+
 </body>
 </html>
