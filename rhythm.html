@@ -2177,47 +2177,58 @@ window.addEventListener('hashchange', function() {
 let _teacherStudents  = [];   // [{firstName, highestLevel}] for current class
 let _teacherType      = '';   // 'median' or 'random'
 let _teacherStudent   = null; // current random student
+let _teacherAllData   = null; // cached getTeacherData response
 
 async function initTeacherMode() {
   showScreen('teacher-setup-screen');
+  const errEl = document.getElementById('teacher-setup-error');
   try {
     const res  = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain'},
-      body: JSON.stringify({ action:'getClasses' }), redirect:'follow' });
+      body: JSON.stringify({ action:'getTeacherData' }), redirect:'follow' });
     const data = await res.json();
-    const sel  = document.getElementById('teacher-class-select');
-    const errEl = document.getElementById('teacher-setup-error');
-    if (!data.success) {
+    if (!data.success) throw new Error(data.error || 'unknown error');
+    _teacherAllData = data;
+
+    // Extract unique sorted class names from student roster
+    const classes = [...new Set((data.students || []).map(s => s.class).filter(Boolean))].sort();
+    const sel = document.getElementById('teacher-class-select');
+    if (!classes.length) {
       sel.innerHTML = '<option value="">— no classes found —</option>';
-      errEl.textContent = 'Apps Script returned: ' + (data.error || 'unknown error') + '. Redeploy Code.gs.';
+      errEl.textContent = 'No classes found in Students sheet.';
       errEl.style.display = 'block';
       return;
     }
     sel.innerHTML = '<option value="">— select a class —</option>' +
-      (data.classes || []).map(c => `<option value="${c}">${c}</option>`).join('');
+      classes.map(c => `<option value="${c}">${c}</option>`).join('');
   } catch(e) {
-    document.getElementById('teacher-setup-error').textContent = 'Could not load classes: ' + e.message;
-    document.getElementById('teacher-setup-error').style.display = 'block';
+    errEl.textContent = 'Could not load data: ' + e.message;
+    errEl.style.display = 'block';
   }
 }
 
-async function teacherLaunch(type) {
+function teacherLaunch(type) {
   const sel = document.getElementById('teacher-class-select');
   const cls = sel.value;
   const err = document.getElementById('teacher-setup-error');
   if (!cls) { err.textContent = 'Please select a class first.'; err.style.display = 'block'; return; }
   err.style.display = 'none';
 
-  try {
-    const res  = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain'},
-      body: JSON.stringify({ action:'getClassRhythmProgress', className: cls }), redirect:'follow' });
-    const data = await res.json();
-    _teacherStudents = data.students || [];
-    _teacherType     = type;
-    if (type === 'median') teacherShowMedian();
-    else                   teacherShowRandom();
-  } catch(e) {
-    err.textContent = 'Could not load class data.'; err.style.display = 'block';
-  }
+  // Build [{firstName, highestLevel}] from cached data, filtered to this class
+  const studentsInClass = (_teacherAllData.students || []).filter(s => s.class === cls);
+  const bestScores = _teacherAllData.bestScores || [];
+
+  _teacherStudents = studentsInClass.map(s => {
+    // Find their highest rhythm_tap level from bestScores
+    const rhythmEntries = bestScores.filter(
+      b => b.studentNumber === s.studentNumber && b.moduleId === 'rhythm_tap'
+    );
+    const highestLevel = rhythmEntries.reduce((max, b) => Math.max(max, b.level || 0), 0);
+    return { firstName: s.firstName, highestLevel };
+  });
+
+  _teacherType = type;
+  if (type === 'median') teacherShowMedian();
+  else                   teacherShowRandom();
 }
 
 function teacherBaseLevel(students) {
