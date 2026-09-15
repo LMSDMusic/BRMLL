@@ -6886,6 +6886,11 @@ function getNextLevelUrl() {
 }
 
 function renderScore() {
+  if (_teacherMode) {
+    // Loop quiz — restart without showing score screen
+    startQuiz(activeFolder.id, activeQuiz.id);
+    return;
+  }
   elapsed = formatTime(Date.now() - quizStartTime);
   const p = loadProfile();
   const studentLine = `${p.firstName} ${p.lastName} &nbsp;·&nbsp; ${sessionStorage.getItem('studentInstrument') || ''}`;  
@@ -7219,104 +7224,70 @@ function renderLevelMenu() {
 }
 
 // ── PITCH TEACHER MODE ───────────────────────────────────────────────────────
-let _ptPool      = [];   // shuffled note pool for current card session
-let _ptPoolIdx   = 0;    // current position in pool
-let _ptStudents  = [];   // [{firstName, instrument, highestLevel}] for class
-let _ptMode      = '';   // 'median' or 'random'
-let _ptRevealed  = false;
+// Uses the real quiz UI (launchLevel → renderQuestion → auto-advance).
+// A fixed banner sits on top with student name + teacher controls.
+let _ptStudents = [];
+let _ptMode     = '';
 
-function _ptInstrumentQuizId(instr) {
-  return instr.toLowerCase(); // 'violin','viola','cello','bass'
-}
-
-function _ptLevelToNotesLevel(lvl) {
-  // Find closest notes-type entry in LEVEL_SEQUENCE at or below this level
+function _ptClosestNotesLevel(lvl) {
   const notes = LEVEL_SEQUENCE.filter(e => e.type === 'notes' && e.level <= lvl + 0.05);
-  if (!notes.length) return LEVEL_SEQUENCE.find(e => e.type === 'notes') || LEVEL_SEQUENCE[0];
+  if (!notes.length) return LEVEL_SEQUENCE.find(e => e.type === 'notes');
   return notes.reduce((best, e) => (e.level > best.level ? e : best));
-}
-
-function _ptBuildPool(lvl, instrName) {
-  const entry    = _ptLevelToNotesLevel(lvl);
-  if (!entry) return [];
-  const instrObj = (() => {
-    // Map instrument name to ensemble + quiz ID
-    const lo = instrName.toLowerCase();
-    const eid = (lo === 'violin' || lo === 'viola' || lo === 'cello' || lo === 'bass')
-      ? 'orchestra' : 'band';
-    return { ensembleId: eid, quizId: lo };
-  })();
-  const folderId = FOLDER_MAP[instrObj.ensembleId + '|' + entry.grade + '|' + entry.quarter];
-  const folder   = FOLDERS.find(f => f.id === folderId);
-  if (!folder) return [];
-  const quiz = folder.quizzes.find(q => q.id === instrObj.quizId);
-  if (!quiz) return [];
-  const defaultClef = quiz.clefImg || 'images/treble2.png';
-  // Collect pool from whichever property exists
-  var raw = [];
-  if (quiz.buildQuiz)    { raw = quiz.buildQuiz(); }
-  else if (quiz.notePool){ raw = quiz.notePool.slice(); }
-  else if (quiz.trainerNotes) { raw = quiz.trainerNotes.slice(); }
-  if (!raw.length) return [];
-  // Shuffle
-  for (var i = raw.length-1; i > 0; i--) {
-    var j = Math.floor(Math.random()*(i+1)); var t = raw[i]; raw[i] = raw[j]; raw[j] = t;
-  }
-  return raw.map(function(e) { return Object.assign({ clefImg: defaultClef }, e); });
 }
 
 function _ptMedianLevel(students) {
   const levels = students.map(s => parseFloat(s.highestLevel) || 0).sort((a,b) => a-b);
-  const unstarted = levels.filter(l => l === 0).length;
-  if (unstarted > students.length / 2) return 5.1; // default
+  if (levels.filter(l => l === 0).length > students.length / 2) return 5.1;
   const mid = Math.floor(levels.length / 2);
   return levels.length % 2 === 0 ? (levels[mid-1] + levels[mid]) / 2 : levels[mid];
 }
 
-function _ptShowCard(entry) {
-  document.getElementById('pt-clef').src = entry.clefImg;
-  document.getElementById('pt-note').src = entry.noteFile;
-  document.getElementById('pt-note-name').textContent = entry.label || entry.answer;
-  document.getElementById('pt-clef-label').textContent = entry.clefLabel || '';
-  document.getElementById('pt-answer').style.display   = 'none';
-  document.getElementById('pt-reveal-hint').style.display = 'block';
-  _ptRevealed = false;
-}
-
-function _ptNextCard() {
-  if (!_ptPool.length) return;
-  if (_ptPoolIdx >= _ptPool.length) {
-    // Reshuffle when exhausted
-    _ptPool = _ptPool.slice().sort(() => Math.random() - 0.5);
-    _ptPoolIdx = 0;
+// ── Teacher banner (fixed top bar) ────────────────────────────────────────────
+function ptAddBanner(name, showNewStudent) {
+  let b = document.getElementById('pt-banner');
+  if (!b) {
+    b = document.createElement('div');
+    b.id = 'pt-banner';
+    b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;' +
+      'background:#1a1f36;color:white;padding:8px 16px;display:flex;align-items:center;gap:10px;' +
+      'font-family:"DM Sans",sans-serif;';
+    b.innerHTML = '<span id="pt-banner-name" style="font-size:1.1rem;font-weight:700;flex:1;color:white;"></span>' +
+      '<button onclick="ptNewNote()" style="padding:6px 14px;border-radius:7px;border:1.5px solid #3b4b6b;background:transparent;color:#a8b3d0;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.82rem;cursor:pointer;">New Note</button>' +
+      '<button id="pt-new-student-banner-btn" onclick="ptNewStudent()" style="display:none;padding:6px 14px;border-radius:7px;border:none;background:#3b6ef8;color:white;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.82rem;cursor:pointer;">New Student</button>' +
+      '<button onclick="ptBack()" style="padding:6px 14px;border-radius:7px;border:1.5px solid #3b4b6b;background:transparent;color:#a8b3d0;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.82rem;cursor:pointer;">← Back</button>';
+    document.body.prepend(b);
+    document.body.style.paddingTop = '44px';
   }
-  _ptShowCard(_ptPool[_ptPoolIdx++]);
+  document.getElementById('pt-banner-name').textContent = name || '';
+  const nsb = document.getElementById('pt-new-student-banner-btn');
+  if (nsb) nsb.style.display = showNewStudent ? '' : 'none';
 }
 
-function ptReveal() {
-  if (_ptRevealed) return;
-  _ptRevealed = true;
-  document.getElementById('pt-answer').style.display      = 'block';
-  document.getElementById('pt-reveal-hint').style.display = 'none';
+function ptLaunchLevel(lvl, instrTitle, studentName) {
+  sessionStorage.setItem('studentInstrument', instrTitle);
+  ptAddBanner(studentName || '', _ptMode === 'random');
+  const entry = _ptClosestNotesLevel(lvl);
+  if (entry) launchLevel(entry.level);
 }
 
 function ptNewNote() {
-  _ptNextCard();
+  // Advance to next question in the current active quiz
+  if (typeof nextQuestion === 'function') nextQuestion();
 }
 
 function ptNewStudent() {
   if (!_ptStudents.length) return;
-  const instrParam = new URLSearchParams(window.location.search).get('teacherInstrument') || 'violin';
+  const instrParam = new URLSearchParams(window.location.search).get('teacherInstrument') || 'Violin';
   const s = _ptStudents[Math.floor(Math.random() * _ptStudents.length)];
-  document.getElementById('pt-student-name').textContent = s.firstName;
-  const instr = s.instrument || instrParam;
-  _ptPool    = _ptBuildPool(parseFloat(s.highestLevel) || 5.1, instr);
-  _ptPoolIdx = 0;
-  _ptNextCard();
+  const instrTitle = s.instrument
+    ? (s.instrument.charAt(0).toUpperCase() + s.instrument.slice(1).toLowerCase())
+    : instrParam;
+  ptLaunchLevel(parseFloat(s.highestLevel) || 5.1, instrTitle, s.firstName);
 }
 
 function ptBack() {
-  // Return to the level menu (or parent teacher.html handles it)
+  document.body.style.paddingTop = '';
+  const b = document.getElementById('pt-banner'); if (b) b.remove();
   if (window.parent !== window) window.parent.postMessage({ type:'ptBack' }, '*');
   else renderLevelMenu();
 }
@@ -7325,23 +7296,16 @@ async function initPitchTeacherMode() {
   const params   = new URLSearchParams(window.location.search);
   const cls      = params.get('teacherClass')      || '';
   const mode     = params.get('teacherMode')       || 'median';
-  const instrDef = params.get('teacherInstrument') || 'violin';
+  const instrDef = params.get('teacherInstrument') || 'Violin';
   _ptMode = mode;
 
-  // Show screen
-  const el = document.getElementById('pitch-teacher-screen');
-  if (el) el.style.display = 'flex';
-  document.getElementById('pt-new-student-btn').style.display = mode === 'random' ? '' : 'none';
+  const instrTitle = instrDef.charAt(0).toUpperCase() + instrDef.slice(1).toLowerCase();
 
   if (!cls) {
-    // No class specified — just show first card from level 5.1
-    _ptPool = _ptBuildPool(5.1, instrDef);
-    _ptPoolIdx = 0;
-    _ptNextCard();
+    ptLaunchLevel(5.1, instrTitle, null);
     return;
   }
 
-  // Fetch class data
   try {
     const res  = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain'},
       body: JSON.stringify({ action:'getTeacherData' }), redirect:'follow' });
@@ -7351,32 +7315,23 @@ async function initPitchTeacherMode() {
     _ptStudents = (data.students || [])
       .filter(s => s.class === cls)
       .map(s => {
-        const entry = pitchScores.filter(b => b.studentNumber === s.studentNumber)
-          .reduce((best, b) => (!best || b.level > best.level ? b : best), null);
-        return { firstName: s.firstName, instrument: s.instrument || instrDef,
-                 highestLevel: entry ? entry.level : 0 };
+        const best = pitchScores.filter(b => b.studentNumber === s.studentNumber)
+          .reduce((m, b) => (!m || b.level > m.level ? b : m), null);
+        return { firstName: s.firstName,
+                 instrument: s.instrument ? (s.instrument.charAt(0).toUpperCase()+s.instrument.slice(1).toLowerCase()) : instrTitle,
+                 highestLevel: best ? best.level : 0 };
       });
 
     if (mode === 'median') {
-      const lvl  = _ptMedianLevel(_ptStudents);
-      _ptPool    = _ptBuildPool(lvl, instrDef);
-      _ptPoolIdx = 0;
-      document.getElementById('pt-student-name').style.display = 'none';
+      ptLaunchLevel(_ptMedianLevel(_ptStudents), instrTitle, null);
     } else {
-      // Random: pick first student immediately
-      const s    = _ptStudents[Math.floor(Math.random() * _ptStudents.length)];
-      const instr = s.instrument || instrDef;
-      document.getElementById('pt-student-name').textContent = s.firstName;
-      document.getElementById('pt-student-name').style.display = 'block';
-      _ptPool    = _ptBuildPool(parseFloat(s.highestLevel) || 5.1, instr);
-      _ptPoolIdx = 0;
+      const s = _ptStudents[Math.floor(Math.random() * _ptStudents.length)];
+      ptLaunchLevel(parseFloat(s ? s.highestLevel : 0) || 5.1,
+                    s ? s.instrument : instrTitle, s ? s.firstName : null);
     }
-    _ptNextCard();
   } catch(e) {
     console.error('Pitch teacher mode error:', e);
-    _ptPool = _ptBuildPool(5.1, instrDef);
-    _ptPoolIdx = 0;
-    _ptNextCard();
+    ptLaunchLevel(5.1, instrTitle, null);
   }
 }
 
