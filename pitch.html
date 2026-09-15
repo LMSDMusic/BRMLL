@@ -7382,7 +7382,11 @@ function initApp() {
   renderLevelMenu();
 }
 
-initApp();
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
 </script>
 
 <!-- ── Pitch Teacher Flashcard Screen ─────────────────────────── -->
