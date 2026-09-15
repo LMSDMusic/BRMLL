@@ -7251,7 +7251,10 @@ function _ptBuildPool(lvl, instrName) {
   if (!folder) return [];
   const quiz = folder.quizzes.find(q => q.id === instrObj.quizId);
   if (!quiz || !quiz.buildQuiz) return [];
-  return quiz.buildQuiz();
+  const defaultClef = quiz.clefImg || 'images/treble2.png';
+  return quiz.buildQuiz().map(function(e) {
+    return Object.assign({ clefImg: defaultClef }, e);
+  });
 }
 
 function _ptMedianLevel(students) {
