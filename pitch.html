@@ -7250,11 +7250,19 @@ function _ptBuildPool(lvl, instrName) {
   const folder   = FOLDERS.find(f => f.id === folderId);
   if (!folder) return [];
   const quiz = folder.quizzes.find(q => q.id === instrObj.quizId);
-  if (!quiz || !quiz.buildQuiz) return [];
+  if (!quiz) return [];
   const defaultClef = quiz.clefImg || 'images/treble2.png';
-  return quiz.buildQuiz().map(function(e) {
-    return Object.assign({ clefImg: defaultClef }, e);
-  });
+  // Collect pool from whichever property exists
+  var raw = [];
+  if (quiz.buildQuiz)    { raw = quiz.buildQuiz(); }
+  else if (quiz.notePool){ raw = quiz.notePool.slice(); }
+  else if (quiz.trainerNotes) { raw = quiz.trainerNotes.slice(); }
+  if (!raw.length) return [];
+  // Shuffle
+  for (var i = raw.length-1; i > 0; i--) {
+    var j = Math.floor(Math.random()*(i+1)); var t = raw[i]; raw[i] = raw[j]; raw[j] = t;
+  }
+  return raw.map(function(e) { return Object.assign({ clefImg: defaultClef }, e); });
 }
 
 function _ptMedianLevel(students) {
