@@ -6960,8 +6960,17 @@ const INSTRUMENTS_LIST = [
 ];
 
 function loadProfile() {
-  try { const r = localStorage.getItem(PROFILE_KEY); return r ? JSON.parse(r) : null; }
-  catch(e) { return null; }
+  try {
+    const r = localStorage.getItem(PROFILE_KEY);
+    if (r) return JSON.parse(r);
+  } catch(e) {}
+  // Fallback: read from sessionStorage (set at login)
+  return {
+    firstName:  sessionStorage.getItem('studentFirstName')  || '',
+    lastName:   sessionStorage.getItem('studentLastName')   || '',
+    instrument: sessionStorage.getItem('studentInstrument') || '',
+    grade:      sessionStorage.getItem('studentGrade')      || ''
+  };
 }
 
 function saveProfile(p) {
