@@ -22,6 +22,20 @@
       background-size: 40px 40px; opacity: .45; pointer-events: none; z-index: -1;
     }
 
+    /* ── Today's Module pill ── */
+    .todays-module-bar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 24px; background: var(--blue-light);
+      border-bottom: 1px solid var(--border); flex-wrap: wrap;
+    }
+    .todays-module-bar label { font-size: .78rem; font-weight: 600; color: var(--blue); letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+    .todays-module-bar select { font-family: 'DM Sans',sans-serif; font-size: .85rem; color: var(--text); background: var(--surface); border: 1.5px solid var(--blue); border-radius: 8px; padding: 5px 28px 5px 10px; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%233b6ef8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; cursor: pointer; }
+    .todays-module-bar select:focus { outline: none; }
+    .set-module-btn { padding: 6px 16px; border-radius: 8px; border: none; background: var(--blue); color: white; font-family: 'DM Sans',sans-serif; font-weight: 700; font-size: .82rem; cursor: pointer; transition: background .15s; white-space: nowrap; }
+    .set-module-btn:hover { background: var(--blue-dark); }
+    .set-module-btn:disabled { opacity: .5; cursor: default; }
+    #todays-status { font-size: .78rem; color: var(--blue); font-weight: 500; }
+
     /* ── Top bar ── */
     .topbar {
       position: sticky; top: 0; z-index: 100;
@@ -140,6 +154,14 @@
   </div>
 </div>
 
+<!-- ── Today's Module bar (shown in Progress tab only) ── -->
+<div class="todays-module-bar" id="todays-module-bar">
+  <label>Today's Module</label>
+  <select id="todays-module-select"><option value="">Loading…</option></select>
+  <button class="set-module-btn" id="set-module-btn" onclick="setTodaysModule()" disabled>Set for Class</button>
+  <span id="todays-status"></span>
+</div>
+
 <!-- ── Dashboard view ── -->
 <div id="dashboard-view">
   <div class="shell">
@@ -207,6 +229,7 @@
     document.getElementById('dashboard-view').style.display    = tab === 'dashboard'    ? 'block' : 'none';
     document.getElementById('class-display-view').style.display= tab === 'classdisplay' ? 'block' : 'none';
     document.getElementById('dashboard-filters').style.display = tab === 'dashboard'    ? 'flex'  : 'none';
+    document.getElementById('todays-module-bar').style.display = tab === 'dashboard'    ? 'flex'  : 'none';
     document.getElementById('tab-dashboard').classList.toggle('active',    tab === 'dashboard');
     document.getElementById('tab-classdisplay').classList.toggle('active', tab === 'classdisplay');
   }
@@ -225,6 +248,7 @@
       renderTable();
       updateStats();
       cdPopulateClasses(); // populate class display dropdown from same data
+      populateTodaysModuleSelector(); // populate today's module selector
     } catch(err) {
       document.getElementById("tableBody").innerHTML =
         `<tr class="status-row"><td colspan="20">Failed to load data. Check your connection and try refreshing.</td></tr>`;
@@ -433,6 +457,53 @@
 
   function escHtml(str) {
     return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Today's Module ────────────────────────────────────────────────────────
+  async function populateTodaysModuleSelector() {
+    try {
+      // Get current today's module
+      const res  = await fetch(SCRIPT_URL, { method:"POST", headers:{"Content-Type":"text/plain"},
+        body: JSON.stringify({ action:"getTodaysModule" }), redirect:"follow" });
+      const data = await res.json();
+      const currentId = data.moduleId || '';
+      const sel = document.getElementById('todays-module-select');
+      sel.innerHTML = allModules.map(m =>
+        `<option value="${escHtml(m.moduleId)}"${m.moduleId===currentId?' selected':''}>${escHtml(m.title)}</option>`
+      ).join('');
+      document.getElementById('set-module-btn').disabled = false;
+      if (currentId) {
+        const cur = allModules.find(m => m.moduleId === currentId);
+        document.getElementById('todays-status').textContent =
+          cur ? `Currently: ${cur.title}` : '';
+      }
+    } catch(e) {
+      document.getElementById('todays-status').textContent = 'Could not load modules.';
+    }
+  }
+
+  async function setTodaysModule() {
+    const btn    = document.getElementById('set-module-btn');
+    const sel    = document.getElementById('todays-module-select');
+    const status = document.getElementById('todays-status');
+    const moduleId = sel.value;
+    if (!moduleId) return;
+    btn.disabled = true;
+    status.textContent = 'Saving…';
+    try {
+      const res  = await fetch(SCRIPT_URL, { method:"POST", headers:{"Content-Type":"text/plain"},
+        body: JSON.stringify({ action:"setTodaysModule", moduleId }), redirect:"follow" });
+      const data = await res.json();
+      if (data.success) {
+        const mod = allModules.find(m => m.moduleId === moduleId);
+        status.textContent = `✓ Set to: ${mod ? mod.title : moduleId}`;
+      } else {
+        status.textContent = 'Error saving.';
+      }
+    } catch(e) {
+      status.textContent = 'Error saving.';
+    }
+    btn.disabled = false;
   }
 
   loadData();
