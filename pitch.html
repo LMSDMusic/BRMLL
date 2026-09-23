@@ -5183,7 +5183,7 @@ const ENSEMBLES = [
   { id: 'chorus',    title: 'Chorus',    colorClass: 'chor', icon: '🎤' },
 ];
 
-const GRADES = ['5th', '6th'];
+const GRADES = ['5th', '6th', '7th'];
 
 const INSTRUMENTS = [
   // Orchestra
@@ -5854,6 +5854,7 @@ const FOLDER_MAP = {
   'orchestra|6th|q2': 'q2-6th',
   'orchestra|6th|q3': 'q3-6th',
   'orchestra|6th|q4': 'q4-6th',
+  'orchestra|7th|q1': 'q4-6th',
   'band|5th|q1':      'band-q1-5th',
   'band|5th|q2':      'band-q2-5th',
   'band|5th|q3':      'band-q3-5th',
@@ -5971,7 +5972,7 @@ function _renderGradeContent(ensembleId) {
       <div class="menu-intro">Choose a Grade</div>
       <div class="folder-cards">
         ${GRADES.map(grade => {
-          const hasData = (ensembleId === 'orchestra' && grade === '5th') || (ensembleId === 'band' && grade === '5th') || (ensembleId === 'chorus' && grade === '5th');
+          const hasData = (ensembleId === 'orchestra' && grade === '5th') || (ensembleId === 'band' && grade === '5th') || (ensembleId === 'chorus' && grade === '5th') || (ensembleId === 'orchestra' && grade === '7th');
           return `<div class="folder-card ${cc}" onclick="renderLevelMenu()">
             <div class="folder-icon" style="font-size:1.1rem;font-family:DM Sans,sans-serif;font-weight:700;">${grade}</div>
             <div class="folder-info">
@@ -5997,7 +5998,7 @@ function _renderInstrumentContent(ensembleId, grade) {
   activeInstrument = null;
   activeFolder     = null;
   activeQuiz       = null;
-  const hasData    = (ensembleId === 'orchestra' && grade === '5th') || (ensembleId === 'band' && grade === '5th') || (ensembleId === 'chorus' && grade === '5th');
+  const hasData    = (ensembleId === 'orchestra' && grade === '5th') || (ensembleId === 'band' && grade === '5th') || (ensembleId === 'chorus' && grade === '5th') || (ensembleId === 'orchestra' && grade === '7th');
   const cc         = activeEnsemble.colorClass;
   document.getElementById('app').innerHTML = `
     <div class="header">
@@ -7118,6 +7119,8 @@ const LEVEL_SEQUENCE = [
   { level: 6.6, grade: '6th', quarter: 'q3', type: 'fingering', label: '6th Grade · Q3 · Fingering', orchOnly: true },
   { level: 6.7, grade: '6th', quarter: 'q4', type: 'notes',     label: '6th Grade · Q4 · Notes' },
   { level: 6.8, grade: '6th', quarter: 'q4', type: 'fingering', label: '6th Grade · Q4 · Fingering', orchOnly: true },
+  { level: 7.1, grade: '7th', quarter: 'q1', type: 'notes',     label: '7th Grade · Review · Notes' },
+  { level: 7.2, grade: '7th', quarter: 'q1', type: 'fingering', label: '7th Grade · Review · Fingering', orchOnly: true },
 ];
 
 // Returns the INSTRUMENTS entry for the current student's instrument
@@ -7169,7 +7172,8 @@ function launchLevel(levelVal) {
 function renderLevelMenu() {
   const instr    = getStudentInstrument();
   const isOrch   = instr.ensembleId === 'orchestra';
-  const maxBase  = _maxLevel ? parseInt(_maxLevel) : null;
+  const is7th    = sessionStorage.getItem('studentGrade') === '7th';
+  const maxBase  = (!is7th && _maxLevel) ? parseInt(_maxLevel) : null;
   const bestBase = Math.floor(_bestLevel);
   const bestSub  = Math.round((_bestLevel - bestBase) * 10);
 
@@ -7365,6 +7369,11 @@ function initApp() {
   if (_teacherMode) { initPitchTeacherMode(); return; }
   if (_urlLevel && !_urlMenu) {
     launchLevel(_urlLevel);
+    return;
+  }
+  // 7th graders default directly into level 7.1 (all prior levels already unlocked)
+  if (!_urlMenu && sessionStorage.getItem('studentGrade') === '7th') {
+    launchLevel(7.1);
     return;
   }
   renderLevelMenu();
