@@ -6939,8 +6939,9 @@ function renderScore() {
 
       <div class="score-btn-row">
         <button class="replay-btn" onclick="launchQuiz('${activeFolder.id}', '${activeQuiz.id}')">Retry</button>
-        ${getNextLevelUrl() ? `<button class="score-next-btn" onclick="window.location.href=getNextLevelUrl()">Next Quiz →</button>` : ''}
+        ${(score / totalQ() >= 0.86) && getNextLevelUrl() ? `<button class="score-next-btn" onclick="window.location.href=getNextLevelUrl()">Next Quiz →</button>` : ''}
       </div>
+      ${(score / totalQ() < 0.86) ? `<div style="font-size:0.82rem;color:var(--muted);text-align:center;margin-top:4px;">Score 86% or higher to unlock the next level.</div>` : ''}
       <div style="margin-top:10px;">
         <button class="score-menu-btn" onclick="window.location.href='dashboard.html'">Dashboard</button>
       </div>
@@ -7303,16 +7304,30 @@ function ptBack() {
 }
 
 async function initPitchTeacherMode() {
-  const params   = new URLSearchParams(window.location.search);
-  const cls      = params.get('teacherClass')      || '';
-  const mode     = params.get('teacherMode')       || 'median';
-  const instrDef = params.get('teacherInstrument') || 'Violin';
+  const params       = new URLSearchParams(window.location.search);
+  const cls          = params.get('teacherClass')      || '';
+  const mode         = params.get('teacherMode')       || 'median';
+  const instrDef     = params.get('teacherInstrument') || 'Violin';
+  const studentsJSON = params.get('teacherStudents');
   _ptMode = mode;
 
   const instrTitle = instrDef.charAt(0).toUpperCase() + instrDef.slice(1).toLowerCase();
 
   if (!cls) {
     ptLaunchLevel(5.1, instrTitle, null);
+    return;
+  }
+
+  // Fast path: teacher.html pre-computed the student list — no GAS cold-start needed
+  if (studentsJSON) {
+    try { _ptStudents = JSON.parse(studentsJSON); } catch(e) { _ptStudents = []; }
+    if (mode === 'median') {
+      ptLaunchLevel(_ptMedianLevel(_ptStudents), instrTitle, null);
+    } else {
+      const s = _ptStudents[Math.floor(Math.random() * _ptStudents.length)];
+      ptLaunchLevel(parseFloat(s ? s.highestLevel : 0) || 5.1,
+                    s ? s.instrument : instrTitle, s ? s.firstName : null);
+    }
     return;
   }
 
