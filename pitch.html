@@ -7172,7 +7172,7 @@ function launchLevel(levelVal) {
 function renderLevelMenu() {
   const instr    = getStudentInstrument();
   const isOrch   = instr.ensembleId === 'orchestra';
-  const is7th    = sessionStorage.getItem('studentGrade') === '7th';
+  const is7th    = sessionStorage.getItem('studentGrade') === '7';
   const maxBase  = (!is7th && _maxLevel) ? parseInt(_maxLevel) : null;
   const bestBase = Math.floor(_bestLevel);
   const bestSub  = Math.round((_bestLevel - bestBase) * 10);
@@ -7372,7 +7372,7 @@ function initApp() {
     return;
   }
   // 7th graders default directly into level 7.1 (all prior levels already unlocked)
-  if (!_urlMenu && sessionStorage.getItem('studentGrade') === '7th') {
+  if (!_urlMenu && sessionStorage.getItem('studentGrade') === '7') {
     launchLevel(7.1);
     return;
   }
