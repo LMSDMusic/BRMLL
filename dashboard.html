@@ -710,6 +710,8 @@
     function buildPitchUrl(bestScore) {
       const instrName = sessionStorage.getItem('studentInstrument') || 'Violin';
       const isOrch    = getEnsembleForInstrument(instrName) === 'orchestra';
+      // 7th graders always start at 7.1 regardless of prior pitch history
+      if (grade === '7' && (!bestScore || bestScore.level < 7.1)) return "pitch.html?level=7.1";
       if (!bestScore || bestScore.level === 0) return "pitch.html?level=5.1";
       const threshold = MASTERY_THRESHOLD["pitch.html"] ?? DEFAULT_THRESHOLD;
       const baseLevel = Math.floor(bestScore.level);
