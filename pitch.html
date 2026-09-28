@@ -1511,6 +1511,7 @@ const Q4_TREBLE_NOTE_POOL = [
 
 const Q4_ALTO_NOTE_POOL = [
   { noteFile: 'images/note3.png', answer: 'C', answerString:'C', label: 'C3', clefImg: 'images/alto1.png', clefLabel: 'G Major' },
+  { noteFile: 'images/note3.png', answer: 'C#', answerString:'C', label: 'C#3', clefImg: 'images/alto2.png', clefLabel: 'D Major' },
   { noteFile: 'images/note4.png', answer: 'D', answerString:'C', label: 'D3', clefImg: 'images/alto0.png', clefLabel: 'C Major' },
   { noteFile: 'images/note5.png', answer: 'E', answerString:'C', label: 'E3', clefImg: 'images/alto1.png', clefLabel: 'G Major' },
   { noteFile: 'images/note6.png', answer: 'F', answerString:'C', label: 'F3', clefImg: 'images/alto0.png', clefLabel: 'C Major' },
@@ -1532,6 +1533,7 @@ const Q4_ALTO_NOTE_POOL = [
 
 const Q4_BASS_CELLO_NOTE_POOL = [
   { noteFile: 'images/note2.png', answer: 'C', answerString:'C', label: 'C2', clefImg: 'images/bass1.png', clefLabel: 'G Major' },
+  { noteFile: 'images/note2.png', answer: 'C#', answerString:'C', label: 'C#2', clefImg: 'images/bass2.png', clefLabel: 'D Major' },
   { noteFile: 'images/note3.png', answer: 'D', answerString:'C', label: 'D2', clefImg: 'images/bass0.png', clefLabel: 'C Major' },
   { noteFile: 'images/note4.png', answer: 'E', answerString:'C', label: 'E2', clefImg: 'images/bass1.png', clefLabel: 'G Major' },
   { noteFile: 'images/note5.png', answer: 'F', answerString:'C', label: 'F2', clefImg: 'images/bass0.png', clefLabel: 'C Major' },
@@ -1547,6 +1549,7 @@ const Q4_BASS_CELLO_NOTE_POOL = [
   { noteFile: 'images/note14.png', answer: 'A', answerString:'A', label: 'A3', clefImg: 'images/bass1.png', clefLabel: 'G Major' },
   { noteFile: 'images/note15.png', answer: 'B', answerString:'A', label: 'B3', clefImg: 'images/bass0.png', clefLabel: 'C Major' },
   { noteFile: 'images/note16.png', answer: 'C', answerString:'A', label: 'C4', clefImg: 'images/bass1.png', clefLabel: 'G Major' },
+  { noteFile: 'images/note16.png', answer: 'C#', answerString:'A', label: 'C#4', clefImg: 'images/bass2.png', clefLabel: 'D Major' },
   { noteFile: 'images/note17.png', answer: 'D', answerString:'A', label: 'D4', clefImg: 'images/bass2.png', clefLabel: 'D Major' },
 ];
 
@@ -4474,8 +4477,8 @@ const FOLDERS = [
         title: 'Viola',
         clefLabel: 'Alto Clef · Mixed Keys',
         icon: '𝄡',
-        desc: 'Alto clef · 18 questions',
-        totalQuestions: 18,
+        desc: 'Alto clef · 19 questions',
+        totalQuestions: 19,
         noteOptions: ['C','C#','D','E','F','F#','G','A','B'],
         noteFingerboard: {
           strings: [
@@ -4519,8 +4522,8 @@ const FOLDERS = [
         title: 'Cello',
         clefLabel: 'Bass Clef · Mixed Keys',
         icon: '𝄢',
-        desc: 'Bass clef · 18 questions',
-        totalQuestions: 18,
+        desc: 'Bass clef · 19 questions',
+        totalQuestions: 19,
         noteOptions: ['C','C#','D','E','F','F#','G','A','B'],
         noteFingerboard: {
           strings: [
@@ -4564,8 +4567,8 @@ const FOLDERS = [
         title: 'Bass',
         clefLabel: 'Bass Clef · Mixed Keys',
         icon: '𝄢',
-        desc: 'Bass clef · 17 questions',
-        totalQuestions: 17,
+        desc: 'Bass clef · 16 questions',
+        totalQuestions: 16,
         noteOptions: ['C','C#','D','E','F','F#','G','A','B'],
         noteFingerboard: {
           strings: [
@@ -5869,7 +5872,12 @@ function getFolder(id) { return FOLDERS.find(f => f.id === id); }
 
 const DEFAULT_TOTAL = 12;
 
-function totalQ() { return (activeQuiz && activeQuiz.totalQuestions) || DEFAULT_TOTAL; }
+function totalQ() {
+  const t = (activeQuiz && activeQuiz.totalQuestions) || DEFAULT_TOTAL;
+  // Safeguard: never ask more questions than the quiz actually built,
+  // otherwise the quiz stalls when it runs out of notes.
+  return (questions && questions.length) ? Math.min(t, questions.length) : t;
+}
 
 // ── STATE ────────────────────────────────────────────────────────
 let activeEnsemble = null;
