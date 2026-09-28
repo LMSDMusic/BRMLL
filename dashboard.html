@@ -416,7 +416,9 @@
       // Compute the suggested next level from the URL we'll link to
       const nextUrl     = (module.filename === 'rhythm.html' && allScoresMap)
         ? buildRhythmNextUrl(allScoresMap[module.moduleId])
-        : buildModuleUrl(module.filename, bestScore);
+        : (module.filename === 'staffhero.html')
+          ? buildStaffHeroUrl(bestScore, allScoresMap && allScoresMap[module.moduleId])
+          : buildModuleUrl(module.filename, bestScore);
       const nextLevel   = (nextUrl.match(/level=([\d.]+)/) || [])[1] || "1";
       const nextMode    = (nextUrl.match(/mode=(\w+)/)     || [])[1] || null;
       // For rhythm, combine level + mode offset to get the true decimal (e.g. 2 + trainer → 2.1)
@@ -427,9 +429,7 @@
 
       const meta = nextLabel;
 
-      const upNextUrl = (module.filename === 'rhythm.html' && allScoresMap)
-        ? buildRhythmNextUrl(allScoresMap[module.moduleId])
-        : buildModuleUrl(module.filename, bestScore);
+      const upNextUrl = nextUrl;
       area.innerHTML = `
         <a class="up-next" href="${upNextUrl}" style="display:flex;">
           <div class="mod-icon up-next-icon ${theme.color}">${theme.emoji}</div>
@@ -454,7 +454,7 @@
         let metaHtml;
         if (bs) {
           const cardUrl    = (mod.filename === "rhythm.html") ? buildRhythmNextUrl(allScoresMap && allScoresMap[mod.moduleId])
-                           : (mod.filename === "staffhero.html") ? buildStaffHeroUrl(bs)
+                           : (mod.filename === "staffhero.html") ? buildStaffHeroUrl(bs, allScoresMap && allScoresMap[mod.moduleId])
                            : (mod.filename === "pitch.html") ? buildPitchUrl(bs)
                            : buildModuleUrl(mod.filename, bs);
           const cardLevel  = (cardUrl.match(/level=([\d.]+)/) || [])[1] || "1";
@@ -473,7 +473,7 @@
         card.href        = (mod.filename === "rhythm.html")
           ? buildRhythmMenuUrl(bs, allScoresMap)
           : (mod.filename === "staffhero.html")
-            ? buildStaffHeroMenuUrl(bs)
+            ? buildStaffHeroMenuUrl(bs, allScoresMap && allScoresMap[mod.moduleId])
             : (mod.filename === "pitch.html")
               ? buildPitchMenuUrl(bs)
               : buildModuleUrl(mod.filename, bs);
@@ -637,17 +637,31 @@
       return filename + "?level=" + suggestedLevel;
     }
 
-    // Builds the Up Next URL for Staff Hero — includes maxLevel + bestLevel
-    // so the level preview's "Other Levels" button has lock data available.
-    function buildStaffHeroUrl(bestScore) {
-      if (!bestScore || bestScore.level === 0) {
-        return "staffhero.html?level=1&maxLevel=1&bestLevel=0";
-      }
-      const threshold    = MASTERY_THRESHOLD["staffhero.html"] ?? DEFAULT_THRESHOLD;
-      const baseLevel    = Math.floor(bestScore.level);
-      const suggested    = bestScore.bestPercent >= threshold ? baseLevel + 1 : baseLevel;
-      const maxLevel     = baseLevel + 1; // same rule as menu: one above best
-      return "staffhero.html?level=" + suggested + "&maxLevel=" + maxLevel + "&bestLevel=" + baseLevel;
+    // ── STAFF HERO UNLOCKING ──────────────────────────────────
+    // A Staff Hero level counts as PASSED only if the student finished it
+    // (no game over). Levels are 25 notes with 6 hearts, so a finished level
+    // always scores >= 83% (25/30) and a game over always scores <= 80% (24/30).
+    // The 81% threshold therefore means "finished the level".
+    // Unlocking is based on the highest PASSED level, not the highest played,
+    // so a game over on Level 3 no longer unlocks Level 4.
+    // Level 99 = Ultimate Challenge — ignored for unlocking.
+    function staffHeroHighestPassed(bestScore, allEntries) {
+      const entries   = (allEntries && allEntries.length) ? allEntries : (bestScore ? [bestScore] : []);
+      const threshold = MASTERY_THRESHOLD["staffhero.html"] ?? DEFAULT_THRESHOLD;
+      let highest = 0;
+      entries.forEach(e => {
+        const lvl = Math.floor(e.level);
+        if (lvl > 0 && lvl < 99 && e.bestPercent >= threshold && lvl > highest) highest = lvl;
+      });
+      return highest;
+    }
+
+    // Up Next URL for Staff Hero: next level after the highest passed one.
+    // Includes maxLevel + bestLevel so the "Other Levels" menu is locked correctly.
+    function buildStaffHeroUrl(bestScore, allEntries) {
+      const passed   = staffHeroHighestPassed(bestScore, allEntries);
+      const maxLevel = passed + 1;   // one above highest passed
+      return "staffhero.html?level=" + maxLevel + "&maxLevel=" + maxLevel + "&bestLevel=" + passed;
     }
 
     // Builds the menu URL for rhythm module cards.
@@ -700,10 +714,9 @@
     }
 
     // Builds the menu URL for Staff Hero module cards with level locking.
-    function buildStaffHeroMenuUrl(bestScore) {
-      if (!bestScore || bestScore.level === 0) return "staffhero.html?menu=true&maxLevel=1&bestLevel=0";
-      const baseLevel = Math.floor(bestScore.level);
-      return "staffhero.html?menu=true&maxLevel=" + (baseLevel + 1) + "&bestLevel=" + baseLevel;
+    function buildStaffHeroMenuUrl(bestScore, allEntries) {
+      const passed = staffHeroHighestPassed(bestScore, allEntries);
+      return "staffhero.html?menu=true&maxLevel=" + (passed + 1) + "&bestLevel=" + passed;
     }
 
     // Pitch Up Next URL: goes straight to the quiz at the suggested level
