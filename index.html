@@ -347,6 +347,7 @@
         <span class="btn-text">Sign In</span>
         <div class="spinner"></div>
       </button>
+      <p id="loginStatus" role="status" aria-live="polite" style="display:none;text-align:center;margin-top:10px;font-size:0.85rem;color:var(--text-muted);"></p>
       </div>
       <p id="notYouRow" style="display:none;text-align:center;margin-top:12px;font-size:0.82rem;color:#6b7aa0;">
         Signing in as <strong id="notYouName"></strong> &nbsp;·&nbsp;
@@ -400,13 +401,35 @@
     // ──────────────────────────────────────────────────────────
 
     // ── localStorage credential keys ──────────────────────────────
-    const LS_NUM  = 'brmll_studentNumber';
-    const LS_CODE = 'brmll_passcode';
-    const LS_NAME = 'brmll_firstName';
+    const LS_NUM     = 'brmll_studentNumber';
+    const LS_CODE    = 'brmll_passcode';
+    const LS_NAME    = 'brmll_firstName';
+    const LS_PROFILE = 'brmll_profile';   // saved roster info for instant sign-in
+
+    // ── Login tuning ──────────────────────────────────────────────
+    const REQUEST_TIMEOUT_MS   = 12000;          // give up on a single request after 12 s
+    const RETRY_DELAYS_MS      = [2000, 4000];   // up to 2 automatic retries (timeouts retry once)
+    const SLOW_NOTICE_MS       = 3000;           // show "this can take a few seconds" after 3 s
+    const FAST_SIGNIN_DELAY_MS = 1500;           // window to click "Not you?" before instant sign-in
+    const PROFILE_MAX_AGE_MS   = 7 * 24 * 60 * 60 * 1000; // re-check with the server at least weekly
+
+    const ERROR_MESSAGES = {
+      // Server answered with a known result
+      invalid_credentials: "Incorrect student number or passcode. Please try again.",
+      locked_out:          "Too many failed attempts. Please wait 15 minutes or ask your teacher to unlock your account.",
+      missing_fields:      "Please enter both your student number and passcode.",
+      server_error:        "The login server had a problem. Please wait a moment and try again.",
+      // Request never got a usable answer
+      offline:  "Your device appears to be offline. Check your Wi-Fi and try again.",
+      timeout:  "The login server is taking too long (lots of students may be signing in at once). Please wait a moment and try again.",
+      network:  "Couldn't reach the login server. Please try again — if it keeps happening, tell your teacher.",
+      server:   "The login server is busy right now. Please wait a moment and try again."
+    };
 
     const loginBtn      = document.getElementById("loginBtn");
     const errorAlert    = document.getElementById("errorAlert");
     const errorText     = document.getElementById("errorText");
+    const loginStatus   = document.getElementById("loginStatus");
     const loginSection  = document.getElementById("loginSection");
     const welcomeSection= document.getElementById("welcomeSection");
     const welcomeName   = document.getElementById("welcomeName");
@@ -414,6 +437,9 @@
     const passcodeInput = document.getElementById("passcode");
     const eyeIcon       = document.getElementById("eyeIcon");
     const eyeOffIcon    = document.getElementById("eyeOffIcon");
+
+    let loginInFlight    = false;  // blocks duplicate submits (click + Enter + auto-login)
+    let fastSigninTimer  = null;
 
     // Show/hide passcode toggle
     toggleBtn.addEventListener("click", () => {
@@ -423,75 +449,156 @@
       eyeOffIcon.style.display = isHidden ? "block" : "none";
     });
 
-    // Allow Enter key to submit
+    // Allow Enter key to submit (handleLogin ignores it if a login is already running)
     document.addEventListener("keydown", e => {
       if (e.key === "Enter" && loginSection.style.display !== "none") handleLogin();
     });
 
+    // ── Network helpers ────────────────────────────────────────
+    class LoginError extends Error {
+      constructor(kind, detail) { super(detail || kind); this.kind = kind; }
+    }
+
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    /** One request to Apps Script, with a timeout. Throws LoginError on any failure. */
+    async function postOnce(payload) {
+      const ctrl  = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS);
+      try {
+        const response = await fetch(SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" }, // avoids CORS preflight with Apps Script
+          body: JSON.stringify(payload),
+          redirect: "follow",
+          signal: ctrl.signal
+        });
+        if (!response.ok) throw new LoginError("server", "HTTP " + response.status);
+        const text = await response.text();
+        try {
+          return JSON.parse(text);
+        } catch (_) {
+          // Apps Script sends an HTML page (e.g. "Service invoked too many times") instead of JSON
+          throw new LoginError("server", "Non-JSON response: " + text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").slice(0, 300));
+        }
+      } catch (err) {
+        if (err instanceof LoginError) throw err;
+        if (err.name === "AbortError") throw new LoginError("timeout", "No response after " + REQUEST_TIMEOUT_MS + " ms");
+        throw new LoginError(navigator.onLine === false ? "offline" : "network", err.message);
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    /** postOnce with automatic retries for temporary failures. */
+    async function postWithRetry(payload, onRetry) {
+      let timeoutsSeen = 0;
+      for (let attempt = 0; ; attempt++) {
+        const canRetry = attempt < RETRY_DELAYS_MS.length;
+        // Random ±25% spread so a whole class doesn't retry at the same instant
+        const delay = canRetry ? RETRY_DELAYS_MS[attempt] * (0.75 + Math.random() * 0.5) : 0;
+        try {
+          const data = await postOnce(payload);
+          if (data && data.success === false && data.error === "server_error" && canRetry) {
+            console.warn(`[login] attempt ${attempt + 1}: server_error —`, data.detail);
+            onRetry(); await sleep(delay); continue;
+          }
+          return data;
+        } catch (err) {
+          console.error(`[login] attempt ${attempt + 1} failed (${err.kind}):`, err.message);
+          if (err.kind === "timeout") timeoutsSeen++;
+          if (!canRetry || err.kind === "offline" || timeoutsSeen > 1) throw err;
+          onRetry(); await sleep(delay);
+        }
+      }
+    }
+
+    // ── Session helpers ────────────────────────────────────────
+    function startSession(studentNumber, p) {
+      sessionStorage.setItem("studentFirstName",  p.firstName);
+      sessionStorage.setItem("studentLastName",   p.lastName);
+      sessionStorage.setItem("studentNumber",     studentNumber);
+      sessionStorage.setItem("studentGrade",      p.grade);
+      sessionStorage.setItem("studentClass",      p.class);
+      sessionStorage.setItem("studentInstrument", p.instrument || "Violin");
+    }
+
+    function saveCredentials(studentNumber, passcode, p) {
+      localStorage.setItem(LS_NUM,  studentNumber);
+      localStorage.setItem(LS_CODE, passcode);
+      localStorage.setItem(LS_NAME, p.firstName);
+      localStorage.setItem(LS_PROFILE, JSON.stringify({
+        studentNumber, firstName: p.firstName, lastName: p.lastName, grade: p.grade,
+        class: p.class, instrument: p.instrument, savedAt: Date.now()
+      }));
+    }
+
+    function clearCredentials() {
+      [LS_NUM, LS_CODE, LS_NAME, LS_PROFILE].forEach(k => localStorage.removeItem(k));
+      document.getElementById('notYouRow').style.display = 'none';
+    }
+
+    /** Saved profile for this student number, if recent enough to trust without the server. */
+    function readSavedProfile(studentNumber) {
+      try {
+        const p = JSON.parse(localStorage.getItem(LS_PROFILE) || "null");
+        if (!p || p.studentNumber !== studentNumber) return null;
+        if (!p.savedAt || Date.now() - p.savedAt > PROFILE_MAX_AGE_MS) return null;
+        return p;
+      } catch (_) { return null; }
+    }
+
+    function cancelFastSignin() {
+      if (fastSigninTimer) { clearTimeout(fastSigninTimer); fastSigninTimer = null; setLoading(false); }
+    }
+
     // ── Login Handler ──────────────────────────────────────────
     async function handleLogin() {
+      if (loginInFlight) return;          // already signing in — ignore extra clicks / Enter presses
+      cancelFastSignin();
+
       const studentNumber = document.getElementById("studentNumber").value.trim();
       const passcode      = passcodeInput.value.trim();
 
       hideError();
 
       if (!studentNumber || !passcode) {
-        showError("Please enter both your student number and passcode.");
+        showError(ERROR_MESSAGES.missing_fields);
         return;
       }
 
+      loginInFlight = true;
       setLoading(true);
+      let redirecting = false;
+      const slowTimer = setTimeout(() => showStatus("Signing in… this can take a few seconds."), SLOW_NOTICE_MS);
 
       try {
-        const response = await fetch(SCRIPT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain" }, // avoids CORS preflight with Apps Script
-          body: JSON.stringify({ action: "login", studentNumber, passcode }),
-          redirect: "follow"
-        });
-
-        if (!response.ok) throw new Error("Network error");
-
-        const data = await response.json();
+        const data = await postWithRetry(
+          { action: "login", studentNumber, passcode },
+          () => showStatus("Still working on it — trying again…")
+        );
 
         if (data.success) {
-          // Store in sessionStorage (cleared when tab closes)
-          sessionStorage.setItem("studentFirstName", data.firstName);
-          sessionStorage.setItem("studentLastName",  data.lastName);
-          sessionStorage.setItem("studentNumber",    studentNumber);
-          sessionStorage.setItem("studentGrade",      data.grade);
-          sessionStorage.setItem("studentClass",      data.class);
-          sessionStorage.setItem("studentInstrument", data.instrument || "Violin");
-
-          // Save credentials to localStorage for fast auto-login next time
-          localStorage.setItem(LS_NUM,  studentNumber);
-          localStorage.setItem(LS_CODE, passcode);
-          localStorage.setItem(LS_NAME, data.firstName);
-
+          startSession(studentNumber, data);
+          saveCredentials(studentNumber, passcode, data);
+          redirecting = true;
           window.location.href = "dashboard.html";
-
         } else {
-          const messages = {
-            invalid_credentials: "Incorrect student number or passcode. Please try again.",
-            locked_out:          "Too many failed attempts. Please wait 15 minutes or ask your teacher to unlock your account.",
-            missing_fields:      "Please enter both your student number and passcode.",
-            server_error:        "Something went wrong. Please try again in a moment."
-          };
-          // If auto-login failed (saved creds now invalid), clear them
-          if (localStorage.getItem(LS_NUM)) {
-            localStorage.removeItem(LS_NUM);
-            localStorage.removeItem(LS_CODE);
-            localStorage.removeItem(LS_NAME);
-            document.getElementById('notYouRow').style.display = 'none';
-          }
-          showError(messages[data.error] || messages.server_error);
+          // Saved credentials are wrong now (e.g. passcode changed) — forget them
+          if (data.error === "invalid_credentials" && localStorage.getItem(LS_NUM)) clearCredentials();
+          showError(ERROR_MESSAGES[data.error] || ERROR_MESSAGES.server_error);
         }
 
       } catch (err) {
-        showError("Could not connect. Please check your internet and try again.");
+        showError(ERROR_MESSAGES[err.kind] || ERROR_MESSAGES.network);
+      } finally {
+        clearTimeout(slowTimer);
+        if (!redirecting) {
+          hideStatus();
+          loginInFlight = false;
+          setLoading(false);
+        }
       }
-
-      setLoading(false);
     }
 
     loginBtn.addEventListener("click", handleLogin);
@@ -499,12 +606,11 @@
     // ── "Not you?" handler ──────────────────────────────────────
     document.getElementById('notYouLink').addEventListener('click', e => {
       e.preventDefault();
-      localStorage.removeItem(LS_NUM);
-      localStorage.removeItem(LS_CODE);
-      localStorage.removeItem(LS_NAME);
+      cancelFastSignin();
+      hideStatus();
+      clearCredentials();
       document.getElementById('studentNumber').value = '';
       passcodeInput.value = '';
-      document.getElementById('notYouRow').style.display = 'none';
     });
 
     // ── Auto-login from localStorage on page load ───────────────
@@ -522,7 +628,20 @@
         document.getElementById('notYouRow').style.display = 'block';
       }
 
-      // Attempt silent login
+      // Fast path: we already have this student's info from a recent login —
+      // skip the server entirely so returning students don't join the login rush.
+      const profile = readSavedProfile(savedNum);
+      if (profile) {
+        setLoading(true);
+        fastSigninTimer = setTimeout(() => {
+          fastSigninTimer = null;
+          startSession(savedNum, profile);
+          window.location.href = "dashboard.html";
+        }, FAST_SIGNIN_DELAY_MS);
+        return;
+      }
+
+      // No recent profile (first time on this device, or older than a week) — check with the server
       handleLogin();
     })();
 
@@ -539,6 +658,15 @@
 
     function hideError() {
       errorAlert.classList.remove("show");
+    }
+
+    function showStatus(msg) {
+      loginStatus.textContent = msg;
+      loginStatus.style.display = "block";
+    }
+
+    function hideStatus() {
+      loginStatus.style.display = "none";
     }
 
     function signOut() {
