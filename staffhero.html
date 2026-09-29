@@ -1805,19 +1805,50 @@ function drawTrebleClef(x) {
 }
 
 // ─── ALTO CLEF DRAWING ────────────────────────────────────────────────────────
-// Unicode 𝄡 is the B clef — the notch must sit exactly on staffLines[2] (C4/middle line).
-// The glyph's visual centre sits above its typographic middle, so we nudge down manually.
+// Drawn as vector paths instead of the Unicode 𝄡 glyph: ChromeOS fonts don't include
+// U+1D121, so the text version rendered blank on student Chromebooks.
+// The notch sits exactly on staffLines[2] (middle line = C4).
+// C clef drawn as filled paths. Units = one staff space (ls).
+// (x, midY) = left edge of the clef and the staff line it marks (middle line for alto).
+// Total size: ~2.35 spaces wide, exactly 4 spaces tall (top line to bottom line).
+function drawCClefPath(c, x, midY, ls) {
+  c.save();
+  c.translate(x, midY);
+  c.scale(ls, ls);
+  c.beginPath();
+  // Thick bar + thin bar
+  c.rect(0, -2, 0.42, 4);
+  c.rect(0.60, -2, 0.13, 4);
+  // Two C-shaped lobes, mirror images above and below the middle line
+  for (const s of [-1, 1]) {
+    c.moveTo(0.73, 0);
+    c.bezierCurveTo(0.93, -0.12*s, 1.02, -0.45*s, 1.08, -0.82*s);           // beak rises
+    c.bezierCurveTo(1.25, -0.72*s, 1.40, -0.68*s, 1.58, -0.72*s);
+    c.bezierCurveTo(2.02, -0.82*s, 2.20, -1.12*s, 2.20, -1.42*s);           // outer bowl
+    c.bezierCurveTo(2.20, -1.82*s, 1.85, -2.02*s, 1.42, -2.02*s);
+    c.bezierCurveTo(1.12, -2.02*s, 0.92, -1.86*s, 0.92, -1.66*s);           // top curl
+    c.bezierCurveTo(0.92, -1.50*s, 1.08, -1.40*s, 1.22, -1.46*s);           // into ball
+    c.bezierCurveTo(1.40, -1.52*s, 1.48, -1.68*s, 1.36, -1.82*s);
+    c.bezierCurveTo(1.50, -1.84*s, 1.76, -1.74*s, 1.76, -1.42*s);           // inner bowl
+    c.bezierCurveTo(1.76, -1.12*s, 1.58, -0.98*s, 1.30, -1.0*s);
+    c.bezierCurveTo(1.16, -1.0*s, 1.04, -1.04*s, 0.96, -1.08*s);
+    c.bezierCurveTo(0.90, -0.55*s, 0.84, -0.20*s, 0.73, 0);                 // beak back down
+    c.closePath();
+  }
+  c.fill('nonzero');
+  // Ball terminals
+  for (const s of [-1, 1]) {
+    c.beginPath();
+    c.arc(1.17, -1.64*s, 0.27, 0, Math.PI*2);
+    c.fill();
+  }
+  c.restore();
+}
+
 function drawAltoClef(x) {
   ctx.save();
   ctx.fillStyle = '#ffe066';
-  const clefHeight = LINE_SPACING * 5.9;
-  ctx.font = `${clefHeight}px serif`;
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'middle';
-  // Offset: push the glyph down so its visual notch aligns with the middle staff line.
-  // The 𝄡 glyph centre sits roughly 18% above typographic middle — nudge down to compensate.
-  const nudge = clefHeight * 0.09;
-  ctx.fillText('𝄡', x - 15, staffLines[2] + nudge);
+  drawCClefPath(ctx, x, staffLines[2], LINE_SPACING);
   ctx.restore();
 }
 
@@ -3063,9 +3094,7 @@ function drawMiniStaff(instrument, levelDef, staffCX, staffMidY, LS) {
   ctx.fillStyle = '#ffe066';
   ctx.textAlign = 'left';
   if (instrument === 'Viola') {
-    ctx.font = `${LS * 5.2}px serif`;
-    ctx.textBaseline = 'middle';
-    ctx.fillText('𝄡', staffLeft + 1, psl[2] + 2);
+    drawCClefPath(ctx, staffLeft + 4, psl[2], LS);
   } else if (instrument === 'Cello' || instrument === 'Bass') {
     ctx.font = `${LS * 4.2 * 1.1576}px serif`;
     ctx.textBaseline = 'middle';
@@ -3663,10 +3692,7 @@ function drawLevelPreviewScreen() {
   ctx.save();
   ctx.fillStyle = '#ffe066';
   if (selectedInstrument === 'Viola') {
-    ctx.font = `${LS * 5.2}px serif`;
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('𝄡', staffLeft + 4, psl[2] + 5);
+    drawCClefPath(ctx, staffLeft + 6, psl[2], LS);
   } else if (selectedInstrument === 'Cello' || selectedInstrument === 'Bass' || selectedInstrument === 'Baritone' || selectedInstrument === 'Trombone') {
     ctx.font = `${LS * 4.2 * 1.1576}px serif`;
     ctx.textAlign = 'left';
