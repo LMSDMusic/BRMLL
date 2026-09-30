@@ -2133,7 +2133,7 @@ function drawHUD() {
 
   // In-game MENU / END GAME button (below score, top-left)
   if (!gameOver && !levelComplete) {
-    const mbW = ucActive ? 90 : 60, mbH = 20;
+    const mbW = 100, mbH = 20; // fits 'DASHBOARD' / 'END GAME' at 9px
     const mbX = 10, mbY = 24;
     const mbLabel = ucActive ? 'END GAME' : 'DASHBOARD';
     drawNesButton(mbLabel, mbX, mbY, mbW, mbH, hoveredBtn === 'MENU_INGAME', false);
