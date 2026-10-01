@@ -6895,6 +6895,15 @@ function getNextLevelUrl() {
   return 'pitch.html?level=' + LEVEL_SEQUENCE[next].level.toFixed(1);
 }
 
+// ── PASSING SCORE ───────────────────────────────────────────────
+// Must match MASTERY_THRESHOLD["pitch.html"] in dashboard.html.
+// Compares the same ROUNDED percent that autoSubmitScore() logs, so the
+// "Next Quiz" button and the dashboard unlock always agree (e.g. 12/14 = 86%).
+const PITCH_PASS_PCT = 86;
+function passedPitch() {
+  return totalQ() > 0 && Math.round(score / totalQ() * 100) >= PITCH_PASS_PCT;
+}
+
 function renderScore() {
   if (_teacherMode) {
     // Loop quiz — restart without showing score screen
@@ -6948,9 +6957,9 @@ function renderScore() {
 
       <div class="score-btn-row">
         <button class="replay-btn" onclick="launchQuiz('${activeFolder.id}', '${activeQuiz.id}')">Retry</button>
-        ${(score / totalQ() >= 0.86) && getNextLevelUrl() ? `<button class="score-next-btn" onclick="window.location.href=getNextLevelUrl()">Next Quiz →</button>` : ''}
+        ${passedPitch() && getNextLevelUrl() ? `<button class="score-next-btn" onclick="window.location.href=getNextLevelUrl()">Next Quiz →</button>` : ''}
       </div>
-      ${(score / totalQ() < 0.86) ? `<div style="font-size:0.82rem;color:var(--muted);text-align:center;margin-top:4px;">Score 86% or higher to unlock the next level.</div>` : ''}
+      ${!passedPitch() ? `<div style="font-size:0.82rem;color:var(--muted);text-align:center;margin-top:4px;">Score ${PITCH_PASS_PCT}% or higher to unlock the next level.</div>` : ''}
       <div style="margin-top:10px;">
         <button class="score-menu-btn" onclick="window.location.href='dashboard.html'">Dashboard</button>
       </div>

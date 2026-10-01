@@ -376,12 +376,18 @@
       throw new Error("No session — redirecting.");
     }
 
+    // ── DEV: UNLOCK ALL LEVELS ───────────────────────────────
+    // Set only by local_login.html. When true, module menus open with
+    // every level unlocked. Cleared on sign out (sessionStorage.clear()).
+    const UNLOCK_ALL = sessionStorage.getItem("devUnlockAll") === "true";
+
     // ── GREETING ─────────────────────────────────────────────
     document.getElementById("greetingName").textContent = "Hello, " + firstName;
 
     const metaParts = [];
     if (grade)        metaParts.push("Grade " + grade);
     if (studentClass) metaParts.push("Class " + studentClass);
+    if (UNLOCK_ALL)   metaParts.push("🔓 All levels unlocked (dev)");
     document.getElementById("greetingMeta").textContent = metaParts.join(" · ");
 
     const initials = ((firstName[0] || "") + (lastName ? lastName[0] : "")).toUpperCase() || "?";
@@ -604,7 +610,7 @@
     const MASTERY_THRESHOLD = {
       "staffhero.html" : 81,
       "rhythm.html"    : 81,
-      "pitch.html"     : 90,   // module ID in sheet: note_id
+      "pitch.html"     : 86,   // module ID in sheet: note_id — must match PITCH_PASS_PCT in pitch.html
     };
     const DEFAULT_THRESHOLD = 81;
 
@@ -663,6 +669,7 @@
     function buildStaffHeroUrl(bestScore, allEntries) {
       const passed   = staffHeroHighestPassed(bestScore, allEntries);
       const maxLevel = passed + 1;   // one above highest passed
+      if (UNLOCK_ALL) return "staffhero.html?level=" + maxLevel;   // no maxLevel → nothing locked
       return "staffhero.html?level=" + maxLevel + "&maxLevel=" + maxLevel + "&bestLevel=" + passed;
     }
 
@@ -670,6 +677,8 @@
     // maxLevel = student's base level + 1 (one level ahead is accessible).
     // bestLevel = their actual best decimal (e.g. 3.2) — used for modal sub-level locking.
     function buildRhythmMenuUrl(bestScore, allScoresMap) {
+      // Dev: no maxLevel → no level locks; bestLevel above every level → all speeds open
+      if (UNLOCK_ALL) return "rhythm.html?menu=true&bestLevel=99&bestPercent=100";
       if (!bestScore || bestScore.level === 0) return "rhythm.html?menu=true&maxLevel=1&bestLevel=0&bestPercent=0";
       const threshold = MASTERY_THRESHOLD["rhythm.html"] ?? DEFAULT_THRESHOLD;
       const allEntries  = allScoresMap && allScoresMap["rhythm_tap"] || [bestScore];
@@ -711,7 +720,7 @@
       const isOrch    = getEnsembleForInstrument(instrName) === 'orchestra';
       const threshold = MASTERY_THRESHOLD["pitch.html"] ?? DEFAULT_THRESHOLD;
       const passed    = new Set((allEntries || [])
-        .filter(e => e.bestPercent >= threshold)
+        .filter(e => Math.round(e.bestPercent) >= threshold)   // same rounded % that pitch.html logs and checks
         .map(e => Number(e.level).toFixed(1)));
       const order = pitchLevelOrder(isOrch);
       const next  = order.find(lvl => !passed.has(lvl));
@@ -720,6 +729,7 @@
 
     // Builds the menu URL for Pitch module cards.
     function buildPitchMenuUrl(bestScore, allEntries) {
+      if (UNLOCK_ALL) return "pitch.html?menu=true";   // no maxLevel → nothing locked
       const entries = (allEntries && allEntries.length) ? allEntries : (bestScore ? [bestScore] : []);
       const best    = bestScore ? Number(bestScore.level).toFixed(1) : "0";
       return "pitch.html?menu=true&maxLevel=" + pitchFrontier(entries) + "&bestLevel=" + best;
@@ -727,6 +737,7 @@
 
     // Builds the menu URL for Staff Hero module cards with level locking.
     function buildStaffHeroMenuUrl(bestScore, allEntries) {
+      if (UNLOCK_ALL) return "staffhero.html?menu=true";   // no maxLevel → nothing locked
       const passed = staffHeroHighestPassed(bestScore, allEntries);
       return "staffhero.html?menu=true&maxLevel=" + (passed + 1) + "&bestLevel=" + passed;
     }
