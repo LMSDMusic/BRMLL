@@ -1048,9 +1048,24 @@ function playTap() {
 
 // ── Config ────────────────────────────────────────────────────────────────────
 let BPM = 80, BEAT_MS = 60000 / BPM;
-const PERFECT_ATK = 100;  // ms — full attack score
-const PERFECT_REL = 100;  // ms — full release score
-const MISS_WIN    = 101;  // ms — zero score (anything over 100ms is a miss)
+// Attack: full credit within ±60ms, linear fall-off to 0 at ±150ms
+const PERFECT_ATK = 60;
+const MISS_WIN    = 150;
+// Release (half & dotted-half only): full credit within ±100ms, 0 at ±200ms
+const PERFECT_REL = 100;
+const REL_MISS    = 200;
+const RELEASE_WEIGHT = 0.1;                      // share of note score from release
+const RELEASE_TYPES  = ['half', 'dotted-half'];  // only these are graded on release
+// A tap between MISS_WIN and CLAIM_WIN of an un-hit note counts as that note's
+// (0-point) attempt, not as an extra — so one late tap is penalized once, not twice.
+const CLAIM_WIN = MISS_WIN * 2;
+
+// Audio output latency (ms). Clicks are heard this long after they're scheduled,
+// so tap timing is shifted by the same amount. Clamped to 0–300ms.
+function audioLatencyMs() {
+  const sec = (actx.outputLatency || 0) + (actx.baseLatency || 0);
+  return Math.min(Math.max(sec * 1000, 0), 300);
+}
 const ROUNDS = 5;
 function totalBeats() { return (LEVELS[currentLevel].beats || 4) * 2; }
 
@@ -1757,7 +1772,7 @@ function startTrainerRound(){
   if(!rhythmReady){ rhythm=generateRhythm(); }
   rhythmReady=false;
   expectedTaps=computeExpectedTaps(rhythm);
-  tapResults=[]; playerTaps=[]; pressNoteIdx=-1; releaseScores={};
+  tapResults=[]; playerTaps=[]; pressNoteIdx=-1; releaseScores={}; extraTaps=0;
   renderNotation(rhythm); refreshHeader();
   document.getElementById('score-display').textContent='';
   document.getElementById('result-detail').textContent='';
@@ -1839,7 +1854,7 @@ function startTrainerRound(){
 
   // ── Phase 4: tapping phase ──
   const tapStart = tapCountInStart + countInBeats*BEAT_MS;
-  startTime = performance.now() + tapStart;
+  startTime = performance.now() + tapStart + audioLatencyMs();
 
   for(let i=0;i<totalBeats();i++){
     const delay = tapStart + i*BEAT_MS;
@@ -1861,7 +1876,7 @@ function startTrainerRound(){
     if(gamePhase==='playing'||gamePhase==='countdown'||gamePhase==='demo'){
       gamePhase='done'; clearCountdown(); finishRound();
     }
-  }, tapStart + totalBeats()*BEAT_MS + 350);
+  }, tapStart + totalBeats()*BEAT_MS + 350 + audioLatencyMs());
 }
 
 // ── Level options modal ───────────────────────────────────────────────────────
@@ -1904,7 +1919,7 @@ function startRound(){
   if(!rhythmReady){ rhythm=generateRhythm(); }
   rhythmReady=false;
   expectedTaps=computeExpectedTaps(rhythm);
-  tapResults=[]; playerTaps=[]; pressNoteIdx=-1; releaseScores={};
+  tapResults=[]; playerTaps=[]; pressNoteIdx=-1; releaseScores={}; extraTaps=0;
   renderNotation(rhythm); refreshHeader();
   document.getElementById('score-display').textContent='';
   document.getElementById('result-detail').textContent='';
@@ -1919,7 +1934,7 @@ function startRound(){
   const countInWords = bpm === 3 ? COUNTDOWN_WORDS_3 : COUNTDOWN_WORDS_4;
   const countInBeats = countInWords.length;
 
-  startTime=performance.now()+countInBeats*BEAT_MS;
+  startTime=performance.now()+countInBeats*BEAT_MS+audioLatencyMs();
   gamePhase='countdown';
 
   initPendulum();
@@ -1946,7 +1961,7 @@ function startRound(){
   }
   setTimeout(()=>{
     if(gamePhase==='playing'||gamePhase==='countdown'){ gamePhase='done'; clearCountdown(); finishRound(); }
-  }, countInBeats*BEAT_MS+totalBeats()*BEAT_MS+350);
+  }, countInBeats*BEAT_MS+totalBeats()*BEAT_MS+350+audioLatencyMs());
 }
 
 // ── Continuous tap scoring ────────────────────────────────────────────────────
@@ -1961,13 +1976,21 @@ function atkScore(errorMs) {
 function relScore(errorMs) {
   const e = Math.abs(errorMs);
   if (e <= PERFECT_REL) return 1.0;
-  if (e >= MISS_WIN)    return 0.0;
-  return 1.0 - (e - PERFECT_REL) / (MISS_WIN - PERFECT_REL);
+  if (e >= REL_MISS)    return 0.0;
+  return 1.0 - (e - PERFECT_REL) / (REL_MISS - PERFECT_REL);
+}
+// Combined score for one note. Release only counts for half / dotted-half.
+// rSc undefined (no release recorded) → 0 for graded notes.
+function noteScoreFor(note, aSc, rSc) {
+  if (!RELEASE_TYPES.includes(note.type)) return aSc;
+  return aSc * (1 - RELEASE_WEIGHT) + (rSc || 0) * RELEASE_WEIGHT;
 }
 
-// tapResults[i] = { atkScore, atkElapsed, noteIdx } for each expected tap
+// tapResults[i] = { atkScore, noteIdx } for each expected tap (index = expected tap #)
 // releaseScores[noteIdx] = relScore (filled in by handleRelease)
+// extraTaps = taps that didn't belong to any note (kept separate from tapResults)
 let releaseScores = {};
+let extraTaps = 0;
 
 // ── Tap handlers ──────────────────────────────────────────────────────────────
 function handlePress(){
@@ -1983,10 +2006,8 @@ function handlePress(){
   pressNoteIdx=-1;
   if(bestIdx<0) return;
 
-  // Too far from any note = extra tap.
-  // First note gets a doubled early buffer so slightly-early taps still register.
-  const effectiveWin = (bestIdx===0 && elapsed < (expectedTaps[0]||0)) ? MISS_WIN*2 : MISS_WIN;
-  if(bestDist>=effectiveWin){ tapResults.push('extra'); return; }
+  // Extra tap: nearest note already has a tap, or nothing is close enough to claim
+  if(tapResults[bestIdx] || bestDist>=CLAIM_WIN){ extraTaps++; return; }
 
   // Map tap index → rhythm note index
   let noteIdx=-1, cnt=0;
@@ -1994,8 +2015,12 @@ function handlePress(){
     if(rhythm[i].type!=='qrest'){ if(cnt===bestIdx){noteIdx=i;break;} cnt++; }
   }
 
-  const aScore = atkScore(bestDist);
+  const aScore = atkScore(bestDist);   // 0 when between MISS_WIN and CLAIM_WIN
   tapResults[bestIdx] = { atkScore: aScore, noteIdx };
+
+  // Claimed but too far off: mark red, no release tracking
+  if(aScore===0){ colourNote(noteIdx, 0); return; }
+
   pressNoteIdx = noteIdx;
 
   // Show teal "held" glow while key is down; resolve on release
@@ -2023,7 +2048,7 @@ function handleRelease(){
 
   const aSc     = (tapIdx>=0 && tapResults[tapIdx] && typeof tapResults[tapIdx]==='object')
     ? tapResults[tapIdx].atkScore : 0;
-  const combined = aSc*0.8 + rSc*0.2;
+  const combined = noteScoreFor(note, aSc, rSc);
   colourNote(noteIdx, combined);
 }
 
@@ -2033,23 +2058,20 @@ function computeScore(){
   let sum=0;
   for(let i=0;i<total;i++){
     const entry=tapResults[i];
-    if(!entry||entry==='extra'){ 
+    if(!entry){
       // missed note — colour it red
       let cnt=0;
       for(let j=0;j<rhythm.length;j++){
         if(rhythm[j].type!=='qrest'){ if(cnt===i){ colourNote(j,0); break; } cnt++; }
       }
-      sum+=0; continue;
+      continue;
     }
-    const aSc = entry.atkScore || 0;
-    const rSc = releaseScores[entry.noteIdx] !== undefined ? releaseScores[entry.noteIdx] : 0;
-    const noteScore = aSc*0.9 + rSc*0.1;
-    // If no release was recorded yet (key still held at round end), finalise colour now
+    const noteScore = noteScoreFor(rhythm[entry.noteIdx], entry.atkScore||0, releaseScores[entry.noteIdx]);
+    // If no release was recorded (key still held at round end), finalise colour now
     if(releaseScores[entry.noteIdx]===undefined) colourNote(entry.noteIdx, noteScore);
     sum += noteScore;
   }
-  const extras=tapResults.filter(r=>r==='extra').length;
-  return Math.round((sum/(total+extras))*100);
+  return Math.round((sum/(total+extraTaps))*100);
 }
 
 function finishRound(){
@@ -2060,16 +2082,15 @@ function finishRound(){
   levelScores.push(score);
   refreshHeader();
 
-  const extras=tapResults.filter(r=>r==='extra').length;
+  const extras=extraTaps;
   const total=expectedTaps.length;
   // Count notes by score range for display
   let perfect=0, good=0, poor=0, missed=0;
   for(let i=0;i<total;i++){
     const entry=tapResults[i];
-    if(!entry||entry==='extra'){ missed++; continue; }
-    const atk=entry.atkScore||0;
-    const rel=releaseScores[entry.noteIdx]!==undefined?releaseScores[entry.noteIdx]:0;
-    const ns=atk*0.9+rel*0.1;    if(ns>=0.9) perfect++; else if(ns>=0.6) good++; else if(ns>0) poor++; else missed++;
+    if(!entry){ missed++; continue; }
+    const ns=noteScoreFor(rhythm[entry.noteIdx], entry.atkScore||0, releaseScores[entry.noteIdx]);
+    if(ns>=0.95) perfect++; else if(ns>=0.6) good++; else if(ns>0) poor++; else missed++;
   }
 
   document.getElementById('score-display').textContent='Score: '+score+'%';
