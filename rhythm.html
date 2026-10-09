@@ -948,9 +948,9 @@ async function autoSubmitScore() {
     ? Math.round(levelScores.reduce((a,b) => a+b, 0) / levelScores.length)
     : 0;
 
-  const baseLevel = LEVELS[currentLevel].trainerFor || currentLevel;
-  const modeOffset = currentMode === 'trainer' ? 0.1 : currentMode === 'fast' ? 0.3 : 0.2;
-  const levelVal = baseLevel + modeOffset;
+  submitRhythmTaps(studentNumber, avg);
+
+  const levelVal = rhythmLevelValue();
 
   const totalSec = levelElapsed
     ? (()=>{ const parts = levelElapsed.match(/(?:(\d+)m\s*)?(\d+)s/); return parts ? parseInt(parts[1]||0)*60 + parseInt(parts[2]) : 0; })()
@@ -979,6 +979,85 @@ async function autoSubmitScore() {
   } catch(e) {
     if (statusEl) statusEl.textContent = '✗ Save failed';
   }
+}
+
+// Level encoding shared by ActivityLog and the Rhythm Tap sheet (e.g. 3.2 = Level 3 Slow)
+function rhythmLevelValue() {
+  const baseLevel  = Number(LEVELS[currentLevel].trainerFor || currentLevel);
+  const modeOffset = currentMode === 'trainer' ? 0.1 : currentMode === 'fast' ? 0.3 : 0.2;
+  return Math.round((baseLevel + modeOffset) * 10) / 10;
+}
+
+// ── DETAILED TAP LOG ("Rhythm Tap" sheet) ────────────────────────────────────
+// Rhythm string: each note = start position in sixteenths + type code, "|" = barline.
+//   q quarter · e eighth · s sixteenth · h half · dh dotted half
+//   dq dotted quarter · r quarter rest
+//   e.g. "0q 4e 6e 8r 12h | 16s 17s 18s 19s 20q 24h"
+// Taps string: "press/release" in ms from beat 1, latency-corrected; "-" = no release.
+//   e.g. "-12/310 742/1010 1130/-"
+const RHYTHM_TYPE_CODES = {
+  'quarter':'q', 'eighth':'e', 'combo-eighth':'e', 'sixteenth':'s',
+  'half':'h', 'dotted-half':'dh', 'dotted-quarter':'dq', 'qrest':'r'
+};
+
+function encodeRhythm(r, meter) {
+  const parts = []; let barDone = false;
+  r.forEach(n => {
+    if (!barDone && n.startBeat >= meter) { parts.push('|'); barDone = true; }
+    parts.push(Math.round(n.startBeat * 4) + (RHYTHM_TYPE_CODES[n.type] || n.type));
+  });
+  return parts.join(' ');
+}
+
+function encodeTaps(taps) {
+  return taps.map(t => Math.round(t.p) + '/' + (t.r === null ? '-' : Math.round(t.r))).join(' ');
+}
+
+// Called at the end of every round, after scoring
+function logRound(score, missed, extras) {
+  const meter = LEVELS[currentLevel].beats || 4;
+  // Signed attack errors for hits only (within MISS_WIN); + = late, − = early
+  const errs = tapResults
+    .filter(t => t && t.atkScore > 0 && typeof t.err === 'number')
+    .map(t => t.err);
+  roundLogs.push({
+    score, missed, extras, errs,
+    latency: roundLatency,
+    rhythm:  encodeRhythm(rhythm, meter),
+    taps:    encodeTaps(playerTaps)
+  });
+}
+
+// Sends one row per completed level to the Rhythm Tap sheet. Fire-and-forget:
+// a failure here never affects the main score save.
+function submitRhythmTaps(studentNumber, avg) {
+  if (!roundLogs.length) return;
+  const allErrs = roundLogs.flatMap(r => r.errs);
+  const mean = allErrs.length ? allErrs.reduce((a,b) => a+b, 0) / allErrs.length : 0;
+  const sd   = allErrs.length > 1
+    ? Math.sqrt(allErrs.reduce((a,b) => a + (b-mean)*(b-mean), 0) / (allErrs.length - 1))
+    : 0;
+  const latency = roundLogs.reduce((a,r) => a + r.latency, 0) / roundLogs.length;
+
+  fetch(SCRIPT_URL, {
+    method:  'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body:    JSON.stringify({
+      action:        'logRhythmTaps',
+      studentNumber,
+      level:         rhythmLevelValue(),
+      bpm:           BPM,
+      meter:         LEVELS[currentLevel].beats || 4,
+      avgScore:      avg,
+      latencyMs:     Math.round(latency),
+      meanErrorMs:   Math.round(mean),
+      errorSdMs:     Math.round(sd),
+      misses:        roundLogs.reduce((a,r) => a + r.missed, 0),
+      extras:        roundLogs.reduce((a,r) => a + r.extras, 0),
+      rounds:        roundLogs.map(r => ({ score: r.score, rhythm: r.rhythm, taps: r.taps }))
+    }),
+    redirect: 'follow'
+  }).catch(e => console.warn('Rhythm tap log failed:', e));
 }
 
 const actx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1105,7 +1184,10 @@ let levelElapsed   = '';   // formatted elapsed time for submission
 
 // ── Round state ───────────────────────────────────────────────────────────────
 let rhythm = [], gamePhase = 'idle', startTime = 0;
-let expectedTaps = [], tapResults = [], playerTaps = [];
+let expectedTaps = [], tapResults = [], playerTaps = [];  // playerTaps: [{p, r}] press/release ms
+let openTapIdx = -1;       // index in playerTaps of the tap whose key is still down
+let roundLatency = 0;      // latency offset applied this round (ms)
+let roundLogs = [];        // one entry per completed round, sent to the Rhythm Tap sheet
 let keyIsDown = false, pressNoteIdx = -1;
 
 // ── Screen helpers ────────────────────────────────────────────────────────────
@@ -1170,7 +1252,7 @@ function removePlaybar() {
 function retryLevel()  { chooseLevel(currentLevel); }
 
 function chooseLevel(lvl) {
-  currentLevel = lvl; roundIndex = 0; levelScores = [];
+  currentLevel = lvl; roundIndex = 0; levelScores = []; roundLogs = [];
   levelStartTime = 0; levelElapsed = '';
   setRhythmHash('level' + lvl);
   showScreen('game-screen');
@@ -1772,7 +1854,7 @@ function startTrainerRound(){
   if(!rhythmReady){ rhythm=generateRhythm(); }
   rhythmReady=false;
   expectedTaps=computeExpectedTaps(rhythm);
-  tapResults=[]; playerTaps=[]; pressNoteIdx=-1; releaseScores={}; extraTaps=0;
+  tapResults=[]; playerTaps=[]; openTapIdx=-1; pressNoteIdx=-1; releaseScores={}; extraTaps=0;
   renderNotation(rhythm); refreshHeader();
   document.getElementById('score-display').textContent='';
   document.getElementById('result-detail').textContent='';
@@ -1854,7 +1936,8 @@ function startTrainerRound(){
 
   // ── Phase 4: tapping phase ──
   const tapStart = tapCountInStart + countInBeats*BEAT_MS;
-  startTime = performance.now() + tapStart + audioLatencyMs();
+  roundLatency = audioLatencyMs();
+  startTime = performance.now() + tapStart + roundLatency;
 
   for(let i=0;i<totalBeats();i++){
     const delay = tapStart + i*BEAT_MS;
@@ -1919,7 +2002,7 @@ function startRound(){
   if(!rhythmReady){ rhythm=generateRhythm(); }
   rhythmReady=false;
   expectedTaps=computeExpectedTaps(rhythm);
-  tapResults=[]; playerTaps=[]; pressNoteIdx=-1; releaseScores={}; extraTaps=0;
+  tapResults=[]; playerTaps=[]; openTapIdx=-1; pressNoteIdx=-1; releaseScores={}; extraTaps=0;
   renderNotation(rhythm); refreshHeader();
   document.getElementById('score-display').textContent='';
   document.getElementById('result-detail').textContent='';
@@ -1934,7 +2017,8 @@ function startRound(){
   const countInWords = bpm === 3 ? COUNTDOWN_WORDS_3 : COUNTDOWN_WORDS_4;
   const countInBeats = countInWords.length;
 
-  startTime=performance.now()+countInBeats*BEAT_MS+audioLatencyMs();
+  roundLatency=audioLatencyMs();
+  startTime=performance.now()+countInBeats*BEAT_MS+roundLatency;
   gamePhase='countdown';
 
   initPendulum();
@@ -1998,7 +2082,7 @@ function handlePress(){
   const elapsed=performance.now()-startTime;
   document.getElementById('tapFlash').classList.add('lit');
   setTimeout(()=>document.getElementById('tapFlash').classList.remove('lit'),80);
-  playTap(); playerTaps.push(elapsed);
+  playTap(); playerTaps.push({p: elapsed, r: null}); openTapIdx = playerTaps.length - 1;
 
   // Find closest expected tap
   let bestIdx=-1, bestDist=Infinity;
@@ -2016,7 +2100,7 @@ function handlePress(){
   }
 
   const aScore = atkScore(bestDist);   // 0 when between MISS_WIN and CLAIM_WIN
-  tapResults[bestIdx] = { atkScore: aScore, noteIdx };
+  tapResults[bestIdx] = { atkScore: aScore, noteIdx, err: elapsed - expectedTaps[bestIdx] };
 
   // Claimed but too far off: mark red, no release tracking
   if(aScore===0){ colourNote(noteIdx, 0); return; }
@@ -2028,6 +2112,11 @@ function handlePress(){
 }
 
 function handleRelease(){
+  // Log the release of whatever tap is open (scored or extra)
+  if(openTapIdx>=0 && playerTaps[openTapIdx] && playerTaps[openTapIdx].r===null){
+    playerTaps[openTapIdx].r = performance.now()-startTime;
+  }
+  openTapIdx = -1;
   if(pressNoteIdx<0) return;
   const noteIdx   = pressNoteIdx; pressNoteIdx = -1;
   const elapsed   = performance.now()-startTime;
@@ -2092,6 +2181,7 @@ function finishRound(){
     const ns=noteScoreFor(rhythm[entry.noteIdx], entry.atkScore||0, releaseScores[entry.noteIdx]);
     if(ns>=0.95) perfect++; else if(ns>=0.6) good++; else if(ns>0) poor++; else missed++;
   }
+  logRound(score, missed, extras);
 
   document.getElementById('score-display').textContent='Score: '+score+'%';
   document.getElementById('result-detail').textContent=
