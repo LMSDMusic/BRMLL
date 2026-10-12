@@ -879,7 +879,7 @@ function applyModalLocks(lvl) {
         locked = false;                 // Slow: always the entry point
       } else if (subOffset === 3) {
         // Fast: only after Slow was passed
-        locked = !(bestSub >= 2 && _bestPercent >= 81);
+        locked = !(bestSub >= 2 && _bestPercent >= 75);
       } else {
         // Trainer: only if student bombed Slow (<50%) OR they're already in Trainer
         locked = !(bestSub === 1 || (bestSub === 2 && _bestPercent < 50));
@@ -1315,11 +1315,11 @@ function showResults() {
   const avgEl = document.getElementById('res-avg');
   avgEl.textContent = avg + '%'; avgEl.className = 'avg-score ' + gc;
 
-  // Show Next Level button if student passed (avg ≥ 81%)
+  // Show Next Level button if student passed (avg ≥ 75%)
   const nextBtn = document.getElementById('next-level-btn');
   if (nextBtn) {
-    nextBtn.style.display = (!_teacherMode && avg >= 81) ? '' : 'none';
-    if (!_teacherMode && avg >= 81) {
+    nextBtn.style.display = (!_teacherMode && avg >= 75) ? '' : 'none';
+    if (!_teacherMode && avg >= 75) {
       nextBtn.textContent = currentMode === 'trainer' ? 'Try Slow →'
                           : currentMode === 'moderate' ? 'Try Fast →'
                           : 'Next Level →';
