@@ -238,6 +238,10 @@
   }
 
   /* ── ROUND REVIEW ── */
+  /* While the review is up, drop the empty count-in area (~82px) and tighten the
+     staff card's bottom margin (8px) so everything fits without scrolling. */
+  #game-screen.reviewing #countdown-display { display: none; }
+  #game-screen.reviewing .staff-wrap { margin-bottom: .75rem; }
   #round-review {
     display: none; width: 100%; margin: 0 0 1rem;
     background: white; border: 2px solid var(--border); border-radius: 14px;
@@ -2473,6 +2477,7 @@ function showRoundReview(score) {
       </div>
       <div class="rv-legend">🎧 Hear it: metronome click = the rhythm, tap sound = your taps</div>`;
     el.style.display = 'block';
+    document.getElementById('game-screen').classList.add('reviewing');
   } catch (e) {
     console.warn('Round review failed:', e);
     el.style.display = 'none';
@@ -2483,6 +2488,8 @@ function hideRoundReview() {
   rvStop();
   const el = document.getElementById('round-review');
   if (el) { el.style.display = 'none'; el.innerHTML = ''; }
+  const gs = document.getElementById('game-screen');
+  if (gs) gs.classList.remove('reviewing');
 }
 
 function rvSetSpeed(sp) {
