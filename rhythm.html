@@ -239,7 +239,7 @@
 
   /* ── ROUND REVIEW ── */
   #round-review {
-    display: none; width: 100%; margin-top: 1rem;
+    display: none; width: 100%; margin: 0 0 1rem;
     background: white; border: 2px solid var(--border); border-radius: 14px;
     padding: .7rem .9rem .6rem; box-shadow: 0 4px 16px rgba(26,39,68,.08);
   }
@@ -751,13 +751,13 @@
   </div>
   <div id="countdown-display"><span id="countdown-word"></span></div>
   <div id="status"></div>
+  <div id="round-review"></div>
   <button id="btn">Start</button>
   <div class="game-nav-btns">
     <button class="game-nav-btn" onclick="chooseLevel(currentLevel)">Restart</button>
     <button class="game-nav-btn" onclick="window.location.href='dashboard.html'">Dashboard</button>
   </div>
   <div id="result-detail"></div>
-  <div id="round-review"></div>
 </div>
 
 <!-- RESULTS -->
@@ -2436,7 +2436,7 @@ function rvRoundSvg(notes, taps, meter, bpm, total16) {
   const extras = tapInfo.filter(t => t.extra).length;
   const meanE  = hits.length ? hits.reduce((a, t) => a + t.err, 0) / hits.length : 0;
   return { svg, hits: hits.length, total: Object.keys(noteResult).length, misses, extras, meanE, offLeft,
-           play: { notes, tapInfo, msPer16, total16, L, u, PAD } };
+           play: { notes, tapInfo, msPer16, total16, L, u, PAD, meter } };
 }
 
 // Draws the review for the round that just finished
@@ -2471,7 +2471,7 @@ function showRoundReview(score) {
         <span><i style="background:${RV_COL.extra}"></i>Extra tap</span>
         <span>Numbers = milliseconds early (−) or late (+)</span>
       </div>
-      <div class="rv-legend">🎧 Hear it: high click = the rhythm, low click = your taps</div>`;
+      <div class="rv-legend">🎧 Hear it: metronome click = the rhythm, tap sound = your taps</div>`;
     el.style.display = 'block';
   } catch (e) {
     console.warn('Round review failed:', e);
@@ -2511,35 +2511,28 @@ function rvTogglePlay() {
   const t0      = ctx.currentTime + 0.12;
   const at      = ms => t0 + (ms - startMs) / 1000 / _rvSpeed;
 
-  function clickHigh(t) {
+  // Same sounds as the game: metronome click (playClick) for the rhythm,
+  // tap sound (playTap) for the student. Routed through master so Stop silences them.
+  const measure16 = (d.meter || 4) * 4;
+  function clickMetronome(t, accent) {
     const o = ctx.createOscillator(), g = ctx.createGain();
-    o.type = 'triangle'; o.frequency.setValueAtTime(1900, t); o.frequency.exponentialRampToValueAtTime(1200, t + 0.04);
-    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.7, t + 0.002);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
-    o.connect(g).connect(busL); o.start(t); o.stop(t + 0.08); sources.push(o);
+    o.frequency.value = accent ? 1200 : 800; o.type = 'square';
+    g.gain.setValueAtTime(accent ? 0.3 : 0.15, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+    o.connect(g).connect(busL); o.start(t); o.stop(t + 0.05); sources.push(o);
   }
-  let noiseBuf = null;
-  function clickLow(t) {
-    const o = ctx.createOscillator(), f = ctx.createBiquadFilter(), g = ctx.createGain();
-    o.type = 'square'; o.frequency.setValueAtTime(420, t); o.frequency.exponentialRampToValueAtTime(220, t + 0.05);
-    f.type = 'lowpass'; f.frequency.value = 1800;
-    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.45, t + 0.002);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
-    o.connect(f).connect(g).connect(busR); o.start(t); o.stop(t + 0.1); sources.push(o);
-    if (!noiseBuf) {
-      noiseBuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.05), ctx.sampleRate);
-      const ch = noiseBuf.getChannelData(0); for (let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1;
-    }
-    const n = ctx.createBufferSource(), ng = ctx.createGain(), nf = ctx.createBiquadFilter();
-    n.buffer = noiseBuf; nf.type = 'bandpass'; nf.frequency.value = 1200;
-    ng.gain.setValueAtTime(0.25, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
-    n.connect(nf).connect(ng).connect(busR); n.start(t); sources.push(n);
+  function clickTap(t) {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.frequency.value = 600; o.type = 'sine';
+    g.gain.setValueAtTime(0.2, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+    o.connect(g).connect(busR); o.start(t); o.stop(t + 0.08); sources.push(o);
   }
-  d.notes.forEach(n => { if (!n.rest) clickHigh(at(n.pos * d.msPer16)); });
+  d.notes.forEach(n => { if (!n.rest) clickMetronome(at(n.pos * d.msPer16), n.pos % measure16 === 0); });
   d.tapInfo.forEach(ti => {
     const t = ti.tap;
     if (t.p < startMs || t.p > endMs) return;
-    clickLow(at(t.p));
+    clickTap(at(t.p));
   });
 
   const btn  = document.getElementById('rv-play');
