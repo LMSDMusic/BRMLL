@@ -237,6 +237,32 @@
     text-align: center; min-height: 1.2rem; margin-top: .6rem;
   }
 
+  /* ── ROUND REVIEW ── */
+  #round-review {
+    display: none; width: 100%; margin-top: 1rem;
+    background: white; border: 2px solid var(--border); border-radius: 14px;
+    padding: .7rem .9rem .6rem; box-shadow: 0 4px 16px rgba(26,39,68,.08);
+  }
+  #round-review svg { width: 100%; height: auto; display: block; }
+  .rv-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: .8rem; margin-bottom: 2px; }
+  .rv-head strong { font-size: .88rem; color: var(--text); }
+  .rv-meta { color: var(--muted); font-size: .76rem; }
+  .rv-badge { font-weight: 700; font-size: .78rem; padding: 2px 9px; border-radius: 20px; }
+  .rv-high { background: #e6f4ea; color: #2f855a; }
+  .rv-mid  { background: #fdf3e1; color: #975a16; }
+  .rv-low  { background: #fde8e8; color: #c53030; }
+  .rv-speed { display: inline-flex; border: 1.5px solid var(--border); border-radius: 7px; overflow: hidden; margin-left: auto; }
+  .rv-speed button { border: none; background: white; color: var(--muted); font-family: 'DM Sans',sans-serif;
+                     font-size: .74rem; font-weight: 700; padding: 3px 9px; cursor: pointer; }
+  .rv-speed button.active { background: var(--blue); color: #fff; }
+  .rv-play { padding: 4px 14px; border-radius: 7px; border: none; background: var(--blue); color: #fff;
+             font-family: 'DM Sans',sans-serif; font-weight: 700; font-size: .78rem; cursor: pointer; }
+  .rv-play:hover { background: var(--blue-dark); }
+  .rv-play.playing { background: var(--text); }
+  .rv-legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: .7rem; color: var(--muted); margin-top: 2px; }
+  .rv-legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .rv-legend i { width: 13px; height: 8px; border-radius: 2px; display: inline-block; }
+
   /* ── RESULTS ── */
   #results-screen {
     display: none; flex-direction: column; align-items: center;
@@ -731,6 +757,7 @@
     <button class="game-nav-btn" onclick="window.location.href='dashboard.html'">Dashboard</button>
   </div>
   <div id="result-detail"></div>
+  <div id="round-review"></div>
 </div>
 
 <!-- RESULTS -->
@@ -1127,9 +1154,10 @@ function playTap() {
 
 // ── Config ────────────────────────────────────────────────────────────────────
 let BPM = 80, BEAT_MS = 60000 / BPM;
-// Attack: full credit within ±60ms, linear fall-off to 0 at ±150ms
-const PERFECT_ATK = 60;
-const MISS_WIN    = 150;
+// Attack: full credit within ±70ms, linear fall-off to 0 at ±200ms
+// (loosened Oct 2026 from 60/150 — a steady performance ~80ms early now scores ~75%)
+const PERFECT_ATK = 70;
+const MISS_WIN    = 200;
 // Release (half & dotted-half only): full credit within ±100ms, 0 at ±200ms
 const PERFECT_REL = 100;
 const REL_MISS    = 200;
@@ -1137,7 +1165,7 @@ const RELEASE_WEIGHT = 0.1;                      // share of note score from rel
 const RELEASE_TYPES  = ['half', 'dotted-half'];  // only these are graded on release
 // A tap between MISS_WIN and CLAIM_WIN of an un-hit note counts as that note's
 // (0-point) attempt, not as an extra — so one late tap is penalized once, not twice.
-const CLAIM_WIN = MISS_WIN * 2;
+const CLAIM_WIN = 300;   // fixed (was MISS_WIN * 2) so extra-tap detection didn't change when MISS_WIN widened
 
 // Audio output latency (ms). Clicks are heard this long after they're scheduled,
 // so tap timing is shifted by the same amount. Clamped to 0–300ms.
@@ -1192,6 +1220,7 @@ let keyIsDown = false, pressNoteIdx = -1;
 
 // ── Screen helpers ────────────────────────────────────────────────────────────
 function showScreen(id) {
+  hideRoundReview();
   ['menu-screen','game-screen','results-screen','teacher-setup-screen'].forEach(s =>
     document.getElementById(s).style.display = 'none');
   const lm = document.getElementById('level-modal');
@@ -1856,6 +1885,7 @@ function startTrainerRound(){
   expectedTaps=computeExpectedTaps(rhythm);
   tapResults=[]; playerTaps=[]; openTapIdx=-1; pressNoteIdx=-1; releaseScores={}; extraTaps=0;
   renderNotation(rhythm); refreshHeader();
+  hideRoundReview();
   document.getElementById('score-display').textContent='';
   document.getElementById('result-detail').textContent='';
   document.getElementById('status').className='active';
@@ -2004,6 +2034,7 @@ function startRound(){
   expectedTaps=computeExpectedTaps(rhythm);
   tapResults=[]; playerTaps=[]; openTapIdx=-1; pressNoteIdx=-1; releaseScores={}; extraTaps=0;
   renderNotation(rhythm); refreshHeader();
+  hideRoundReview();
   document.getElementById('score-display').textContent='';
   document.getElementById('result-detail').textContent='';
   document.getElementById('status').className='active';
@@ -2182,6 +2213,7 @@ function finishRound(){
     if(ns>=0.95) perfect++; else if(ns>=0.6) good++; else if(ns>0) poor++; else missed++;
   }
   logRound(score, missed, extras);
+  showRoundReview(score);
 
   document.getElementById('score-display').textContent='Score: '+score+'%';
   document.getElementById('result-detail').textContent=
@@ -2191,15 +2223,17 @@ function finishRound(){
   document.getElementById('status').className='done';
 
   if(isLast){
+    // Wait on the review so the student can study the last rhythm, then go to results
     document.getElementById('status').textContent='Level complete!';
-    document.getElementById('btn').style.display='none';
-    setTimeout(()=>{
-      document.getElementById('btn').style.display='';
-      document.getElementById('btn').disabled=false;
+    document.getElementById('btn').textContent='See Results →';
+    document.getElementById('btn').onclick=()=>{
+      hideRoundReview();
       document.getElementById('btn').onclick=startRound;
-      document.querySelectorAll('.game-nav-btn').forEach(b => b.disabled = false);
       showResults();
-    }, 1800);
+    };
+    document.getElementById('btn').disabled=false;
+    document.getElementById('btn').style.display='';
+    document.querySelectorAll('.game-nav-btn').forEach(b => b.disabled = false);
   } else {
     roundIndex++;
     refreshHeader();
@@ -2210,6 +2244,330 @@ function finishRound(){
     document.getElementById('btn').style.display='';
     document.querySelectorAll('.game-nav-btn').forEach(b => b.disabled = false);
   }
+}
+
+// ── ROUND REVIEW (student feedback after each rhythm) ─────────────────────────
+// Same picture as the teacher dashboard's Rhythm Tap viewer: notation coloured by
+// result, the target rhythm as bars, the student's taps underneath, and a Play
+// button that clicks the target (left) against the student's taps (right).
+// Scoring windows come straight from the constants above, so it always matches.
+const RV_DUR = { q: 4, e: 2, s: 1, h: 8, dh: 12, dq: 6, r: 4 };   // sixteenths
+const RV_COL = { perfect: '#2f855a', good: '#b7791f', poor: '#dd6b20', miss: '#c53030', extra: '#9aa3b8',
+                 ink: '#1a1f36', target: '#c9d3ea', grid: '#e3e8f3', bar: '#9aa6c4' };
+var _rvPlayData = null, _rvPlay = null, _rvSpeed = 1;   // var: showScreen() may run before this line
+
+function rvParseRhythm(str) {
+  return String(str || '').trim().split(/\s+/).map(t => {
+    const m = t.match(/^(\d+)([a-z]+)$/);
+    if (!m) return null;
+    return { pos: Number(m[1]), code: m[2], dur: RV_DUR[m[2]] || 4, rest: m[2] === 'r' };
+  }).filter(Boolean);
+}
+
+const rvAtk = e => { e = Math.abs(e); return e <= PERFECT_ATK ? 1 : e >= MISS_WIN ? 0 : 1 - (e - PERFECT_ATK) / (MISS_WIN - PERFECT_ATK); };
+const rvRel = e => { e = Math.abs(e); return e <= PERFECT_REL ? 1 : e >= REL_MISS ? 0 : 1 - (e - PERFECT_REL) / (REL_MISS - PERFECT_REL); };
+
+function rvScoreRound(notes, taps, msPer16) {
+  const playable = notes.map((n, i) => ({ n, i })).filter(o => !o.n.rest);
+  const expMs    = playable.map(o => o.n.pos * msPer16);
+  const claimed  = new Array(playable.length).fill(null);
+  const tapInfo  = taps.map(t => {
+    let best = -1, bestD = Infinity;
+    expMs.forEach((e, k) => { const d = Math.abs(t.p - e); if (d < bestD) { bestD = d; best = k; } });
+    if (best < 0 || claimed[best] || bestD >= CLAIM_WIN) return { tap: t, extra: true };
+    const note = playable[best].n;
+    const atk  = rvAtk(bestD);
+    let score  = atk, relErr = null;
+    if (atk > 0 && (note.code === 'h' || note.code === 'dh')) {
+      relErr = t.r === null ? null : t.r - (note.pos + note.dur) * msPer16;
+      const rel = relErr === null ? 0 : rvRel(relErr);
+      score = atk * (1 - RELEASE_WEIGHT) + rel * RELEASE_WEIGHT;
+    }
+    const info = { tap: t, extra: false, noteIdx: playable[best].i, err: t.p - expMs[best], atk, score, relErr };
+    claimed[best] = info;
+    return info;
+  });
+  const noteResult = {};
+  playable.forEach((o, k) => { noteResult[o.i] = claimed[k]; });
+  return { tapInfo, noteResult };
+}
+
+function rvColor(score) {
+  if (score >= 0.95) return RV_COL.perfect;
+  if (score >= 0.6)  return RV_COL.good;
+  if (score > 0)     return RV_COL.poor;
+  return RV_COL.miss;
+}
+const rvSigned = ms => (ms > 0 ? '+' : ms < 0 ? '−' : '') + Math.abs(Math.round(ms));
+function rvErrWords(ms) {
+  const m = Math.round(ms);
+  if (Math.abs(m) < 10) return 'right on time';
+  return 'on average ' + Math.abs(m) + ' ms ' + (m > 0 ? 'late' : 'early');
+}
+function rvHead(hx, hy, hollow, c) {
+  return hollow
+    ? `<ellipse cx="${hx}" cy="${hy}" rx="5.6" ry="4" transform="rotate(-15,${hx},${hy})" fill="#fff" stroke="${c}" stroke-width="1.5"/>`
+    : `<ellipse cx="${hx}" cy="${hy}" rx="5.6" ry="4" transform="rotate(-15,${hx},${hy})" fill="${c}"/>`;
+}
+function rvQuarterRest(cx, top, c) {
+  const pts = [[cx-2,top+2],[cx+3,top+8],[cx-2,top+14],[cx+3,top+20],[cx-1,top+19],[cx-3,top+23],[cx+1,top+28]];
+  return `<polyline points="${pts.map(p => p.join(',')).join(' ')}" fill="none" stroke="${c}" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round"/>`;
+}
+
+function rvRoundSvg(notes, taps, meter, bpm, total16) {
+  const msPer16 = 60000 / bpm / 4;
+  const { tapInfo, noteResult } = rvScoreRound(notes, taps, msPer16);
+
+  const W = 940, L = 74, R = 16, PAD = 2;
+  const u  = (W - L - R) / (total16 + PAD * 2);
+  const X  = p => L + (p + PAD) * u;
+  const xMin = L, xMax = W - R;
+  const STAFF_TOP = 24, GAP = 8, HY = STAFF_TOP + GAP * 2;
+  const STEM = 26, TARGET_Y = 82, STUDENT_Y = 104, BAR_H = 14, H = 142;
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="DM Sans, sans-serif">`;
+
+  const useSixteenths = notes.some(n => n.pos % 2 === 1);
+  for (let p = 0; p <= total16; p++) {
+    const x = X(p), inMeasure = p % (meter * 4);
+    if (p % 4 === 0) {
+      const isBar = inMeasure === 0;
+      svg += `<line x1="${x}" y1="${TARGET_Y - 4}" x2="${x}" y2="${STUDENT_Y + BAR_H + 4}" stroke="${isBar ? '#b9c3da' : RV_COL.grid}" stroke-width="${isBar ? 1.5 : 1}"/>`;
+    }
+    if (p === total16) break;
+    let lbl = null;
+    if (p % 4 === 0) lbl = String(inMeasure / 4 + 1);
+    else if (p % 4 === 2) lbl = '+';
+    else if (useSixteenths) lbl = p % 4 === 1 ? 'e' : 'a';
+    if (lbl) {
+      const big = p % 4 === 0;
+      svg += `<text x="${x + 6}" y="13" text-anchor="middle" font-size="${big ? 11 : 9}" font-weight="${big ? 700 : 500}" fill="${big ? '#4a5578' : '#9aa3b8'}">${lbl}</text>`;
+    }
+  }
+
+  for (let i = 0; i < 5; i++) {
+    const y = STAFF_TOP + i * GAP;
+    svg += `<line x1="${xMin}" y1="${y}" x2="${xMax}" y2="${y}" stroke="#c3cadb" stroke-width="1"/>`;
+  }
+  const bar = (x, w) => `<line x1="${x}" y1="${STAFF_TOP}" x2="${x}" y2="${STAFF_TOP + GAP * 4}" stroke="${RV_COL.ink}" stroke-width="${w}"/>`;
+  svg += bar(xMin, 1.5) + bar(X(meter * 4) - 2, 1.2) + bar(X(total16) + 4, 1.2) + bar(X(total16) + 7, 3);
+  svg += `<text x="${xMin + 14}" y="${STAFF_TOP + GAP + 5}" text-anchor="middle" font-family="Georgia,serif" font-size="15" font-weight="bold" fill="${RV_COL.ink}">${meter}</text>`;
+  svg += `<text x="${xMin + 14}" y="${STAFF_TOP + GAP * 3 + 5}" text-anchor="middle" font-family="Georgia,serif" font-size="15" font-weight="bold" fill="${RV_COL.ink}">4</text>`;
+
+  const groupOf = {};
+  for (let i = 0; i < notes.length; ) {
+    const n = notes[i];
+    if (!n.rest && n.dur <= 2) {
+      const beat = Math.floor(n.pos / 4), grp = [i];
+      let j = i + 1;
+      while (j < notes.length && !notes[j].rest && notes[j].dur <= 2 &&
+             Math.floor(notes[j].pos / 4) === beat && notes[j].pos + notes[j].dur <= (beat + 1) * 4) { grp.push(j); j++; }
+      if (grp.length > 1) grp.forEach(k => groupOf[k] = grp);
+      i = j;
+    } else i++;
+  }
+
+  const hx  = n => X(n.pos) + 7;
+  const sx  = n => hx(n) - 5;
+  const col = i => notes[i].rest ? RV_COL.ink : (noteResult[i] ? rvColor(noteResult[i].score) : RV_COL.miss);
+
+  notes.forEach((n, i) => {
+    const c = col(i);
+    if (n.rest) { svg += rvQuarterRest(X(n.pos) + 2 * u, STAFF_TOP + 2, c); return; }
+    svg += rvHead(hx(n), HY, n.code === 'h' || n.code === 'dh', c);
+    svg += `<line x1="${sx(n)}" y1="${HY + 1}" x2="${sx(n)}" y2="${HY + STEM}" stroke="${c}" stroke-width="1.4"/>`;
+    if (n.code === 'dh' || n.code === 'dq') svg += `<circle cx="${hx(n) + 9}" cy="${HY - 3}" r="1.7" fill="${c}"/>`;
+    if (n.dur <= 2 && !groupOf[i]) {
+      const x = sx(n), y = HY + STEM;
+      [0, n.dur === 1 ? 6 : null].filter(o => o !== null).forEach(o => {
+        svg += `<path d="M${x},${y - o} C${x + 10},${y - o - 4} ${x + 9},${y - o - 11} ${x + 3},${y - o - 16}" fill="none" stroke="${c}" stroke-width="1.6"/>`;
+      });
+    }
+  });
+  const drawn = new Set();
+  Object.values(groupOf).forEach(grp => {
+    if (drawn.has(grp)) return; drawn.add(grp);
+    const first = notes[grp[0]], last = notes[grp[grp.length - 1]];
+    svg += `<rect x="${sx(first) - 0.7}" y="${HY + STEM - 3.5}" width="${sx(last) - sx(first) + 1.4}" height="3.5" fill="${RV_COL.ink}"/>`;
+    for (let k = 0; k < grp.length - 1; k++) {
+      const a = notes[grp[k]], b = notes[grp[k + 1]];
+      if (a.dur === 1 && b.dur === 1)
+        svg += `<rect x="${sx(a) - 0.7}" y="${HY + STEM - 9}" width="${sx(b) - sx(a) + 1.4}" height="3.5" fill="${RV_COL.ink}"/>`;
+    }
+  });
+
+  svg += `<text x="${L - 8}" y="${TARGET_Y + 11}" text-anchor="end" font-size="11" font-weight="600" fill="#6b7280">Rhythm</text>`;
+  svg += `<text x="${L - 8}" y="${STUDENT_Y + 11}" text-anchor="end" font-size="11" font-weight="600" fill="#6b7280">You</text>`;
+
+  notes.forEach((n, i) => {
+    if (n.rest) return;
+    const x1 = X(n.pos) + 0.5, w = Math.max(n.dur * u - 2, 3);
+    const missed = !noteResult[i] || noteResult[i].atk === 0;
+    svg += `<rect x="${x1}" y="${TARGET_Y}" width="${w}" height="${BAR_H}" rx="2.5" fill="${missed ? '#fde8e8' : RV_COL.target}" stroke="${missed ? RV_COL.miss : 'none'}" stroke-width="1.2"><title>${missed ? 'Missed this note' : 'Note'}</title></rect>`;
+    svg += `<line x1="${X(n.pos)}" y1="${TARGET_Y}" x2="${X(n.pos)}" y2="${TARGET_Y + BAR_H}" stroke="${RV_COL.bar}" stroke-width="2"/>`;
+  });
+
+  const toX = ms => X(ms / msPer16);
+  let offLeft = 0;
+  tapInfo.forEach(ti => {
+    const t = ti.tap;
+    if (toX(t.p) < xMin) { offLeft++; return; }
+    const x1 = Math.min(toX(t.p), xMax);
+    const held = t.r !== null;
+    const x2 = held ? Math.min(Math.max(toX(t.r), x1 + 3), xMax) : xMax;
+    const c  = ti.extra ? RV_COL.extra : rvColor(ti.score);
+    let tip;
+    if (ti.extra) tip = 'Extra tap — there was no note here';
+    else {
+      tip = `${rvSigned(ti.err)} ms (${ti.err > 0 ? 'late' : ti.err < 0 ? 'early' : 'exact'})`;
+      if (ti.relErr !== null) tip += ` · let go ${rvSigned(ti.relErr)} ms`;
+    }
+    svg += `<rect x="${x1}" y="${STUDENT_Y}" width="${x2 - x1}" height="${BAR_H}" rx="2.5" fill="${c}" ${held ? '' : `fill-opacity=".45" stroke="${c}" stroke-dasharray="3 2"`}><title>${tip}</title></rect>`;
+    if (!ti.extra && Math.abs(ti.err) > PERFECT_ATK) {
+      svg += `<text x="${x1}" y="${STUDENT_Y + BAR_H + 12}" font-size="9.5" font-weight="700" fill="${c}">${rvSigned(ti.err)}</text>`;
+    }
+  });
+
+  svg += `<line class="rv-playhead" x1="${X(-PAD)}" y1="4" x2="${X(-PAD)}" y2="${H - 6}" stroke="#3b6ef8" stroke-width="2" visibility="hidden"/>`;
+  svg += '</svg>';
+
+  const hits   = tapInfo.filter(t => !t.extra && t.atk > 0);
+  const misses = Object.values(noteResult).filter(r => !r || r.atk === 0).length;
+  const extras = tapInfo.filter(t => t.extra).length;
+  const meanE  = hits.length ? hits.reduce((a, t) => a + t.err, 0) / hits.length : 0;
+  return { svg, hits: hits.length, total: Object.keys(noteResult).length, misses, extras, meanE, offLeft,
+           play: { notes, tapInfo, msPer16, total16, L, u, PAD } };
+}
+
+// Draws the review for the round that just finished
+function showRoundReview(score) {
+  const el = document.getElementById('round-review');
+  if (!el) return;
+  try {
+    const meter = LEVELS[currentLevel].beats || 4;
+    const notes = rvParseRhythm(encodeRhythm(rhythm, meter));
+    const taps  = playerTaps.map(t => ({ p: t.p, r: (t.r === null || t.r === undefined) ? null : t.r }));
+    const r     = rvRoundSvg(notes, taps, meter, BPM, totalBeats() * 4);
+    _rvPlayData = r.play;
+    const cls   = score >= 75 ? 'rv-high' : score >= 50 ? 'rv-mid' : 'rv-low';
+    const sum   = r.hits ? rvErrWords(r.meanE) : '';
+    el.innerHTML = `
+      <div class="rv-head">
+        <strong>How you did</strong>
+        <span class="rv-badge ${cls}">${score}%</span>
+        <span class="rv-meta">${r.hits}/${r.total} notes · ${r.misses} missed · ${r.extras} extra${sum ? ' · ' + sum : ''}</span>
+        <span class="rv-speed">
+          <button id="rv-speed-1"   class="${_rvSpeed === 1 ? 'active' : ''}"   onclick="rvSetSpeed(1)">1×</button>
+          <button id="rv-speed-0.5" class="${_rvSpeed === 0.5 ? 'active' : ''}" onclick="rvSetSpeed(0.5)">½×</button>
+        </span>
+        <button class="rv-play" id="rv-play" onclick="rvTogglePlay()">▶ Hear it</button>
+      </div>
+      ${r.svg}
+      <div class="rv-legend">
+        <span><i style="background:${RV_COL.perfect}"></i>Perfect</span>
+        <span><i style="background:${RV_COL.good}"></i>Good</span>
+        <span><i style="background:${RV_COL.poor}"></i>Poor</span>
+        <span><i style="background:${RV_COL.miss}"></i>Miss</span>
+        <span><i style="background:${RV_COL.extra}"></i>Extra tap</span>
+        <span>Numbers = milliseconds early (−) or late (+)</span>
+      </div>
+      <div class="rv-legend">🎧 Hear it: high click = the rhythm, low click = your taps</div>`;
+    el.style.display = 'block';
+  } catch (e) {
+    console.warn('Round review failed:', e);
+    el.style.display = 'none';
+  }
+}
+
+function hideRoundReview() {
+  rvStop();
+  const el = document.getElementById('round-review');
+  if (el) { el.style.display = 'none'; el.innerHTML = ''; }
+}
+
+function rvSetSpeed(sp) {
+  _rvSpeed = sp;
+  document.getElementById('rv-speed-1').classList.toggle('active', sp === 1);
+  document.getElementById('rv-speed-0.5').classList.toggle('active', sp === 0.5);
+  if (_rvPlay) { rvStop(); rvTogglePlay(); }
+}
+
+function rvTogglePlay() {
+  if (_rvPlay) { rvStop(); return; }
+  const d = _rvPlayData;
+  if (!d) return;
+  const ctx = actx;
+  if (ctx.state === 'suspended') ctx.resume();
+
+  const master = ctx.createGain(); master.gain.value = 0.9; master.connect(ctx.destination);
+  const pan = v => {
+    if (ctx.createStereoPanner) { const p = ctx.createStereoPanner(); p.pan.value = v; p.connect(master); return p; }
+    return master;
+  };
+  const busL = pan(-1), busR = pan(1);
+  const sources = [];
+  const startMs = -d.PAD * d.msPer16;
+  const endMs   = (d.total16 + d.PAD) * d.msPer16;
+  const t0      = ctx.currentTime + 0.12;
+  const at      = ms => t0 + (ms - startMs) / 1000 / _rvSpeed;
+
+  function clickHigh(t) {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'triangle'; o.frequency.setValueAtTime(1900, t); o.frequency.exponentialRampToValueAtTime(1200, t + 0.04);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.7, t + 0.002);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+    o.connect(g).connect(busL); o.start(t); o.stop(t + 0.08); sources.push(o);
+  }
+  let noiseBuf = null;
+  function clickLow(t) {
+    const o = ctx.createOscillator(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    o.type = 'square'; o.frequency.setValueAtTime(420, t); o.frequency.exponentialRampToValueAtTime(220, t + 0.05);
+    f.type = 'lowpass'; f.frequency.value = 1800;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.45, t + 0.002);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
+    o.connect(f).connect(g).connect(busR); o.start(t); o.stop(t + 0.1); sources.push(o);
+    if (!noiseBuf) {
+      noiseBuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.05), ctx.sampleRate);
+      const ch = noiseBuf.getChannelData(0); for (let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1;
+    }
+    const n = ctx.createBufferSource(), ng = ctx.createGain(), nf = ctx.createBiquadFilter();
+    n.buffer = noiseBuf; nf.type = 'bandpass'; nf.frequency.value = 1200;
+    ng.gain.setValueAtTime(0.25, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
+    n.connect(nf).connect(ng).connect(busR); n.start(t); sources.push(n);
+  }
+  d.notes.forEach(n => { if (!n.rest) clickHigh(at(n.pos * d.msPer16)); });
+  d.tapInfo.forEach(ti => {
+    const t = ti.tap;
+    if (t.p < startMs || t.p > endMs) return;
+    clickLow(at(t.p));
+  });
+
+  const btn  = document.getElementById('rv-play');
+  const line = document.querySelector('#round-review .rv-playhead');
+  btn.textContent = '■ Stop'; btn.classList.add('playing');
+  line.setAttribute('visibility', 'visible');
+  const outLat = (ctx.outputLatency || ctx.baseLatency || 0);
+  _rvPlay = { master, sources, btn, line, raf: 0 };
+
+  const step = () => {
+    if (!_rvPlay) return;
+    const ms = (ctx.currentTime - outLat - t0) * 1000 * _rvSpeed + startMs;
+    const x  = d.L + (Math.max(ms, startMs) / d.msPer16 + d.PAD) * d.u;
+    line.setAttribute('x1', x); line.setAttribute('x2', x);
+    if (ms >= endMs) { rvStop(); return; }
+    _rvPlay.raf = requestAnimationFrame(step);
+  };
+  _rvPlay.raf = requestAnimationFrame(step);
+}
+
+function rvStop() {
+  if (!_rvPlay) return;
+  const p = _rvPlay; _rvPlay = null;
+  cancelAnimationFrame(p.raf);
+  p.sources.forEach(s => { try { s.stop(); } catch (e) {} });
+  try { p.master.disconnect(); } catch (e) {}
+  if (p.btn)  { p.btn.textContent = '▶ Hear it'; p.btn.classList.remove('playing'); }
+  if (p.line) p.line.setAttribute('visibility', 'hidden');
 }
 
 // ── Keyboard ──────────────────────────────────────────────────────────────────
