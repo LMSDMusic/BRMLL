@@ -691,23 +691,27 @@
       return "rhythm.html?menu=true&maxLevel=" + maxLevel + "&bestLevel=" + bestScore.level.toFixed(1) + "&bestPercent=" + pct;
     }
 
-    // Returns the ensemble for a given instrument name
+    // Returns the ensemble for a given instrument name (case-insensitive;
+    // roster spellings like "violin" or "Double Bass" still count as orchestra)
     function getEnsembleForInstrument(instrName) {
-      const orchInstr = ['Violin','Viola','Cello','Bass'];
-      if (orchInstr.includes(instrName)) return 'orchestra';
+      const name = String(instrName || '').trim().toLowerCase();
+      const orchInstr = ['violin','viola','cello','violoncello','bass','string bass','double bass','upright bass'];
+      if (orchInstr.includes(name)) return 'orchestra';
       return 'band';
     }
 
     // ── NOTE ID (PITCH) UNLOCKING ───────────────────────────────
-    // Ordered Note ID levels — must match LEVEL_SEQUENCE in pitch.html.
-    // Orchestra: every sub-level (x.1 notes, x.2 fingering, …). Band: notes only (odd sub-levels).
+    // Ordered Note ID levels — must match LEVEL_SEQUENCE / BAND_LEVEL_SEQUENCE in pitch.html.
+    // Orchestra: every sub-level (x.1 notes, x.2 fingering, …) for 5th, 6th and 7th grade.
+    // Band: one notes level per quarter — 5.1 Q1, 5.2 Q2, 5.3 Q3, 5.4 Q4
+    // (add 6th/7th grade band levels here when those quizzes are built).
     function pitchLevelOrder(isOrch) {
+      if (!isOrch) return ["5.1", "5.2", "5.3", "5.4"];
       const order = [];
       [5, 6].forEach(g => {
-        for (let s = 1; s <= 8; s++) if (isOrch || s % 2 === 1) order.push((g + s / 10).toFixed(1));
+        for (let s = 1; s <= 8; s++) order.push((g + s / 10).toFixed(1));
       });
-      order.push("7.1");
-      if (isOrch) order.push("7.2");
+      order.push("7.1", "7.2");
       return order;
     }
 

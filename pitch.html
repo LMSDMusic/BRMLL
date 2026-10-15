@@ -1846,11 +1846,11 @@ const FOLDERS = [
         totalQuestions: 5,
         noteOptions: ['B♭', 'C', 'D', 'E♭', 'F'],
                 notePool: [
-          { noteFile: 'images/note6.png', answer: 'B♭', label: 'B♭3' },
-          { noteFile: 'images/note7.png', answer: 'C',  label: 'C4'  },
-          { noteFile: 'images/note8.png', answer: 'D',  label: 'D4'  },
-          { noteFile: 'images/note9.png', answer: 'E♭', label: 'E♭4' },
-          { noteFile: 'images/note10.png',answer: 'F',  label: 'F4'  },
+          { noteFile: 'images/note3.png', answer: 'B♭', label: 'B♭3' },
+          { noteFile: 'images/note4.png', answer: 'C',  label: 'C4'  },
+          { noteFile: 'images/note5.png', answer: 'D',  label: 'D4'  },
+          { noteFile: 'images/note6.png', answer: 'E♭', label: 'E♭4' },
+          { noteFile: 'images/note7.png',answer: 'F',  label: 'F4'  },
         ],
       },
     ],
@@ -1893,7 +1893,7 @@ const FOLDERS = [
     title: '5th Grade Band',
     subtitle: 'Quarter 2',
     icon: '🎺',
-    desc: '1 quiz · Flute · B♭ Major',
+    desc: '10 quizzes · All Band Instruments · Q2 Note Names',
     quizzes: [
       {
         id: 'flute',
@@ -2067,12 +2067,12 @@ const FOLDERS = [
         totalQuestions: 6,
         noteOptions: ['B♭', 'C', 'D', 'E♭', 'F', 'G'],
         notePool: [
-          { noteFile: 'images/note6.png',  answer: 'B♭', label: 'B♭3' },
-          { noteFile: 'images/note7.png',  answer: 'C',       label: 'C4'       },
-          { noteFile: 'images/note8.png',  answer: 'D',       label: 'D4'       },
-          { noteFile: 'images/note9.png',  answer: 'E♭', label: 'E♭4' },
-          { noteFile: 'images/note10.png', answer: 'F',       label: 'F4'       },
-          { noteFile: 'images/note11.png', answer: 'G',       label: 'G4'       },
+          { noteFile: 'images/note3.png',  answer: 'B♭', label: 'B♭3' },
+          { noteFile: 'images/note4.png',  answer: 'C',       label: 'C4'       },
+          { noteFile: 'images/note5.png',  answer: 'D',       label: 'D4'       },
+          { noteFile: 'images/note6.png',  answer: 'E♭', label: 'E♭4' },
+          { noteFile: 'images/note7.png', answer: 'F',       label: 'F4'       },
+          { noteFile: 'images/note8.png', answer: 'G',       label: 'G4'       },
         ],
       },
     ],
@@ -2084,15 +2084,15 @@ const FOLDERS = [
     title: '5th Grade Band',
     subtitle: 'Quarter 3',
     icon: '🎺',
-    desc: '10 quizzes · All instruments · 10 questions each',
+    desc: '10 quizzes · All Band Instruments · Q3 Note Names',
     quizzes: [
       {
         id: 'flute',
         title: 'Flute A♭4–A5',
-        clefLabel: 'Bass Clef · B♭/E♭ Major',
-        clefImg: 'images/bass-2.png',
+        clefLabel: 'Treble Clef · B♭/E♭ Major',
+        clefImg: 'images/treble-2.png',
         icon: '🎵',
-        desc: 'Bass clef · B♭/E♭ Major · Notes A♭2 through A3',
+        desc: 'Treble clef · B♭/E♭ Major · Notes A♭4 through A5',
         totalQuestions: 10,
         noteOptions: ['A♭', 'A', 'B♭', 'C', 'D', 'E♭', 'F', 'G'],
         buildQuiz: function() {
@@ -2385,15 +2385,15 @@ const FOLDERS = [
     title: '5th Grade Band',
     subtitle: 'Quarter 4',
     icon: '🎺',
-    desc: '2 quizzes · Flute & Clarinet · Multi-key',
+    desc: '10 quizzes · All Band Instruments · Q4 Note Names',
     quizzes: [
       {
         id: 'flute',
         title: 'Flute A♭4–B♭5',
-        clefLabel: 'Bass Clef · B♭/E♭/F Major',
-        clefImg: 'images/bass-2.png',
+        clefLabel: 'Treble Clef · B♭/E♭/F Major',
+        clefImg: 'images/treble-2.png',
         icon: '🎵',
-        desc: 'Bass clef · B♭/E♭/F Major · Notes A♭2 through B♭3',
+        desc: 'Treble clef · B♭/E♭/F Major · Notes A♭4 through B♭5',
         totalQuestions: 12,
         noteOptions: ['A♭','A','B♭','C','D','E♭','E','F','G'],
         buildQuiz: function() {
@@ -2417,6 +2417,11 @@ const FOLDERS = [
             { noteFile: 'images/note15.png', answer: 'G',       label: 'G5',       keys: [kBb,kEb,kF] },
             { noteFile: 'images/note17.png', answer: 'B♭', label: 'B♭5', keys: [kBb,kEb,kF] },
           ];
+          fixed = fixed.map(function(n) {
+            if (!n.key) return n;
+            var k = r(n.key);
+            return { noteFile: n.noteFile, answer: n.answer, label: n.label, clefImg: k.img, clefLabel: k.label };
+          });
           var pool = fixed.concat(shared.map(function(n) {
             var k = r(n.keys);
             return { noteFile: n.noteFile, answer: n.answer, label: n.label, clefImg: k.img, clefLabel: k.label };
@@ -2458,6 +2463,11 @@ const FOLDERS = [
             { noteFile: 'images/note10.png', answer: 'B',  label: 'B4',  keys: [kC,kG]     },
             { noteFile: 'images/note11.png', answer: 'C',  label: 'C5',  keys: [kC,kF,kG]  },
           ];
+          fixed = fixed.map(function(n) {
+            if (!n.key) return n;
+            var k = r(n.key);
+            return { noteFile: n.noteFile, answer: n.answer, label: n.label, clefImg: k.img, clefLabel: k.label };
+          });
           var pool = fixed.concat(shared.map(function(n) {
             var k = r(n.keys);
             return { noteFile: n.noteFile, answer: n.answer, label: n.label, clefImg: k.img, clefLabel: k.label };
@@ -2485,11 +2495,11 @@ const FOLDERS = [
           var r = function(keys) { return keys[Math.floor(Math.random()*keys.length)]; };
           var fixed = [
             { noteFile: 'images/note7.png',  answer: 'F',   label: 'F4',   clefImg: kC.img, clefLabel: kC.label },
-            { noteFile: 'images/note7.png',  answer: 'F#',  label: 'F#4',  clefImg: r([kG,kD]).img, clefLabel: r([kG,kD]).label },
-            { noteFile: 'images/note11.png', answer: 'C',   label: 'C5',   clefImg: r([kC,kG]).img, clefLabel: r([kC,kG]).label },
+            { noteFile: 'images/note7.png',  answer: 'F#',  label: 'F#4',  key: [kG,kD] },
+            { noteFile: 'images/note11.png', answer: 'C',   label: 'C5',   key: [kC,kG] },
             { noteFile: 'images/note11.png', answer: 'C#',  label: 'C#5',  clefImg: kD.img, clefLabel: kD.label },
             { noteFile: 'images/note14.png', answer: 'F',   label: 'F5',   clefImg: kC.img, clefLabel: kC.label },
-            { noteFile: 'images/note14.png', answer: 'F#',  label: 'F#5',  clefImg: r([kG,kD]).img, clefLabel: r([kG,kD]).label },
+            { noteFile: 'images/note14.png', answer: 'F#',  label: 'F#5',  key: [kG,kD] },
           ];
           var shared = [
             { noteFile: 'images/note8.png',  answer: 'G', label: 'G4', keys: [kG,kC,kD] },
@@ -2499,6 +2509,11 @@ const FOLDERS = [
             { noteFile: 'images/note13.png', answer: 'E', label: 'E5', keys: [kG,kC,kD] },
             { noteFile: 'images/note15.png', answer: 'G', label: 'G5', keys: [kG,kC,kD] },
           ];
+          fixed = fixed.map(function(n) {
+            if (!n.key) return n;
+            var k = r(n.key);
+            return { noteFile: n.noteFile, answer: n.answer, label: n.label, clefImg: k.img, clefLabel: k.label };
+          });
           var pool = fixed.concat(shared.map(function(n) {
             var k = r(n.keys);
             return { noteFile: n.noteFile, answer: n.answer, label: n.label, clefImg: k.img, clefLabel: k.label };
@@ -2526,11 +2541,11 @@ const FOLDERS = [
           var r = function(keys) { return keys[Math.floor(Math.random()*keys.length)]; };
           var fixed = [
             { noteFile: 'images/note6.png',  answer: 'E♭', label: 'E♭4', clefImg: kBb.img, clefLabel: kBb.label },
-            { noteFile: 'images/note6.png',  answer: 'E',       label: 'E4',       clefImg: r([kF,kC]).img,  clefLabel: r([kF,kC]).label  },
-            { noteFile: 'images/note10.png', answer: 'B♭', label: 'B♭4', clefImg: r([kBb,kF]).img, clefLabel: r([kBb,kF]).label },
+            { noteFile: 'images/note6.png',  answer: 'E',       label: 'E4',       key: [kF,kC]  },
+            { noteFile: 'images/note10.png', answer: 'B♭', label: 'B♭4', key: [kBb,kF] },
             { noteFile: 'images/note10.png', answer: 'B',       label: 'B4',       clefImg: kC.img,  clefLabel: kC.label  },
             { noteFile: 'images/note13.png', answer: 'E♭', label: 'E♭5', clefImg: kBb.img, clefLabel: kBb.label },
-            { noteFile: 'images/note13.png', answer: 'E',       label: 'E5',       clefImg: r([kF,kC]).img,  clefLabel: r([kF,kC]).label  },
+            { noteFile: 'images/note13.png', answer: 'E',       label: 'E5',       key: [kF,kC]  },
           ];
           var shared = [
             { noteFile: 'images/note7.png',  answer: 'F', label: 'F4', keys: [kBb,kF,kC] },
@@ -2540,6 +2555,11 @@ const FOLDERS = [
             { noteFile: 'images/note12.png', answer: 'D', label: 'D5', keys: [kBb,kF,kC] },
             { noteFile: 'images/note14.png', answer: 'F', label: 'F5', keys: [kBb,kF,kC] },
           ];
+          fixed = fixed.map(function(n) {
+            if (!n.key) return n;
+            var k = r(n.key);
+            return { noteFile: n.noteFile, answer: n.answer, label: n.label, clefImg: k.img, clefLabel: k.label };
+          });
           var pool = fixed.concat(shared.map(function(n) {
             var k = r(n.keys);
             return { noteFile: n.noteFile, answer: n.answer, label: n.label, clefImg: k.img, clefLabel: k.label };
@@ -2581,6 +2601,11 @@ const FOLDERS = [
             { noteFile: 'images/note10.png', answer: 'B',  label: 'B4',  keys: [kC,kG]    },
             { noteFile: 'images/note11.png', answer: 'C',  label: 'C5',  keys: [kC,kF,kG] },
           ];
+          fixed = fixed.map(function(n) {
+            if (!n.key) return n;
+            var k = r(n.key);
+            return { noteFile: n.noteFile, answer: n.answer, label: n.label, clefImg: k.img, clefLabel: k.label };
+          });
           var pool = fixed.concat(shared.map(function(n) {
             var k = r(n.keys);
             return { noteFile: n.noteFile, answer: n.answer, label: n.label, clefImg: k.img, clefLabel: k.label };
@@ -2622,6 +2647,11 @@ const FOLDERS = [
             { noteFile: 'images/note13.png',  answer: 'G',       label: 'G3',     keys: [kBb,kEb,kF] },
             { noteFile: 'images/note15.png', answer: 'B♭', label: 'B♭3', keys: [kBb,kEb,kF] },
           ];
+          fixed = fixed.map(function(n) {
+            if (!n.key) return n;
+            var k = r(n.key);
+            return { noteFile: n.noteFile, answer: n.answer, label: n.label, clefImg: k.img, clefLabel: k.label };
+          });
           var pool = fixed.concat(shared.map(function(n) {
             var k = r(n.keys);
             return { noteFile: n.noteFile, answer: n.answer, label: n.label, clefImg: k.img, clefLabel: k.label };
@@ -2663,6 +2693,11 @@ const FOLDERS = [
             { noteFile: 'images/note13.png', answer: 'G',  label: 'G3',  keys: [kBb,kEb,kF] },
             { noteFile: 'images/note15.png', answer: 'B♭', label: 'B♭3', keys: [kBb,kEb,kF] },
           ];
+          fixed = fixed.map(function(n) {
+            if (!n.key) return n;
+            var k = r(n.key);
+            return { noteFile: n.noteFile, answer: n.answer, label: n.label, clefImg: k.img, clefLabel: k.label };
+          });
           var pool = fixed.concat(shared.map(function(n) {
             var k = r(n.keys);
             return { noteFile: n.noteFile, answer: n.answer, label: n.label, clefImg: k.img, clefLabel: k.label };
@@ -2704,6 +2739,11 @@ const FOLDERS = [
             { noteFile: 'images/note6.png',  answer: 'G',       label: 'G2',     keys: [kBb,kEb,kF] },
             { noteFile: 'images/note8.png', answer: 'B♭', label: 'B♭2', keys: [kBb,kEb,kF] },
           ];
+          fixed = fixed.map(function(n) {
+            if (!n.key) return n;
+            var k = r(n.key);
+            return { noteFile: n.noteFile, answer: n.answer, label: n.label, clefImg: k.img, clefLabel: k.label };
+          });
           var pool = fixed.concat(shared.map(function(n) {
             var k = r(n.keys);
             return { noteFile: n.noteFile, answer: n.answer, label: n.label, clefImg: k.img, clefLabel: k.label };
@@ -2745,6 +2785,11 @@ const FOLDERS = [
             { noteFile: 'images/note15.png',  answer: 'G',       label: 'G5',     keys: [kBb,kEb,kF] },
             { noteFile: 'images/note17.png', answer: 'B♭', label: 'B♭5', keys: [kBb,kEb,kF] },
           ];
+          fixed = fixed.map(function(n) {
+            if (!n.key) return n;
+            var k = r(n.key);
+            return { noteFile: n.noteFile, answer: n.answer, label: n.label, clefImg: k.img, clefLabel: k.label };
+          });
           var pool = fixed.concat(shared.map(function(n) {
             var k = r(n.keys);
             return { noteFile: n.noteFile, answer: n.answer, label: n.label, clefImg: k.img, clefLabel: k.label };
@@ -2786,6 +2831,11 @@ const FOLDERS = [
             { noteFile: 'images/note8.png',  answer: 'G',       label: 'G4',     keys: [kBb,kEb,kF] },
             { noteFile: 'images/note10.png', answer: 'B♭', label: 'B♭4', keys: [kBb,kEb,kF] },
           ];
+          fixed = fixed.map(function(n) {
+            if (!n.key) return n;
+            var k = r(n.key);
+            return { noteFile: n.noteFile, answer: n.answer, label: n.label, clefImg: k.img, clefLabel: k.label };
+          });
           var pool = fixed.concat(shared.map(function(n) {
             var k = r(n.keys);
             return { noteFile: n.noteFile, answer: n.answer, label: n.label, clefImg: k.img, clefLabel: k.label };
@@ -4754,20 +4804,17 @@ async function autoSubmitScore() {
 function loadProfile()   { return { firstName: sessionStorage.getItem('studentFirstName') || '', lastName: sessionStorage.getItem('studentLastName') || '', instrument: sessionStorage.getItem('studentInstrument') || '' }; }
 
 function getNextLevelUrl() {
-  // Find the next level in LEVEL_SEQUENCE, skipping orchOnly for band students
-  const orchInstr = ['Violin','Viola','Cello','Bass'];
-  const instrName = sessionStorage.getItem('studentInstrument') || 'Violin';
-  const isOrch    = orchInstr.includes(instrName);
-  const curLevel  = getCurrentLevel();
-  const idx       = LEVEL_SEQUENCE.findIndex(function(e) { return Math.abs(e.level - curLevel) < 0.01; });
+  // Next level in this instrument's sequence (orchestra or band)
+  const instr    = getStudentInstrument();
+  const seq      = levelSequenceFor(instr);
+  const curLevel = getCurrentLevel();
+  const idx      = seq.findIndex(function(e) { return Math.abs(e.level - curLevel) < 0.01; });
   if (idx === -1) return null;
-  var next = idx + 1;
-  while (next < LEVEL_SEQUENCE.length) {
-    if (!LEVEL_SEQUENCE[next].orchOnly || isOrch) break;
-    next++;
+  // Skip any level whose quiz isn't built yet for this instrument
+  for (var next = idx + 1; next < seq.length; next++) {
+    if (getLevelQuiz(seq[next], instr)) return 'pitch.html?level=' + seq[next].level.toFixed(1);
   }
-  if (next >= LEVEL_SEQUENCE.length) return null;
-  return 'pitch.html?level=' + LEVEL_SEQUENCE[next].level.toFixed(1);
+  return null;
 }
 
 // ── PASSING SCORE ───────────────────────────────────────────────
@@ -4864,7 +4911,9 @@ function loadProfile() {
 
 // ── LEVEL SEQUENCE ───────────────────────────────────────────────────────────
 // Defines the ordered progression of quizzes mapped to decimal levels.
-// orchOnly: true means band students skip this entry.
+// LEVEL_SEQUENCE is the orchestra sequence (notes + fingering per quarter).
+// Band uses BAND_LEVEL_SEQUENCE (notes only, one level per quarter).
+// Both must match pitchLevelOrder() in dashboard.html.
 const LEVEL_SEQUENCE = [
   { level: 5.1, grade: '5th', quarter: 'q1', type: 'notes',     label: '5th Grade · Q1 · Notes' },
   { level: 5.2, grade: '5th', quarter: 'q1', type: 'fingering', label: '5th Grade · Q1 · Fingering', orchOnly: true },
@@ -4886,10 +4935,48 @@ const LEVEL_SEQUENCE = [
   { level: 7.2, grade: '7th', quarter: 'q1', type: 'fingering', label: '7th Grade · Review · Fingering', orchOnly: true },
 ];
 
+// Band: Q1 = 5.1, Q2 = 5.2, Q3 = 5.3, Q4 = 5.4 (6th/7th grade band not built yet)
+const BAND_LEVEL_SEQUENCE = [
+  { level: 5.1, grade: '5th', quarter: 'q1', type: 'notes', label: '5th Grade · Q1 · Notes' },
+  { level: 5.2, grade: '5th', quarter: 'q2', type: 'notes', label: '5th Grade · Q2 · Notes' },
+  { level: 5.3, grade: '5th', quarter: 'q3', type: 'notes', label: '5th Grade · Q3 · Notes' },
+  { level: 5.4, grade: '5th', quarter: 'q4', type: 'notes', label: '5th Grade · Q4 · Notes' },
+];
+
+// The level sequence for an instrument (defaults to the current student's)
+function levelSequenceFor(instr) {
+  instr = instr || getStudentInstrument();
+  return instr.ensembleId === 'orchestra' ? LEVEL_SEQUENCE : BAND_LEVEL_SEQUENCE;
+}
+
 // Returns the INSTRUMENTS entry for the current student's instrument
+// Roster spellings vary ("alto sax", "Saxophone", "Horn"…), so match loosely.
+const INSTRUMENT_ALIASES = {
+  'violin': 'violin', 'viola': 'viola', 'cello': 'cello', 'violoncello': 'cello',
+  'bass': 'bass', 'string bass': 'bass', 'double bass': 'bass', 'upright bass': 'bass',
+  'flute': 'flute',
+  'clarinet': 'clarinet', 'bb clarinet': 'clarinet',
+  'alto sax': 'alto-sax', 'alto saxophone': 'alto-sax', 'sax': 'alto-sax', 'saxophone': 'alto-sax',
+  'french horn': 'french-horn', 'horn': 'french-horn', 'f horn': 'french-horn',
+  'trumpet': 'trumpet', 'cornet': 'trumpet',
+  'trombone': 'trombone',
+  'baritone': 'baritone', 'euphonium': 'baritone', 'baritone horn': 'baritone',
+  'tuba': 'tuba',
+  // Roster lists percussionists as "Percussion" → 5th grade uses the High mallet quizzes
+  'percussion': 'mallets-high', 'mallets': 'mallets-high', 'mallet percussion': 'mallets-high',
+  'mallet percussion high': 'mallets-high', 'mallets high': 'mallets-high', 'high mallets': 'mallets-high',
+  'mallet percussion low': 'mallets-low', 'mallets low': 'mallets-low', 'low mallets': 'mallets-low',
+};
+function findInstrument(name) {
+  const key = String(name || '').trim().toLowerCase().replace(/[♭]/g, 'b').replace(/\s+/g, ' ');
+  const id  = INSTRUMENT_ALIASES[key] || key.replace(/ /g, '-');
+  return INSTRUMENTS.find(i => i.id === id || i.title.toLowerCase() === key) || null;
+}
 function getStudentInstrument() {
   const name = sessionStorage.getItem('studentInstrument') || 'Violin';
-  return INSTRUMENTS.find(i => i.title === name) || INSTRUMENTS[0];
+  const found = findInstrument(name);
+  if (!found) console.warn('[pitch] Unknown instrument "' + name + '" — defaulting to Violin');
+  return found || INSTRUMENTS[0];
 }
 
 // Returns folderId + quizId for a given LEVEL_SEQUENCE entry and instrument
@@ -4910,7 +4997,7 @@ function getCurrentLevel() {
   if (!activeFolder || !activeQuiz) return 0;
   const instr = getStudentInstrument();
   const type  = activeQuiz.id.includes('images/fingering') || activeQuiz.id.includes('fingering') ? 'fingering' : 'notes';
-  const entry = LEVEL_SEQUENCE.find(e => {
+  const entry = levelSequenceFor(instr).find(e => {
     if (e.type !== type) return false;
     const fid = FOLDER_MAP[instr.ensembleId + '|' + e.grade + '|' + e.quarter];
     return fid === activeFolder.id;
@@ -4920,9 +5007,9 @@ function getCurrentLevel() {
 
 // Launches quiz directly from a decimal level value
 function launchLevel(levelVal) {
-  const entry = LEVEL_SEQUENCE.find(e => Math.abs(e.level - levelVal) < 0.05);
-  if (!entry) { renderLevelMenu(); return; }
   const instr = getStudentInstrument();
+  const entry = levelSequenceFor(instr).find(e => Math.abs(e.level - levelVal) < 0.05);
+  if (!entry) { renderLevelMenu(); return; }
   const q     = getLevelQuiz(entry, instr);
   if (!q) { renderLevelMenu(); return; }
   activeInstrument = instr;
@@ -4940,8 +5027,8 @@ function renderLevelMenu() {
   const bestBase = Math.floor(_bestLevel);
   const bestSub  = Math.round((_bestLevel - bestBase) * 10);
 
-  // Filter levels for this instrument type
-  const levels = LEVEL_SEQUENCE.filter(e => isOrch || !e.orchOnly);
+  // Levels for this instrument type
+  const levels = levelSequenceFor(instr);
 
   let cards = levels.map(entry => {
     const locked   = maxBase && (
@@ -5008,8 +5095,9 @@ let _ptStudents = [];
 let _ptMode     = '';
 
 function _ptClosestNotesLevel(lvl) {
-  const notes = LEVEL_SEQUENCE.filter(e => e.type === 'notes' && e.level <= lvl + 0.05);
-  if (!notes.length) return LEVEL_SEQUENCE.find(e => e.type === 'notes');
+  const seq   = levelSequenceFor();
+  const notes = seq.filter(e => e.type === 'notes' && e.level <= lvl + 0.05);
+  if (!notes.length) return seq.find(e => e.type === 'notes');
   return notes.reduce((best, e) => (e.level > best.level ? e : best));
 }
 
