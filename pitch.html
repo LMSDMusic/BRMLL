@@ -3609,6 +3609,44 @@ const FOLDERS = [
 
 ];
 
+// ── PERCUSSION: Mallet Percussion High + Low in one quiz ──────────
+// Built from each band folder's mallets-high and mallets-low quizzes, so
+// any change to those pools flows through automatically. Answers are note
+// names only (no octave), so the "C" button is correct for C4 and C5.
+FOLDERS.forEach(function(folder) {
+  var hi = folder.quizzes.find(function(q) { return q.id === 'mallets-high'; });
+  var lo = folder.quizzes.find(function(q) { return q.id === 'mallets-low'; });
+  if (!hi || !lo || folder.quizzes.some(function(q) { return q.id === 'percussion'; })) return;
+  function questionsFrom(q) {
+    var key = q.clefLabel.split('·').pop().trim();
+    var list = q.buildQuiz ? q.buildQuiz() : q.notePool.slice();
+    return list.map(function(n) {
+      return Object.assign({}, n, { clefImg: n.clefImg || q.clefImg, clefLabel: n.clefLabel || key });
+    });
+  }
+  var range = function(q) { return q.title.split(' ').pop().split('–'); };
+  var opts  = hi.noteOptions.slice();
+  lo.noteOptions.forEach(function(n) { if (opts.indexOf(n) === -1) opts.push(n); });
+  folder.quizzes.push({
+    id: 'percussion',
+    title: 'Percussion ' + range(lo)[0] + '–' + range(hi)[1],
+    clefLabel: hi.clefLabel,
+    clefImg: hi.clefImg,
+    icon: '🥁',
+    desc: hi.desc.replace(/Notes .*$/, 'Notes ' + range(lo)[0] + ' through ' + range(hi)[1]),
+    totalQuestions: hi.totalQuestions + lo.totalQuestions,
+    noteOptions: opts,
+    buildQuiz: function() {
+      var pool = questionsFrom(hi).concat(questionsFrom(lo));
+      for (var i = pool.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var t = pool[i]; pool[i] = pool[j]; pool[j] = t;
+      }
+      return pool;
+    },
+  });
+});
+
 // ── NAVIGATION STRUCTURE ───────────────────────────────────────────
 const ENSEMBLES = [
   { id: 'orchestra', title: 'Orchestra', colorClass: 'orch', icon: '🎻' },
@@ -3637,6 +3675,7 @@ const INSTRUMENTS = [
   { id: 'tuba',         title: 'Tuba',         icon: '🎺', colorClass: 'band-inst', ensembleId: 'band', quizIds: ['tuba'] },
   { id: 'mallets-high', title: 'Mallet Percussion High', icon: '🥁', colorClass: 'band-inst', ensembleId: 'band', quizIds: ['mallets-high'] },
   { id: 'mallets-low',  title: 'Mallet Percussion Low',  icon: '🥁', colorClass: 'band-inst', ensembleId: 'band', quizIds: ['mallets-low'] },
+  { id: 'percussion',   title: 'Percussion',             icon: '🥁', colorClass: 'band-inst', ensembleId: 'band', quizIds: ['percussion'] },
   // Chorus
   { id: 'chorus-voice', title: 'Voice', icon: '🎤', colorClass: 'chor-inst', ensembleId: 'chorus', quizIds: ['chorus-voice'] },
 ];
@@ -4962,8 +5001,8 @@ const INSTRUMENT_ALIASES = {
   'trombone': 'trombone',
   'baritone': 'baritone', 'euphonium': 'baritone', 'baritone horn': 'baritone',
   'tuba': 'tuba',
-  // Roster lists percussionists as "Percussion" → 5th grade uses the High mallet quizzes
-  'percussion': 'mallets-high', 'mallets': 'mallets-high', 'mallet percussion': 'mallets-high',
+  // Roster lists percussionists as "Percussion" → combined High + Low mallet quizzes
+  'percussion': 'percussion', 'mallets': 'percussion', 'mallet percussion': 'percussion',
   'mallet percussion high': 'mallets-high', 'mallets high': 'mallets-high', 'high mallets': 'mallets-high',
   'mallet percussion low': 'mallets-low', 'mallets low': 'mallets-low', 'low mallets': 'mallets-low',
 };
