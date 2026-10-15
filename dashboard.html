@@ -319,6 +319,42 @@
 
     .signout-btn:hover { color: var(--text); text-decoration: underline; }
 
+    /* ── Teacher mode bar ── */
+    .teacher-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: #1a1f36;
+      color: #fff;
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      margin-bottom: 24px;
+    }
+    .teacher-bar .tb-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #a8b3d0;
+    }
+    .teacher-bar label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-left: auto;
+    }
+    .teacher-bar select {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 7px 10px;
+      border-radius: 8px;
+      border: none;
+      color: var(--text);
+      background: #fff;
+      cursor: pointer;
+    }
+
   </style>
 </head>
 
@@ -335,6 +371,13 @@
         <p id="greetingMeta"></p>
       </div>
       <div class="avatar" id="avatarInitials" title="Sign out" onclick="signOut()"></div>
+    </div>
+
+    <!-- Teacher mode: instrument switcher (shown only when class = Teacher) -->
+    <div class="teacher-bar" id="teacherBar" style="display:none;">
+      <span class="tb-label">Teacher Mode · All Levels Unlocked</span>
+      <label for="teacherInstrument">Test as</label>
+      <select id="teacherInstrument"></select>
     </div>
 
     <!-- Up Next -->
@@ -379,19 +422,57 @@
     // ── DEV: UNLOCK ALL LEVELS ───────────────────────────────
     // Set only by local_login.html. When true, module menus open with
     // every level unlocked. Cleared on sign out (sessionStorage.clear()).
-    const UNLOCK_ALL = sessionStorage.getItem("devUnlockAll") === "true";
+    // ── TEACHER MODE ─────────────────────────────────────────
+    // A roster row whose Class is "Teacher" gets an instrument switcher and
+    // every level unlocked in every module (same path as the dev unlock).
+    const IS_TEACHER = String(studentClass || "").trim().toLowerCase() === "teacher";
+
+    const UNLOCK_ALL = sessionStorage.getItem("devUnlockAll") === "true" || IS_TEACHER;
 
     // ── GREETING ─────────────────────────────────────────────
     document.getElementById("greetingName").textContent = "Hello, " + firstName;
 
     const metaParts = [];
     if (grade)        metaParts.push("Grade " + grade);
-    if (studentClass) metaParts.push("Class " + studentClass);
-    if (UNLOCK_ALL)   metaParts.push("🔓 All levels unlocked (dev)");
+    if (studentClass && !IS_TEACHER) metaParts.push("Class " + studentClass);
+    if (IS_TEACHER)   metaParts.push("Teacher");
+    else if (UNLOCK_ALL) metaParts.push("🔓 All levels unlocked (dev)");
     document.getElementById("greetingMeta").textContent = metaParts.join(" · ");
 
     const initials = ((firstName[0] || "") + (lastName ? lastName[0] : "")).toUpperCase() || "?";
     document.getElementById("avatarInitials").textContent = initials;
+
+    // Instruments the teacher can test as. Values are the exact roster spellings
+    // the modules look for.
+    const TEACHER_INSTRUMENTS = {
+      "Orchestra": ["Violin", "Viola", "Cello", "Bass"],
+      "Band":      ["Flute", "Clarinet", "Alto Sax", "French Horn", "Trumpet",
+                    "Trombone", "Baritone", "Tuba", "Percussion"],
+    };
+    let lastProgressData = null;   // re-render without refetching when the instrument changes
+
+    if (IS_TEACHER) {
+      const sel = document.getElementById("teacherInstrument");
+      const current = sessionStorage.getItem("studentInstrument") || "Violin";
+      let matched = false;
+      Object.entries(TEACHER_INSTRUMENTS).forEach(([group, list]) => {
+        const og = document.createElement("optgroup");
+        og.label = group;
+        list.forEach(name => {
+          const o = document.createElement("option");
+          o.value = o.textContent = name;
+          if (name.toLowerCase() === current.toLowerCase()) { o.selected = true; matched = true; }
+          og.appendChild(o);
+        });
+        sel.appendChild(og);
+      });
+      if (!matched) sessionStorage.setItem("studentInstrument", sel.value);
+      sel.addEventListener("change", () => {
+        sessionStorage.setItem("studentInstrument", sel.value);
+        if (lastProgressData) renderAll(lastProgressData);
+      });
+      document.getElementById("teacherBar").style.display = "flex";
+    }
 
     // ── LOADING SKELETONS ────────────────────────────────────
     function showSkeletons() {
@@ -435,7 +516,7 @@
         ? "Level " + parseFloat(nextLevel) + " - " + subName
         : "Level " + nextLevel;
 
-      const meta = nextLabel;
+      const meta = IS_TEACHER ? "All levels unlocked" : nextLabel;
 
       const upNextUrl = nextUrl;
       area.innerHTML = `
@@ -475,6 +556,7 @@
         } else {
           metaHtml = "Not Started";
         }
+        if (IS_TEACHER) metaHtml = "All levels unlocked";
 
         const card = document.createElement("a");
         card.className   = "module-card";
@@ -568,6 +650,19 @@
 
         if (!data.success) throw new Error(data.error || "Unknown error");
 
+        lastProgressData = data;
+        renderAll(data);
+
+      } catch (err) {
+        document.getElementById("upNextArea").innerHTML = "";
+        document.getElementById("moduleGrid").innerHTML = `
+          <div class="error-box" style="grid-column:1/-1;">
+            Could not load modules. Please check your connection and refresh.
+          </div>`;
+      }
+    }
+
+    function renderAll(data) {
         // Build allScoresMap: moduleId → all entries sorted by level desc
         const allScoresMap = {};
         (data.bestScores || []).forEach(bs => {
@@ -592,14 +687,6 @@
 
         // Module grid
         renderGrid(modules, bestScoresMap, allScoresMap);
-
-      } catch (err) {
-        document.getElementById("upNextArea").innerHTML = "";
-        document.getElementById("moduleGrid").innerHTML = `
-          <div class="error-box" style="grid-column:1/-1;">
-            Could not load modules. Please check your connection and refresh.
-          </div>`;
-      }
     }
 
     // ── HELPERS ──────────────────────────────────────────────
@@ -748,6 +835,7 @@
 
     // Pitch Up Next URL: goes straight to the quiz at the student's unlock frontier
     function buildPitchUrl(bestScore, allEntries) {
+      if (IS_TEACHER) return "pitch.html?menu=true";   // teacher: pick any level
       // 7th graders always start at 7.1 regardless of prior pitch history
       if (grade === '7' && (!bestScore || bestScore.level < 7.1)) return "pitch.html?level=7.1";
       const entries = (allEntries && allEntries.length) ? allEntries : (bestScore ? [bestScore] : []);
