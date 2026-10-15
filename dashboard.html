@@ -514,7 +514,9 @@
       const subName     = nextMode === 'trainer' ? 'Trainer' : nextMode === 'fast' ? 'Fast' : 'Slow';
       const nextLabel   = nextMode
         ? "Level " + parseFloat(nextLevel) + " - " + subName
-        : "Level " + nextLevel;
+        : module.filename === 'staffhero.html'
+          ? "Level " + staffHeroLevelName(nextLevel)
+          : "Level " + nextLevel;
 
       const meta = IS_TEACHER ? "All levels unlocked" : nextLabel;
 
@@ -552,7 +554,9 @@
           const cardSubName = cardMode === 'trainer' ? 'Trainer' : cardMode === 'fast' ? 'Fast' : 'Slow';
           metaHtml = cardMode
             ? "Level " + parseFloat(cardLevel) + " - " + cardSubName
-            : "Level " + cardLevel;
+            : mod.filename === "staffhero.html"
+              ? "Level " + staffHeroLevelName(cardLevel)
+              : "Level " + cardLevel;
         } else {
           metaHtml = "Not Started";
         }
@@ -705,6 +709,16 @@
     // Returns a human-readable level label.
     // For rhythm, decodes float sub-levels: 1.1 → "Level 1.1"
     // For all others (staff hero etc.), shows integer level: "Level 3"
+    // Staff Hero Percussion alternates Mallet High / Low levels: 1 → "1 - High", 2 → "1 - Low" …
+    function staffHeroLevelName(level) {
+      const lvl = Math.floor(Number(level));
+      const instr = String(sessionStorage.getItem('studentInstrument') || '').trim().toLowerCase();
+      if (['percussion', 'mallets', 'mallet percussion'].includes(instr) && lvl > 0 && lvl < 99) {
+        return Math.ceil(lvl / 2) + ' - ' + (lvl % 2 ? 'High' : 'Low');
+      }
+      return String(lvl);
+    }
+
     function levelLabel(filename, level) {
       if (filename === "rhythm.html" && level > 0) {
         const base    = Math.floor(level);
@@ -714,6 +728,9 @@
       }
       if (filename === "pitch.html" && level > 0) {
         return "Level <strong>" + parseFloat(level).toFixed(1) + "</strong>";
+      }
+      if (filename === "staffhero.html") {
+        return "Level <strong>" + staffHeroLevelName(level) + "</strong>";
       }
       return "Level <strong>" + level + "</strong>";
     }

@@ -84,7 +84,23 @@ const _urlLevel     = parseInt(_urlParams.get('level')) || 1;
 const _urlMenu      = _urlParams.get('menu') === 'true';
 const _maxLevel     = parseInt(_urlParams.get('maxLevel')) || null;
 const _bestLevel    = parseInt(_urlParams.get('bestLevel')) || 0;
-const _sessionInstr = sessionStorage.getItem('studentInstrument') || 'Violin';
+// Roster spellings vary ("alto sax", "Horn", "percussion"…) — map to Staff Hero names
+const INSTRUMENT_ALIASES = {
+  'violin':'Violin', 'viola':'Viola', 'cello':'Cello', 'violoncello':'Cello',
+  'bass':'Bass', 'string bass':'Bass', 'double bass':'Bass', 'upright bass':'Bass',
+  'flute':'Flute', 'clarinet':'Clarinet', 'trumpet':'Trumpet', 'cornet':'Trumpet',
+  'alto sax':'Alto Sax', 'alto saxophone':'Alto Sax', 'sax':'Alto Sax', 'saxophone':'Alto Sax',
+  'french horn':'French Horn', 'horn':'French Horn', 'f horn':'French Horn',
+  'trombone':'Trombone', 'baritone':'Baritone', 'euphonium':'Baritone', 'baritone horn':'Baritone',
+  'tuba':'Tuba',
+  'percussion':'Percussion', 'mallets':'Percussion', 'mallet percussion':'Percussion',
+  'mallet perc':'Mallet Perc', 'piano':'Piano',
+};
+function normalizeInstrument(name) {
+  const key = String(name || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  return INSTRUMENT_ALIASES[key] || name || 'Violin';
+}
+const _sessionInstr = normalizeInstrument(sessionStorage.getItem('studentInstrument') || 'Violin');
 
 // Tracks the status of the auto-submit call displayed on score cards
 let scoreSubmitStatus = 'idle'; // 'idle' | 'saving' | 'saved' | 'error'
@@ -682,6 +698,11 @@ const NOTE_Y_BASS = {
   'Eb3': staffLines[2] - LINE_SPACING * 0.5,  // same space as E3 (Eb = E-flat)
   'Ab3': staffLines[2] - LINE_SPACING * 2.0,  // same line as A3 (Ab = A-flat)
   'Bb3': staffLines[2] - LINE_SPACING * 2.5,  // same space as B3 (Bb = B-flat)
+  'A1':  staffLines[4] + LINE_SPACING * 3.0,  // 3rd ledger line below bass staff (Tuba)
+  'Ab1': staffLines[4] + LINE_SPACING * 3.0,  // same as A1
+  'B1':  staffLines[4] + LINE_SPACING * 2.5,  // space below 2nd ledger (Tuba)
+  'Bb1': staffLines[4] + LINE_SPACING * 2.5,  // same as B1
+  'Eb2': staffLines[4] + LINE_SPACING * 1.0,  // same as E2
   'C2': staffLines[4] + LINE_SPACING * 2.0,   // 2nd ledger line below bass staff
   'D2': staffLines[4] + LINE_SPACING * 1.5,   // space below 1st ledger line below
   'E2': staffLines[4] + LINE_SPACING * 1.0,   // 1st ledger line below bass staff
@@ -710,7 +731,7 @@ const NOTE_Y_BASS = {
 // Returns the correct Y map for the active instrument
 function getNoteYMap() {
   if (selectedInstrument === 'Viola') return NOTE_Y_ALTO;
-  if (selectedInstrument === 'Cello' || selectedInstrument === 'Bass' || selectedInstrument === 'Baritone' || selectedInstrument === 'Trombone') return NOTE_Y_BASS;
+  if (isBassClefInstr(selectedInstrument)) return NOTE_Y_BASS;
   return NOTE_Y_TREBLE; // Violin, Flute, Clarinet, Trumpet use treble clef
 }
 
@@ -1046,7 +1067,7 @@ const MALLET_HIGH_LEVELS = {
        staffPos: ['A4','B4','C5','D5','E5','F5','G5','A5'],
          tonic: 'A4', keySig: 'Bb',
          rows: [['Ab5'], ['Bb4', 'C5', 'D5', 'Eb5', 'F5', 'G5'], ['Ab4']],
-         rowLabels: ['High register', 'Middle register', 'Low register'], title: 'Ab4 – Ab5' },
+         rowLabels: ['High register', 'Middle register', 'Low register'], title: 'A4 – A5' },
   5: { pitches: ['Ab4','Bb4','C5','D5','Eb5','F5','G5','Ab5'],
        staffPos: ['A4','B4','C5','D5','E5','F5','G5','A5'],
          tonic: 'Ab4', keySig: 'Eb',
@@ -1056,7 +1077,7 @@ const MALLET_HIGH_LEVELS = {
        staffPos: ['A4','B4','C5','D5','E5','F5','G5','A5','B5'],
          tonic: 'A4', keySig: 'Bb',
          rows: [['Ab5', 'Bb5'], ['Bb4', 'C5', 'D5', 'Eb5', 'F5', 'G5'], ['Ab4']],
-         rowLabels: ['High register', 'Middle register', 'Low register'], title: 'Ab4 – Bb5' },
+         rowLabels: ['High register', 'Middle register', 'Low register'], title: 'A4 – Bb5' },
   7: { pitches: ['Ab4','Bb4','C5','D5','Eb5','F5','G5','Ab5','Bb5'],
        staffPos: ['A4','B4','C5','D5','E5','F5','G5','A5','B5'],
          tonic: 'Ab4', keySig: 'Eb',
@@ -1085,22 +1106,22 @@ const MALLET_LOW_LEVELS = {
        staffPos: ['A3','B3','C4','D4','E4','F4','G4','A4'],
          tonic: 'A3', keySig: 'Bb',
          rows: [['Ab4'], ['Bb3', 'C4', 'D4', 'Eb4', 'F4', 'G4'], ['Ab3']],
-         rowLabels: ['High register', 'Middle register', 'Low register'], title: 'Ab3 – Ab3' },
+         rowLabels: ['High register', 'Middle register', 'Low register'], title: 'A3 – A4' },
   5: { pitches: ['Ab3','Bb3','C4','D4','Eb4','F4','G4','Ab4'],
        staffPos: ['A3','B3','C4','D4','E4','F4','G4','A4'],
          tonic: 'Ab3', keySig: 'Eb',
          rows: [['Ab4'], ['Bb3', 'C4', 'D4', 'Eb4', 'F4', 'G4'], ['Ab3']],
-         rowLabels: ['High register', 'Middle register', 'Low register'], title: 'Ab3 – Ab3 (Eb)' },
+         rowLabels: ['High register', 'Middle register', 'Low register'], title: 'Ab3 – Ab4 (Eb)' },
   6: { pitches: ['A3','Bb3','C4','D4','Eb4','F4','G4','A4','Bb4'],
        staffPos: ['A3','B3','C4','D4','E4','F4','G4','A4','B4'],
          tonic: 'A3', keySig: 'Bb',
          rows: [['Ab4', 'Bb4'], ['Bb3', 'C4', 'D4', 'Eb4', 'F4', 'G4'], ['Ab3']],
-         rowLabels: ['High register', 'Middle register', 'Low register'], title: 'Ab3 – Bb3' },
+         rowLabels: ['High register', 'Middle register', 'Low register'], title: 'A3 – Bb4' },
   7: { pitches: ['Ab3','Bb3','C4','D4','Eb4','F4','G4','Ab4','Bb4'],
        staffPos: ['A3','B3','C4','D4','E4','F4','G4','A4','B4'],
          tonic: 'Ab3', keySig: 'Eb',
          rows: [['Ab4', 'Bb4'], ['Bb3', 'C4', 'D4', 'Eb4', 'F4', 'G4'], ['Ab3']],
-         rowLabels: ['High register', 'Middle register', 'Low register'], title: 'Ab3 – Bb3 (Eb)' },
+         rowLabels: ['High register', 'Middle register', 'Low register'], title: 'Ab3 – Bb4 (Eb)' },
 };
 
 const BARITONE_LEVELS = {
@@ -1209,6 +1230,105 @@ const FLUTE_LEVELS = {
        rowLabels: ['High register', 'Middle register', 'Low register'], title: 'Ab4 – Bb5 (Eb)' },
 };
 
+const FRENCH_HORN_LEVELS = {
+  // Horn in F — written pitch sounds a perfect 5th lower.
+  // Written F major → concert Bb major; Bb major → Eb; C major → F. Matches Note ID 5.1–5.4.
+  1: { pitches: ['F4','G4','A4'],
+       staffPos: ['F4','G4','A4'],
+       concertPitches: ['Bb3','C4','D4'],
+       tonic: 'F4', keySig: 'F', concertKeySig: 'Bb',
+       rows: [['F4','G4','A4']],
+       rowLabels: [], title: 'F, G, A' },
+  2: { pitches: ['F4','G4','A4','Bb4','C5'],
+       staffPos: ['F4','G4','A4','B4','C5'],
+       concertPitches: ['Bb3','C4','D4','Eb4','F4'],
+       tonic: 'F4', keySig: 'F', concertKeySig: 'Bb',
+       rows: [['F4','G4','A4','Bb4','C5']],
+       rowLabels: [], title: 'F4 – C5' },
+  3: { pitches: ['F4','G4','A4','Bb4','C5','D5'],
+       staffPos: ['F4','G4','A4','B4','C5','D5'],
+       concertPitches: ['Bb3','C4','D4','Eb4','F4','G4'],
+       tonic: 'F4', keySig: 'F', concertKeySig: 'Bb',
+       rows: [['F4','G4','A4','Bb4','C5','D5']],
+       rowLabels: [], title: 'F4 – D5' },
+  4: { pitches: ['E4','F4','G4','A4','Bb4','C5','D5','E5'],
+       staffPos: ['E4','F4','G4','A4','B4','C5','D5','E5'],
+       concertPitches: ['A3','Bb3','C4','D4','Eb4','F4','G4','A4'],
+       tonic: 'F4', keySig: 'F', concertKeySig: 'Bb',
+       rows: [['E4','F4','G4','A4','Bb4','C5','D5','E5']],
+       rowLabels: [], title: 'E4 – E5' },
+  5: { pitches: ['Eb4','F4','G4','A4','Bb4','C5','D5','Eb5'],
+       staffPos: ['E4','F4','G4','A4','B4','C5','D5','E5'],
+       concertPitches: ['Ab3','Bb3','C4','D4','Eb4','F4','G4','Ab4'],
+       tonic: 'Bb4', keySig: 'Bb', concertKeySig: 'Eb',
+       rows: [['Eb4','F4','G4','A4','Bb4','C5','D5','Eb5']],
+       rowLabels: [], title: 'Eb4 – Eb5' },
+  6: { pitches: ['E4','F4','G4','A4','B4','C5','D5','E5','F5'],
+       staffPos: ['E4','F4','G4','A4','B4','C5','D5','E5','F5'],
+       concertPitches: ['A3','Bb3','C4','D4','E4','F4','G4','A4','Bb4'],
+       tonic: 'C5', keySig: 'C', concertKeySig: 'F',
+       rows: [['E4','F4','G4','A4','B4','C5','D5','E5','F5']],
+       rowLabels: [], title: 'E4 – F5' },
+  7: { pitches: ['Eb4','F4','G4','A4','Bb4','C5','D5','Eb5','F5'],
+       staffPos: ['E4','F4','G4','A4','B4','C5','D5','E5','F5'],
+       concertPitches: ['Ab3','Bb3','C4','D4','Eb4','F4','G4','Ab4','Bb4'],
+       tonic: 'Bb4', keySig: 'Bb', concertKeySig: 'Eb',
+       rows: [['Eb4','F4','G4','A4','Bb4','C5','D5','Eb5','F5']],
+       rowLabels: [], title: 'Eb4 – F5' },
+};
+
+const TUBA_LEVELS = {
+  // Tuba — non-transposing, bass clef; Baritone/Trombone levels one octave lower (matches Note ID)
+  1: { pitches: ['Bb1','C2','D2'],
+       staffPos: ['B1','C2','D2'],
+       tonic: 'Bb1', keySig: 'Bb',
+       rows: [['Bb1','C2','D2']],
+       rowLabels: [], title: 'Bb, C, D' },
+  2: { pitches: ['Bb1','C2','D2','Eb2','F2'],
+       staffPos: ['B1','C2','D2','E2','F2'],
+       tonic: 'Bb1', keySig: 'Bb',
+       rows: [['Bb1','C2','D2','Eb2','F2']],
+       rowLabels: [], title: 'Bb1 – F2' },
+  3: { pitches: ['Bb1','C2','D2','Eb2','F2','G2'],
+       staffPos: ['B1','C2','D2','E2','F2','G2'],
+       tonic: 'Bb1', keySig: 'Bb',
+       rows: [['Bb1','C2','D2','Eb2','F2','G2']],
+       rowLabels: [], title: 'Bb1 – G2' },
+  4: { pitches: ['A1','Bb1','C2','D2','E2','F2','G2','A2'],
+       staffPos: ['A1','B1','C2','D2','E2','F2','G2','A2'],
+       tonic: 'F2', keySig: 'F',
+       rows: [['A1','Bb1','C2','D2','E2','F2','G2','A2']],
+       rowLabels: [], title: 'A1 – A2' },
+  5: { pitches: ['Ab1','Bb1','C2','D2','Eb2','F2','G2','Ab2'],
+       staffPos: ['A1','B1','C2','D2','E2','F2','G2','A2'],
+       tonic: 'Eb2', keySig: 'Eb',
+       rows: [['Ab1','Bb1','C2','D2','Eb2','F2','G2','Ab2']],
+       rowLabels: [], title: 'Ab1 – Ab2' },
+  6: { pitches: ['Ab1','Bb1','C2','D2','Eb2','F2','G2','Ab2','Bb2'],
+       staffPos: ['A1','B1','C2','D2','E2','F2','G2','A2','B2'],
+       tonic: 'Eb2', keySig: 'Eb',
+       rows: [['Ab1','Bb1','C2','D2','Eb2','F2','G2','Ab2','Bb2']],
+       rowLabels: [], title: 'Ab1 – Bb2' },
+};
+
+// Percussion (roster "Percussion"): Mallet High and Mallet Low as separate levels,
+// alternating — 1 = "1 - High", 2 = "1 - Low", 3 = "2 - High" … 14 = "7 - Low".
+const PERCUSSION_LEVELS = {};
+Object.keys(MALLET_HIGH_LEVELS).map(Number).sort((a, b) => a - b).forEach(k => {
+  PERCUSSION_LEVELS[2 * k - 1] = Object.assign({}, MALLET_HIGH_LEVELS[k], { label: k + ' - High' });
+  PERCUSSION_LEVELS[2 * k]     = Object.assign({}, MALLET_LOW_LEVELS[k],  { label: k + ' - Low'  });
+});
+
+// Instruments that get one button per note name (either octave counts as correct)
+const BAND_INSTRUMENTS = ['Flute','Clarinet','Trumpet','Alto Sax','French Horn','Trombone','Baritone','Tuba','Mallet Perc','Percussion'];
+function isBandInstrument() { return BAND_INSTRUMENTS.includes(selectedInstrument); }
+
+// Display name for a level number ("3", or "2 - High" for Percussion)
+function levelDisplayName(lvl) {
+  const def = getLevelSet()[lvl];
+  return def && def.label ? def.label : String(lvl);
+}
+
 // Display names (accidentals implied by D Major key signature)
 // Pitch display — keySig-aware so C4 shows as C in G major and C# in D major
 
@@ -1231,6 +1351,9 @@ function getLevelSet() {
   if (selectedInstrument === 'Alto Sax')   return ALTO_SAX_LEVELS;
   if (selectedInstrument === 'Piano')        return PIANO_LEVELS;
   if (selectedInstrument === 'Mallet Perc') return malletOctave === 'high' ? MALLET_HIGH_LEVELS : MALLET_LOW_LEVELS;
+  if (selectedInstrument === 'French Horn') return FRENCH_HORN_LEVELS;
+  if (selectedInstrument === 'Tuba')        return TUBA_LEVELS;
+  if (selectedInstrument === 'Percussion')  return PERCUSSION_LEVELS;
   return VIOLIN_LEVELS;
 }
 function getPitchDisplay(pitch) {
@@ -1269,6 +1392,22 @@ const NOTE_FREQ = {
   'F#2': 92.50, 'F2': 87.31,                     // Bass level 6
   'C2':  65.41, 'D2':  73.42, 'E2': 82.41,       // Cello level 6
 };
+
+// Fill in any pitch not listed above (e.g. Tuba's A1, Bb1, Eb2) with equal-temperament values.
+// semitoneDist() and note generation rely on every level pitch having a frequency.
+(function fillNoteFreq() {
+  const steps = { C:0, D:2, E:4, F:5, G:7, A:9, B:11 };
+  for (let oct = 1; oct <= 7; oct++) {
+    Object.keys(steps).forEach(letter => {
+      [['', 0], ['#', 1], ['b', -1]].forEach(([acc, d]) => {
+        const name = letter + acc + oct;
+        if (NOTE_FREQ[name]) return;
+        const midi = 12 * (oct + 1) + steps[letter] + d;
+        NOTE_FREQ[name] = +(440 * Math.pow(2, (midi - 69) / 12)).toFixed(2);
+      });
+    });
+  }
+})();
 
 let audioCtx = null;
 
@@ -1642,13 +1781,13 @@ const HERO_GAP = 12; // px above the notehead centre
 // For notes below the staff, land the hero on the bottom staff line instead
 const BELOW_STAFF_TREBLE = new Set(['G3','A3','B3','C4','C3','D3','E3','F3']); // staffPos values
 const BELOW_STAFF_ALTO   = new Set(['C3','D3']);
-const BELOW_STAFF_BASS   = new Set(['C2','D2','E2']);
+const BELOW_STAFF_BASS   = new Set(['C2','D2','E2','B1','A1']);
 
 function heroLandingY(note) {
   let belowStaff = false;
   if (selectedInstrument === 'Viola') {
     belowStaff = BELOW_STAFF_ALTO.has(note.staffPos || note.pitch);
-  } else if (selectedInstrument === 'Cello' || selectedInstrument === 'Bass' || selectedInstrument === 'Baritone' || selectedInstrument === 'Trombone') {
+  } else if (isBassClefInstr(selectedInstrument)) {
     belowStaff = BELOW_STAFF_BASS.has(note.staffPos || note.pitch);
   } else {
     belowStaff = BELOW_STAFF_TREBLE.has(note.staffPos || note.pitch); // Violin and Flute
@@ -1822,9 +1961,10 @@ function drawClefGlyph(c, type, x, lines, ls) {
 // Which clef an instrument reads
 function clefTypeFor(instrument) {
   if (instrument === 'Viola') return 'C';
-  if (['Cello','Bass','Baritone','Trombone'].includes(instrument)) return 'F';
+  if (['Cello','Bass','Baritone','Trombone','Tuba'].includes(instrument)) return 'F';
   return 'G';
 }
+function isBassClefInstr(instrument) { return clefTypeFor(instrument) === 'F'; }
 
 function drawClef(x) {
   ctx.save();
@@ -1853,7 +1993,7 @@ function _drawKeySignatureImpl(x, keySig) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
 
-  const isBassClef  = ['Cello','Bass','Baritone','Trombone'].includes(selectedInstrument);
+  const isBassClef  = isBassClefInstr(selectedInstrument);
   const isAltoClef  = selectedInstrument === 'Viola';
 
   if (keySig === 'C') {
@@ -1923,7 +2063,7 @@ function drawNote(note, camX) {
   if (sx < -30 || sx > W + 30) return;
 
   // Ledger lines below staff for violin level 4 (G3, A3, B3, C4)
-  if (!['Viola','Cello','Bass','Baritone','Trombone'].includes(selectedInstrument)) {
+  if (clefTypeFor(selectedInstrument) === 'G') {
     const bottomLine = staffLines[4]; // E4 line
     const col = note.answered ? '#555' : '#ffe066';
     ctx.strokeStyle = col;
@@ -1955,8 +2095,8 @@ function drawNote(note, camX) {
     }
   }
 
-  // Ledger lines above the treble staff (flute: Ab5/Bb5; violin: A5)
-  if (selectedInstrument === 'Violin' || selectedInstrument === 'Flute') {
+  // Ledger lines above the treble staff (A5/Ab5, Bb5) — any treble-clef instrument
+  if (clefTypeFor(selectedInstrument) === 'G') {
     const topLine = staffLines[0]; // F5 line
     const col = note.answered ? '#555' : '#ffe066';
     ctx.strokeStyle = col;
@@ -2016,8 +2156,8 @@ function drawNote(note, camX) {
     }
   }
 
-  // Ledger lines BELOW bass staff for cello level 6 (C2, D2, E2) and bass level 6 (E2)
-  if (selectedInstrument === 'Cello' || selectedInstrument === 'Bass') {
+  // Ledger lines BELOW bass staff (cello/bass level 6, Tuba)
+  if (isBassClefInstr(selectedInstrument)) {
     const bassBtm = staffLines[4]; // G2 bottom line
     const colB = note.answered ? '#555' : '#ffe066';
     ctx.strokeStyle = colB;
@@ -2032,10 +2172,17 @@ function drawNote(note, camX) {
       ctx.beginPath(); ctx.moveTo(sx - 16, bassBtm + LINE_SPACING); ctx.lineTo(sx + 16, bassBtm + LINE_SPACING); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(sx - 16, bassBtm + LINE_SPACING * 2); ctx.lineTo(sx + 16, bassBtm + LINE_SPACING * 2); ctx.stroke();
     }
+    // Tuba: B1 (space below 2nd ledger) and A1 (on 3rd ledger)
+    if ((note.staffPos||note.pitch) === 'B1') {
+      [1, 2].forEach(n => { ctx.beginPath(); ctx.moveTo(sx - 16, bassBtm + LINE_SPACING * n); ctx.lineTo(sx + 16, bassBtm + LINE_SPACING * n); ctx.stroke(); });
+    }
+    if ((note.staffPos||note.pitch) === 'A1') {
+      [1, 2, 3].forEach(n => { ctx.beginPath(); ctx.moveTo(sx - 16, bassBtm + LINE_SPACING * n); ctx.lineTo(sx + 16, bassBtm + LINE_SPACING * n); ctx.stroke(); });
+    }
   }
 
   // Ledger lines for bass clef notes above the staff
-  if (selectedInstrument === 'Cello' || selectedInstrument === 'Bass') {
+  if (isBassClefInstr(selectedInstrument)) {
     const topLine = staffLines[0]; // A3 top line of bass staff
     const col = note.answered ? '#555' : '#ffe066';
     ctx.strokeStyle = col;
@@ -2381,8 +2528,7 @@ function drawNoteButtons() {
   const levelDef = getActiveLevelDef();
   if (!levelDef) return;
 
-  const BAND_INSTRUMENTS = ['Flute','Clarinet','Trumpet','Alto Sax','Trombone','Baritone','Mallet Perc'];
-  const isBand = BAND_INSTRUMENTS.includes(selectedInstrument);
+  const isBand = isBandInstrument();
 
   // Band instruments: single flat row of unique pitch names, no labels
   let rows, rowLabels;
@@ -3278,9 +3424,10 @@ function drawLevelSelectScreen() {
   // Level cards
   const levels = getLevelSet();
   const levelNums = Object.keys(levels).map(Number).sort((a,b) => a - b);
-  const cols = Math.min(levelNums.length, 3);  // max 3 columns → 2 rows for 6 levels
+  // max 3 columns; Percussion's 14 levels use 4 columns so High/Low pairs sit side by side
+  const cols = levelNums.length > 9 ? 4 : Math.min(levelNums.length, 3);
   const rows = Math.ceil(levelNums.length / cols);
-  const cardW = 230, cardH = 62, cardGapX = 14, cardGapY = 12;
+  const cardW = cols === 4 ? 200 : 230, cardH = 62, cardGapX = 14, cardGapY = 12;
   const gridW = cols * cardW + (cols - 1) * cardGapX;
   const gridH = rows * cardH + (rows - 1) * cardGapY;
   const gridX = W / 2 - gridW / 2;
@@ -3329,7 +3476,7 @@ function drawLevelSelectScreen() {
     ctx.font = '9px "Press Start 2P"';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText(`Level ${lvl}`, cx + 10, cy + 8);
+    ctx.fillText(`Level ${levelDisplayName(lvl)}`, cx + 10, cy + 8);
 
     // Key sig (top right)
     ctx.fillStyle = '#aaddff';
@@ -3495,11 +3642,11 @@ function drawLevelPreviewScreen() {
   ctx.textAlign = 'center';
   ctx.fillStyle = '#44ff88';
   ctx.font = '22px "Press Start 2P"';
-  ctx.fillText(`LEVEL  ${currentLevel}`, W / 2, 36);
+  ctx.fillText(`LEVEL  ${levelDisplayName(currentLevel).toUpperCase()}`, W / 2, 36);
 
   ctx.fillStyle = '#aaddff';
   ctx.font = '12px "Press Start 2P"';
-  const clefName = selectedInstrument === 'Viola' ? 'ALTO CLEF' : (selectedInstrument === 'Cello' || selectedInstrument === 'Bass' || selectedInstrument === 'Baritone' || selectedInstrument === 'Trombone') ? 'BASS CLEF' : 'TREBLE CLEF';
+  const clefName = selectedInstrument === 'Viola' ? 'ALTO CLEF' : isBassClefInstr(selectedInstrument) ? 'BASS CLEF' : 'TREBLE CLEF';
   const _previewLS = getLevelSet()[currentLevel];
   const _keySigName = !_previewLS ? 'D MAJOR' :
     _previewLS.keySig === 'G'  ? 'G MAJOR' :
@@ -3589,6 +3736,9 @@ function drawLevelPreviewScreen() {
   };
   // Bass clef preview: bottom line psl[4]=G2, psl[3]=B2, psl[2]=D3, psl[1]=F3, psl[0]=A3
   const pNoteY_bass = {
+    'A1':  psl[4] + LS * 3.0,  'Ab1': psl[4] + LS * 3.0,   // Tuba
+    'B1':  psl[4] + LS * 2.5,  'Bb1': psl[4] + LS * 2.5,
+    'Eb2': psl[4] + LS * 1.0,
     'C2':  psl[4] + LS * 2.0,  'D2':  psl[4] + LS * 1.5,
     'E2':  psl[4] + LS * 1.0,  'F2':  psl[4] + LS * 0.5,
     'F#2': psl[4] + LS * 0.5,
@@ -3609,7 +3759,7 @@ function drawLevelPreviewScreen() {
     'C4':  psl[2] - LS * 3.0,  'D4':  psl[2] - LS * 3.5,
   };
   const pNoteY = selectedInstrument === 'Viola' ? pNoteY_alto
-               : (selectedInstrument === 'Cello' || selectedInstrument === 'Bass' || selectedInstrument === 'Baritone' || selectedInstrument === 'Trombone') ? pNoteY_bass
+               : isBassClefInstr(selectedInstrument) ? pNoteY_bass
                : pNoteY_treble;
 
   // Size staff to fit notes — clef+keysig need ~80px on the left, 36px padding on the right
@@ -3653,8 +3803,8 @@ function drawLevelPreviewScreen() {
   const _previewKeySig = (_previewLevelSet[currentLevel] && _previewLevelSet[currentLevel].keySig) || 'D';
   if (_previewKeySig === 'C') {
     // C major — no sharps or flats
-  } else if (selectedInstrument === 'Baritone') {
-    // Bass clef flat key signatures for Baritone
+  } else if (['Baritone','Trombone','Tuba'].includes(selectedInstrument)) {
+    // Bass clef flat key signatures for low brass
     if (_previewKeySig === 'Bb') {
       ctx.fillText('♭', kx,      psl[3] + LS * 0.75 - 5); // Bb
       ctx.fillText('♭', kx + 14, psl[1] + LS * 0.75); // Eb
@@ -3749,8 +3899,8 @@ function drawLevelPreviewScreen() {
         });
       }
     }
-    // Ledger lines above staff for flute (Ab5, Bb5) and violin (A5)
-    if (selectedInstrument === 'Violin') {
+    // Ledger lines above the treble staff (Ab5/A5, Bb5)
+    if (clefTypeFor(selectedInstrument) === 'G') {
       ctx.strokeStyle = '#ffe066';
       ctx.lineWidth = 1;
       if (['Ab5','Bb5','A5','G#5'].includes(pitch) || ['A5'].includes(sp)) {
@@ -3760,7 +3910,7 @@ function drawLevelPreviewScreen() {
     }
 
     // Ledger lines below staff for violin level 4 (G3, A3, B3, C4)
-    if (selectedInstrument === 'Violin' || selectedInstrument === null || (!['Viola','Cello','Bass'].includes(selectedInstrument))) {
+    if (clefTypeFor(selectedInstrument) === 'G') {
       ctx.strokeStyle = '#ffe066';
       ctx.lineWidth = 1;
       const pBottomLine = psl[4];
@@ -3773,12 +3923,16 @@ function drawLevelPreviewScreen() {
       }
     }
 
-    // Ledger lines BELOW bass staff for cello/bass level 6 in preview
-    if (selectedInstrument === 'Cello' || selectedInstrument === 'Bass') {
+    // Ledger lines BELOW bass staff in preview (cello/bass level 6, Tuba)
+    if (isBassClefInstr(selectedInstrument)) {
       ctx.strokeStyle = '#ffe066';
       ctx.lineWidth = 1;
       if (sp === 'E2' || sp === 'D2') {
         ctx.beginPath(); ctx.moveTo(nx - 10, psl[4] + LS); ctx.lineTo(nx + 10, psl[4] + LS); ctx.stroke();
+      }
+      if (sp === 'B1' || sp === 'A1') {
+        const n = sp === 'A1' ? 3 : 2;
+        for (let k = 1; k <= n; k++) { ctx.beginPath(); ctx.moveTo(nx - 10, psl[4] + LS * k); ctx.lineTo(nx + 10, psl[4] + LS * k); ctx.stroke(); }
       }
       if (sp === 'C2') {
         ctx.beginPath(); ctx.moveTo(nx - 10, psl[4] + LS); ctx.lineTo(nx + 10, psl[4] + LS); ctx.stroke();
@@ -3787,7 +3941,7 @@ function drawLevelPreviewScreen() {
     }
 
     // Ledger lines for bass clef notes above the staff in preview
-    if (selectedInstrument === 'Cello' || selectedInstrument === 'Bass') {
+    if (isBassClefInstr(selectedInstrument)) {
       ctx.strokeStyle = '#ffe066';
       ctx.lineWidth = 1;
       if (pitch === 'C4' || pitch === 'D4') {
@@ -4327,7 +4481,7 @@ function draw(dt) {
     // Instrument + level
     ctx.fillStyle = '#aaddff';
     ctx.font = '7px "Press Start 2P"';
-    ctx.fillText(selectedInstrument.toUpperCase() + '  ·  LEVEL ' + currentLevel, W/2, cY + 110);
+    ctx.fillText(selectedInstrument.toUpperCase() + '  ·  LEVEL ' + levelDisplayName(currentLevel).toUpperCase(), W/2, cY + 110);
 
     // Divider
     ctx.strokeStyle = '#333'; ctx.lineWidth = 1;
@@ -4629,7 +4783,10 @@ function handlePitchInput(pitch) {
   if (currentNoteIdx >= notes.length) return;
 
   const currentNote = notes[currentNoteIdx];
-  const correct = pitch === currentNote.pitch;
+  // Band buttons show one circle per note name (e.g. a single "Ab" for Ab4 and Ab5),
+  // so either octave counts as correct — same as Note ID.
+  const sameName = (a, b) => a.replace(/\d+$/, '') === b.replace(/\d+$/, '');
+  const correct = pitch === currentNote.pitch || (isBandInstrument() && sameName(pitch, currentNote.pitch));
   resolveInput(correct, currentNote);
 }
 
