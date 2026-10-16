@@ -5293,10 +5293,31 @@ function ptNewNote() {
   if (typeof nextQuestion === 'function') nextQuestion();
 }
 
+// Shuffle bag: every student in the class is picked once before anyone repeats.
+// Lives in memory, so a new Launch from the dashboard starts a fresh rotation.
+let _ptBag = [], _ptLastIdx = -1;
+function _ptNextRandomIdx() {
+  const n = _ptStudents.length;
+  if (!n) return -1;
+  if (!_ptBag.length) {
+    _ptBag = Array.from({ length: n }, (_, i) => i);
+    for (let i = n - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [_ptBag[i], _ptBag[j]] = [_ptBag[j], _ptBag[i]];
+    }
+    // Don't start the new round with whoever just went
+    if (n > 1 && _ptBag[_ptBag.length - 1] === _ptLastIdx) {
+      [_ptBag[0], _ptBag[_ptBag.length - 1]] = [_ptBag[_ptBag.length - 1], _ptBag[0]];
+    }
+  }
+  _ptLastIdx = _ptBag.pop();
+  return _ptLastIdx;
+}
+
 function ptNewStudent() {
   if (!_ptStudents.length) return;
   const instrParam = new URLSearchParams(window.location.search).get('teacherInstrument') || 'Violin';
-  const s = _ptStudents[Math.floor(Math.random() * _ptStudents.length)];
+  const s = _ptStudents[_ptNextRandomIdx()];
   const instrTitle = s.instrument
     ? (s.instrument.charAt(0).toUpperCase() + s.instrument.slice(1).toLowerCase())
     : instrParam;
@@ -5331,7 +5352,7 @@ async function initPitchTeacherMode() {
     if (mode === 'median') {
       ptLaunchLevel(_ptMedianLevel(_ptStudents), instrTitle, null);
     } else {
-      const s = _ptStudents[Math.floor(Math.random() * _ptStudents.length)];
+      const s = _ptStudents[_ptNextRandomIdx()];
       ptLaunchLevel(parseFloat(s ? s.highestLevel : 0) || 5.1,
                     s ? s.instrument : instrTitle, s ? s.firstName : null);
     }
@@ -5357,7 +5378,7 @@ async function initPitchTeacherMode() {
     if (mode === 'median') {
       ptLaunchLevel(_ptMedianLevel(_ptStudents), instrTitle, null);
     } else {
-      const s = _ptStudents[Math.floor(Math.random() * _ptStudents.length)];
+      const s = _ptStudents[_ptNextRandomIdx()];
       ptLaunchLevel(parseFloat(s ? s.highestLevel : 0) || 5.1,
                     s ? s.instrument : instrTitle, s ? s.firstName : null);
     }

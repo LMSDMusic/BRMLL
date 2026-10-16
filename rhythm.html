@@ -2791,9 +2791,29 @@ function teacherShowMedian() {
   showScreen('game-screen');
 }
 
+// Shuffle bag: every student in the class is picked once before anyone repeats.
+// Lives in memory, so a new Launch from the dashboard starts a fresh rotation.
+let _teacherBag = [], _teacherLastIdx = -1;
+function teacherNextRandomIdx() {
+  const n = _teacherStudents.length;
+  if (!_teacherBag.length) {
+    _teacherBag = Array.from({ length: n }, (_, i) => i);
+    for (let i = n - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [_teacherBag[i], _teacherBag[j]] = [_teacherBag[j], _teacherBag[i]];
+    }
+    // Don't start the new round with whoever just went
+    if (n > 1 && _teacherBag[_teacherBag.length - 1] === _teacherLastIdx) {
+      [_teacherBag[0], _teacherBag[_teacherBag.length - 1]] = [_teacherBag[_teacherBag.length - 1], _teacherBag[0]];
+    }
+  }
+  _teacherLastIdx = _teacherBag.pop();
+  return _teacherLastIdx;
+}
+
 function teacherShowRandom() {
   if (!_teacherStudents.length) return;
-  const idx = Math.floor(Math.random() * _teacherStudents.length);
+  const idx = teacherNextRandomIdx();
   _teacherStudent = _teacherStudents[idx];
   const base = Math.max(1, Math.floor(_teacherStudent.highestLevel));
   teacherApplySpeed(_teacherStudent.highestLevel); // Fast if their highest is x.3, otherwise Slow
