@@ -2773,9 +2773,19 @@ function teacherSetupDisplay(name) {
   document.getElementById('score-display').style.display = 'none';
 }
 
+// Sets class-display speed from an encoded level (e.g. 4.3).
+// x.3 = Fast (100 BPM). Trainer (x.1), Slow (x.2) and unstarted (0) all get Slow (80 BPM).
+function teacherApplySpeed(level) {
+  const lv  = Number(level) || 0;
+  const sub = Math.round((lv - Math.floor(lv)) * 10);
+  currentMode = sub === 3 ? 'fast' : 'moderate';
+  BPM = currentMode === 'fast' ? 100 : 80;
+  BEAT_MS = 60000 / BPM;
+}
+
 function teacherShowMedian() {
   const level = teacherBaseLevel(_teacherStudents);
-  currentMode  = 'moderate';
+  teacherApplySpeed(0); // median always plays at Slow
   chooseLevel(String(level));
   teacherSetupDisplay(null); // no name for median
   showScreen('game-screen');
@@ -2786,7 +2796,7 @@ function teacherShowRandom() {
   const idx = Math.floor(Math.random() * _teacherStudents.length);
   _teacherStudent = _teacherStudents[idx];
   const base = Math.max(1, Math.floor(_teacherStudent.highestLevel));
-  currentMode = 'moderate';
+  teacherApplySpeed(_teacherStudent.highestLevel); // Fast if their highest is x.3, otherwise Slow
   chooseLevel(String(base));
   teacherSetupDisplay(_teacherStudent.firstName);
   showScreen('game-screen');
@@ -2797,7 +2807,7 @@ function teacherNewRhythm() {
   rhythmReady = false;
   const banner = document.getElementById('teacher-name-banner');
   const name   = banner ? banner.textContent : '';
-  currentMode  = 'moderate';
+  // keep currentMode / BPM from the current student (set by teacherApplySpeed)
   rhythm = generateRhythm(); renderNotation(rhythm);
   rhythmReady  = true;
   initPendulum();
