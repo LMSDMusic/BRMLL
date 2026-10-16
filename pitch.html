@@ -3406,7 +3406,7 @@ const FOLDERS = [
             { name:'G', y:50, buttons:[{semi:0,finger:'0'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'4'},{semi:5,finger:'Shift 1'},{semi:6,finger:'Shift 2'},{semi:7,finger:'Shift 4'}] },
             { name:'D', y:90, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'4'}] },
             { name:'A', y:130, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'4'}] },
-            { name:'E', y:170, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'2'}] },
+            { name:'E', y:170, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'4'}] },
           ],
         },
         buildQuiz: function() {
@@ -3595,7 +3595,7 @@ const FOLDERS = [
             { name:'G', y:50, buttons:[{semi:0,finger:'0'},{semi:1,finger:'1'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'4'},{semi:5,finger:'Shift 1'},{semi:6,finger:'Shift 2'},{semi:7,finger:'Shift 4'}] },
             { name:'D', y:90, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'4'}] },
             { name:'A', y:130, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'4'}] },
-            { name:'E', y:170, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'2'}] },
+            { name:'E', y:170, buttons:[{semi:0,finger:'0'},{semi:1,finger:'Low 1'},{semi:2,finger:'1'},{semi:3,finger:'2'},{semi:4,finger:'4'}] },
           ],
         },
         buildQuiz: function() {
@@ -4285,7 +4285,7 @@ const Q3_6TH_BASS_FINGER_POOL = [
   { noteFile:'images/note5.png', answer:'Low 1', answerString:'E', label:'F1', clefImg:'images/bass-1.png', clefLabel:'F Major' },
   { noteFile:'images/note11.png', answer:'Low 1', answerString:'D', label:'Eb2', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
   { noteFile:'images/note8.png', answer:'Low 1', answerString:'A', label:'Bb1', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
-  { noteFile:'images/note6.png', answer:'2', answerString:'E', label:'G#1', clefImg:'images/bass3.png', clefLabel:'A Major' },
+  { noteFile:'images/note6.png', answer:'4', answerString:'E', label:'G#1', clefImg:'images/bass3.png', clefLabel:'A Major' },
 ];
 
 const Q4_6TH_BASS_FINGER_POOL = [
@@ -4310,9 +4310,103 @@ const Q4_6TH_BASS_FINGER_POOL = [
   { noteFile:'images/note5.png', answer:'Low 1', answerString:'E', label:'F1', clefImg:'images/bass-1.png', clefLabel:'F Major' },
   { noteFile:'images/note11.png', answer:'Low 1', answerString:'D', label:'Eb2', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
   { noteFile:'images/note8.png', answer:'Low 1', answerString:'A', label:'Bb1', clefImg:'images/bass-2.png', clefLabel:'Bb Major' },
-  { noteFile:'images/note6.png', answer:'2', answerString:'E', label:'G#1', clefImg:'images/bass3.png', clefLabel:'A Major' },
+  { noteFile:'images/note6.png', answer:'4', answerString:'E', label:'G#1', clefImg:'images/bass3.png', clefLabel:'A Major' },
   { noteFile:'images/note13.png', answer:'1', answerString:'G', label:'G#2', clefImg:'images/bass3.png', clefLabel:'A Major' },
 ];
+
+// ── 7TH GRADE ORCHESTRA NOTE ID (levels 7.1–7.9, 7.11) ───────────────────
+// Five quiz pairs that add one key at a time. Each pool is every note within
+// the 7th grade range (same range as 6th Grade Q4) that belongs to at least
+// one of the pair's keys. Each question is shown in a randomly chosen key from
+// that pair's list that contains the note, so the key signature never needs
+// an accidental. Note files, strings and fingerings come from the 6.7/6.8
+// pools, and every 7th grade quiz uses the full 6.7/6.8 answer chart (all
+// notes/fingers shown, even ones not in the pool).
+// Level 7.10 is skipped (7.10 = 7.1 as a number); the last pair is 7.9 / 7.11.
+const G7_KEYS = {
+  D:  { img: '2',  label: 'D Major',  notes: ['D','E','F#','G','A','B','C#'] },
+  G:  { img: '1',  label: 'G Major',  notes: ['G','A','B','C','D','E','F#'] },
+  C:  { img: '0',  label: 'C Major',  notes: ['C','D','E','F','G','A','B'] },
+  A:  { img: '3',  label: 'A Major',  notes: ['A','B','C#','D','E','F#','G#'] },
+  F:  { img: '-1', label: 'F Major',  notes: ['F','G','A','Bb','C','D','E'] },
+  Bb: { img: '-2', label: 'Bb Major', notes: ['Bb','C','D','Eb','F','G','A'] },
+};
+const G7_PAIRS = [
+  { quarter: 'p1', notesLevel: 7.1, fingerLevel: 7.2,  keys: ['D','G'],                    name: 'D & G' },
+  { quarter: 'p2', notesLevel: 7.3, fingerLevel: 7.4,  keys: ['D','G','C'],                name: 'D, G & C' },
+  { quarter: 'p3', notesLevel: 7.5, fingerLevel: 7.6,  keys: ['D','G','C','A'],            name: 'D, G, C & A' },
+  { quarter: 'p4', notesLevel: 7.7, fingerLevel: 7.8,  keys: ['D','G','C','A','F'],        name: 'D, G, C, A & F' },
+  { quarter: 'p5', notesLevel: 7.9, fingerLevel: 7.11, keys: ['D','G','C','A','F','Bb'],   name: 'D, G, C, A, F & Bb' },
+];
+// Per instrument: clef image prefix + the 6.7 notes pool and 6.8 fingering pool
+const G7_SOURCES = {
+  violin: { clef: 'treble', notes: Q4_6TH_TREBLE_POOL,     fingers: Q4_6TH_VLN_FINGER_POOL },
+  viola:  { clef: 'alto',   notes: Q4_6TH_ALTO_POOL,       fingers: Q4_6TH_VLA_FINGER_POOL },
+  cello:  { clef: 'bass',   notes: Q4_6TH_BASS_CELLO_POOL, fingers: Q4_6TH_CELLO_FINGER_POOL },
+  bass:   { clef: 'bass',   notes: Q4_6TH_BASS_BASS_POOL,  fingers: Q4_6TH_BASS_FINGER_POOL },
+};
+// Sort notes low → high so the pools read naturally (used for checking only)
+function g7Pitch(label) {
+  var m = label.match(/^([A-G])(#|b)?(\d)$/);
+  var base = { C:0, D:2, E:4, F:5, G:7, A:9, B:11 }[m[1]];
+  return parseInt(m[3]) * 12 + base + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0);
+}
+// The notes in a pair's pool for one instrument and quiz type
+function g7Pool(instrId, keys, type) {
+  var src  = G7_SOURCES[instrId];
+  var list = type === 'fingering' ? src.fingers : src.notes;
+  return list
+    .filter(function(n) {
+      var name = n.label.replace(/\d$/, '');
+      return keys.some(function(k) { return G7_KEYS[k].notes.indexOf(name) !== -1; });
+    })
+    .sort(function(a, b) { return g7Pitch(a.label) - g7Pitch(b.label); });
+}
+// Builds a shuffled quiz, picking a random valid key signature for each note
+function g7BuildQuiz(instrId, keys, type) {
+  var clef = G7_SOURCES[instrId].clef;
+  var pool = g7Pool(instrId, keys, type).map(function(n) {
+    var name = n.label.replace(/\d$/, '');
+    var ok   = keys.filter(function(k) { return G7_KEYS[k].notes.indexOf(name) !== -1; });
+    var k    = G7_KEYS[ok[Math.floor(Math.random() * ok.length)]];
+    return { noteFile: n.noteFile, answer: n.answer, answerString: n.answerString, label: n.label,
+             clefImg: 'images/' + clef + k.img + '.png', clefLabel: k.label };
+  });
+  for (var i = pool.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = pool[i]; pool[i] = pool[j]; pool[j] = t;
+  }
+  return pool;
+}
+// One folder per pair. Answer charts (noteFingerboard / fingerboard / options)
+// are copied from the 6th Grade Q4 quizzes so every note and finger is shown.
+(function() {
+  var q4 = getFolder('q4-6th');
+  G7_PAIRS.forEach(function(p) {
+    var quizzes = [];
+    ['violin','viola','cello','bass'].forEach(function(instrId) {
+      ['notes','fingering'].forEach(function(type) {
+        var srcId = type === 'fingering' ? instrId + '-fingering' : instrId;
+        var src   = q4.quizzes.find(function(q) { return q.id === srcId; });
+        var count = g7Pool(instrId, p.keys, type).length;
+        quizzes.push(Object.assign({}, src, {
+          id: srcId,
+          desc: src.clefLabel.split(' · ')[0] + ' · ' + p.name + ' Major · ' + count + ' questions',
+          totalQuestions: count,
+          buildQuiz: function() { return g7BuildQuiz(instrId, p.keys, type); },
+        }));
+      });
+    });
+    FOLDERS.push({
+      id: 'g7-' + p.quarter,
+      title: '7th Grade',
+      subtitle: p.name,
+      icon: '🎻',
+      desc: '8 quizzes · ' + p.name + ' Major',
+      quizzes: quizzes,
+    });
+  });
+})();
 
 const FOLDER_MAP = {
   'orchestra|5th|q1': 'q1-5th',
@@ -4323,7 +4417,11 @@ const FOLDER_MAP = {
   'orchestra|6th|q2': 'q2-6th',
   'orchestra|6th|q3': 'q3-6th',
   'orchestra|6th|q4': 'q4-6th',
-  'orchestra|7th|q1': 'q4-6th',
+  'orchestra|7th|p1': 'g7-p1',
+  'orchestra|7th|p2': 'g7-p2',
+  'orchestra|7th|p3': 'g7-p3',
+  'orchestra|7th|p4': 'g7-p4',
+  'orchestra|7th|p5': 'g7-p5',
   'band|5th|q1':      'band-q1-5th',
   'band|5th|q2':      'band-q2-5th',
   'band|5th|q3':      'band-q3-5th',
@@ -4710,7 +4808,7 @@ function renderQuestion() {
 
   // First question: build full HTML
   if (currentQ === 0 || !document.getElementById('staff-clef')) {
-    const levelStr = getCurrentLevel() > 0 ? getCurrentLevel().toFixed(1) : '';
+    const levelStr = getCurrentLevel() > 0 ? fmtLevel(getCurrentLevel()) : '';
     document.getElementById('app').innerHTML = `
       <div class="pitch-game-header">
         <span class="pitch-lvl-badge" id="pitch-lvl-badge">${levelStr ? 'Level ' + levelStr : ''}</span>
@@ -4847,11 +4945,11 @@ function getNextLevelUrl() {
   const instr    = getStudentInstrument();
   const seq      = levelSequenceFor(instr);
   const curLevel = getCurrentLevel();
-  const idx      = seq.findIndex(function(e) { return Math.abs(e.level - curLevel) < 0.01; });
+  const idx      = seq.findIndex(function(e) { return Math.abs(e.level - curLevel) < 0.005; });
   if (idx === -1) return null;
   // Skip any level whose quiz isn't built yet for this instrument
   for (var next = idx + 1; next < seq.length; next++) {
-    if (getLevelQuiz(seq[next], instr)) return 'pitch.html?level=' + seq[next].level.toFixed(1);
+    if (getLevelQuiz(seq[next], instr)) return 'pitch.html?level=' + fmtLevel(seq[next].level);
   }
   return null;
 }
@@ -4950,6 +5048,9 @@ function loadProfile() {
 
 // ── LEVEL SEQUENCE ───────────────────────────────────────────────────────────
 // Defines the ordered progression of quizzes mapped to decimal levels.
+// Level display/URL text: one decimal normally, two when needed (7.11 ≠ 7.1)
+function fmtLevel(l) { return Number(Number(l).toFixed(2)).toString().replace(/^(\d+)$/, '$1.0'); }
+
 // LEVEL_SEQUENCE is the orchestra sequence (notes + fingering per quarter).
 // Band uses BAND_LEVEL_SEQUENCE (notes only, one level per quarter).
 // Both must match pitchLevelOrder() in dashboard.html.
@@ -4970,8 +5071,17 @@ const LEVEL_SEQUENCE = [
   { level: 6.6, grade: '6th', quarter: 'q3', type: 'fingering', label: '6th Grade · Q3 · Fingering', orchOnly: true },
   { level: 6.7, grade: '6th', quarter: 'q4', type: 'notes',     label: '6th Grade · Q4 · Notes' },
   { level: 6.8, grade: '6th', quarter: 'q4', type: 'fingering', label: '6th Grade · Q4 · Fingering', orchOnly: true },
-  { level: 7.1, grade: '7th', quarter: 'q1', type: 'notes',     label: '7th Grade · Review · Notes' },
-  { level: 7.2, grade: '7th', quarter: 'q1', type: 'fingering', label: '7th Grade · Review · Fingering', orchOnly: true },
+  // 7th grade: one pair per key set. 7.10 is skipped (it equals 7.1 as a number).
+  { level: 7.1,  grade: '7th', quarter: 'p1', type: 'notes',     label: '7th Grade · D & G · Notes' },
+  { level: 7.2,  grade: '7th', quarter: 'p1', type: 'fingering', label: '7th Grade · D & G · Fingering', orchOnly: true },
+  { level: 7.3,  grade: '7th', quarter: 'p2', type: 'notes',     label: '7th Grade · D, G & C · Notes' },
+  { level: 7.4,  grade: '7th', quarter: 'p2', type: 'fingering', label: '7th Grade · D, G & C · Fingering', orchOnly: true },
+  { level: 7.5,  grade: '7th', quarter: 'p3', type: 'notes',     label: '7th Grade · + A Major · Notes' },
+  { level: 7.6,  grade: '7th', quarter: 'p3', type: 'fingering', label: '7th Grade · + A Major · Fingering', orchOnly: true },
+  { level: 7.7,  grade: '7th', quarter: 'p4', type: 'notes',     label: '7th Grade · + F Major · Notes' },
+  { level: 7.8,  grade: '7th', quarter: 'p4', type: 'fingering', label: '7th Grade · + F Major · Fingering', orchOnly: true },
+  { level: 7.9,  grade: '7th', quarter: 'p5', type: 'notes',     label: '7th Grade · + B♭ Major · Notes' },
+  { level: 7.11, grade: '7th', quarter: 'p5', type: 'fingering', label: '7th Grade · + B♭ Major · Fingering', orchOnly: true },
 ];
 
 // Band: Q1 = 5.1, Q2 = 5.2, Q3 = 5.3, Q4 = 5.4 (6th/7th grade band not built yet)
@@ -5047,7 +5157,7 @@ function getCurrentLevel() {
 // Launches quiz directly from a decimal level value
 function launchLevel(levelVal) {
   const instr = getStudentInstrument();
-  const entry = levelSequenceFor(instr).find(e => Math.abs(e.level - levelVal) < 0.05);
+  const entry = levelSequenceFor(instr).find(e => Math.abs(e.level - levelVal) < 0.005);
   if (!entry) { renderLevelMenu(); return; }
   const q     = getLevelQuiz(entry, instr);
   if (!q) { renderLevelMenu(); return; }
@@ -5068,16 +5178,19 @@ function renderLevelMenu() {
 
   // Levels for this instrument type
   const levels = levelSequenceFor(instr);
+  const maxIdx = _maxLevel ? levels.findIndex(e => Math.abs(e.level - _maxLevel) < 0.005) : -1;
 
   let cards = levels.map(entry => {
-    const locked   = maxBase && (
+    // Locked = after the unlock frontier (_maxLevel) in sequence order.
+    // Compared by position, not decimals, so 7.11 sorts after 7.9.
+    const locked   = maxBase && (maxIdx >= 0 ? levels.indexOf(entry) > maxIdx : (
       Math.floor(entry.level) > maxBase ||
       (Math.floor(entry.level) === maxBase && Math.round((entry.level - Math.floor(entry.level)) * 10) > Math.round((_maxLevel - maxBase) * 10))
-    );
+    ));
     const available = getLevelQuiz(entry, instr) !== null;
     if (!available) return ''; // quiz not built yet
 
-    const levelStr = entry.level.toFixed(1);
+    const levelStr = fmtLevel(entry.level);
     const lockSvg  = locked ? `
       <span style="position:absolute;inset:0;background:rgba(59,110,248,0.08);border-radius:12px;display:flex;align-items:center;justify-content:center;z-index:2;">
         <svg width="22" height="28" viewBox="0 0 36 44" fill="none">

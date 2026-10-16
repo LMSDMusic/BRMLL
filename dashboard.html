@@ -727,7 +727,7 @@
         return "Level <strong>" + base + "</strong> - " + subName;
       }
       if (filename === "pitch.html" && level > 0) {
-        return "Level <strong>" + parseFloat(level).toFixed(1) + "</strong>";
+        return "Level <strong>" + fmtPitchLevel(level) + "</strong>";
       }
       if (filename === "staffhero.html") {
         return "Level <strong>" + staffHeroLevelName(level) + "</strong>";
@@ -809,13 +809,17 @@
     // Orchestra: every sub-level (x.1 notes, x.2 fingering, …) for 5th, 6th and 7th grade.
     // Band: one notes level per quarter — 5.1 Q1, 5.2 Q2, 5.3 Q3, 5.4 Q4
     // (add 6th/7th grade band levels here when those quizzes are built).
+    // Note ID level text: one decimal normally, two when needed (7.11 ≠ 7.1)
+    function fmtPitchLevel(l) { return Number(Number(l).toFixed(2)).toString().replace(/^(\d+)$/, "$1.0"); }
+
     function pitchLevelOrder(isOrch) {
       if (!isOrch) return ["5.1", "5.2", "5.3", "5.4"];
       const order = [];
       [5, 6].forEach(g => {
         for (let s = 1; s <= 8; s++) order.push((g + s / 10).toFixed(1));
       });
-      order.push("7.1", "7.2");
+      // 7th grade pairs; 7.10 is skipped because it equals 7.1 as a number
+      order.push("7.1", "7.2", "7.3", "7.4", "7.5", "7.6", "7.7", "7.8", "7.9", "7.11");
       return order;
     }
 
@@ -829,7 +833,7 @@
       const threshold = MASTERY_THRESHOLD["pitch.html"] ?? DEFAULT_THRESHOLD;
       const passed    = new Set((allEntries || [])
         .filter(e => Math.round(e.bestPercent) >= threshold)   // same rounded % that pitch.html logs and checks
-        .map(e => Number(e.level).toFixed(1)));
+        .map(e => fmtPitchLevel(e.level)));
       const order = pitchLevelOrder(isOrch);
       const next  = order.find(lvl => !passed.has(lvl));
       return next || order[order.length - 1];   // everything passed → last level
@@ -839,7 +843,7 @@
     function buildPitchMenuUrl(bestScore, allEntries) {
       if (UNLOCK_ALL) return "pitch.html?menu=true";   // no maxLevel → nothing locked
       const entries = (allEntries && allEntries.length) ? allEntries : (bestScore ? [bestScore] : []);
-      const best    = bestScore ? Number(bestScore.level).toFixed(1) : "0";
+      const best    = bestScore ? fmtPitchLevel(bestScore.level) : "0";
       return "pitch.html?menu=true&maxLevel=" + pitchFrontier(entries) + "&bestLevel=" + best;
     }
 
