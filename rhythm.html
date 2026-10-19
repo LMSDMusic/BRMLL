@@ -1162,9 +1162,10 @@ let BPM = 80, BEAT_MS = 60000 / BPM;
 // (loosened Oct 2026 from 60/150 — a steady performance ~80ms early now scores ~75%)
 const PERFECT_ATK = 70;
 const MISS_WIN    = 200;
-// Release (half & dotted-half only): full credit within ±100ms, 0 at ±200ms
-const PERFECT_REL = 100;
-const REL_MISS    = 200;
+// Release (half & dotted-half only): full credit within ±200ms, 0 at ±400ms
+// (loosened Oct 2026 from 100/200 — green half notes were too hard to get)
+const PERFECT_REL = 200;
+const REL_MISS    = 400;
 const RELEASE_WEIGHT = 0.1;                      // share of note score from release
 const RELEASE_TYPES  = ['half', 'dotted-half'];  // only these are graded on release
 // A tap between MISS_WIN and CLAIM_WIN of an un-hit note counts as that note's
@@ -2403,12 +2404,13 @@ function rvRoundSvg(notes, taps, meter, bpm, total16) {
   svg += `<text x="${L - 8}" y="${TARGET_Y + 11}" text-anchor="end" font-size="11" font-weight="600" fill="#6b7280">Rhythm</text>`;
   svg += `<text x="${L - 8}" y="${STUDENT_Y + 11}" text-anchor="end" font-size="11" font-weight="600" fill="#6b7280">You</text>`;
 
+  // Rhythm bar: one neutral bar per note, green start line, small gap before the next note
   notes.forEach((n, i) => {
     if (n.rest) return;
-    const x1 = X(n.pos) + 0.5, w = Math.max(n.dur * u - 2, 3);
+    const x1 = X(n.pos) + 0.5, w = Math.max(n.dur * u - 5, 3);
     const missed = !noteResult[i] || noteResult[i].atk === 0;
-    svg += `<rect x="${x1}" y="${TARGET_Y}" width="${w}" height="${BAR_H}" rx="2.5" fill="${missed ? '#fde8e8' : RV_COL.target}" stroke="${missed ? RV_COL.miss : 'none'}" stroke-width="1.2"><title>${missed ? 'Missed this note' : 'Note'}</title></rect>`;
-    svg += `<line x1="${X(n.pos)}" y1="${TARGET_Y}" x2="${X(n.pos)}" y2="${TARGET_Y + BAR_H}" stroke="${RV_COL.bar}" stroke-width="2"/>`;
+    svg += `<rect x="${x1}" y="${TARGET_Y}" width="${w}" height="${BAR_H}" rx="2.5" fill="${RV_COL.target}"><title>${missed ? 'Missed this note' : 'Note'}</title></rect>`;
+    svg += `<line x1="${X(n.pos)}" y1="${TARGET_Y}" x2="${X(n.pos)}" y2="${TARGET_Y + BAR_H}" stroke="${RV_COL.perfect}" stroke-width="2.5"/>`;
   });
 
   const toX = ms => X(ms / msPer16);
