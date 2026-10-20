@@ -4687,7 +4687,7 @@ function selectAnswer(chosen, btn, chosenString) {
   const correctString = !q.answerString || chosenString === q.answerString;
   const correct = correctFinger && correctString;
   if (correct) score++;
-  results.push({ label: q.label, keyLabel: q.keyLabel || null, chosen, chosenString: chosenString || null, correct, correctAnswer: q.answer, correctString: q.answerString || null });
+  results.push({ label: q.label, keyLabel: q.keyLabel || null, keySig: q.clefLabel || null, chosen, chosenString: chosenString || null, correct, correctAnswer: q.answer, correctString: q.answerString || null });
 
   // Handle SVG fb-btn, nfb-btn, and regular answer-btn
   const isFb  = btn && btn.classList.contains('fb-btn');
@@ -4896,16 +4896,29 @@ function noteWithKey(label, keyLabel) {
 }
 
 // Spelled pitch for the missed-notes log, sharps/flats included (e.g. 'F#4', 'Bb3').
-// Note-name quizzes: q.label is only the staff position ('F4' under a D Major key sig),
-// so take the letter + accidental from the correct answer and the octave from the label.
-// Fingering quizzes: the answer is a finger, and their labels are already spelled.
+// q.label is only the staff position ('F4' under a D Major key sig), so:
+//  - Note-name quizzes: letter + accidental from the correct answer, octave from the label.
+//  - Fingering quizzes: apply the question's key signature (q.clefLabel, e.g. 'G Major';
+//    falls back to the quiz's 'Treble Clef · D Major') to the staff position.
 // Flats are logged as 'b' (not '♭') to match Staff Hero's missed notes.
+const MISSED_KEYSIG = {
+  'C': [[], []], 'G': [['F'], []], 'D': [['F','C'], []], 'A': [['F','C','G'], []], 'E': [['F','C','G','D'], []],
+  'F': [[], ['B']], 'Bb': [[], ['B','E']], 'Eb': [[], ['B','E','A']], 'Ab': [[], ['B','E','A','D']],
+};
 function missedNoteName(r) {
-  const label = String(r.label || '');
+  const label = String(r.label || '').replace(/♭/g, 'b');
   const oct   = (label.match(/(\d+)$/) || [])[1] || '';
   const ans   = String(r.correctAnswer || '').trim().match(/^([A-G])([#b♭]?)$/);
-  const name  = ans ? ans[1] + ans[2] + oct : label;
-  return name.replace(/♭/g, 'b');
+  if (ans) return (ans[1] + ans[2] + oct).replace(/♭/g, 'b');
+  const m = label.match(/^([A-G])(\d+)$/);
+  if (!m) return label;                       // already spelled, e.g. 'F#4'
+  const src = r.keySig || (activeQuiz && activeQuiz.clefLabel) || '';
+  const km  = String(src).split('·').pop().trim().replace(/♭/g, 'b').match(/^([A-G]b?)\s+Major$/);
+  const ks  = km && MISSED_KEYSIG[km[1]];
+  if (!ks) return label;
+  if (ks[0].includes(m[1])) return m[1] + '#' + m[2];
+  if (ks[1].includes(m[1])) return m[1] + 'b' + m[2];
+  return label;
 }
 
 async function autoSubmitScore() {
