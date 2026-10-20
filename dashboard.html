@@ -567,7 +567,7 @@
         card.href        = (mod.filename === "rhythm.html")
           ? buildRhythmMenuUrl(bs, allScoresMap)
           : (mod.filename === "staffhero.html")
-            ? buildStaffHeroMenuUrl(bs, allScoresMap && allScoresMap[mod.moduleId])
+            ? buildStaffHeroUrl(bs, allScoresMap && allScoresMap[mod.moduleId])   // land on Up Next level's preview, not the level menu
             : (mod.filename === "pitch.html")
               ? buildPitchMenuUrl(bs, allScoresMap && allScoresMap[mod.moduleId])
               : buildModuleUrl(mod.filename, bs);
