@@ -4895,6 +4895,19 @@ function noteWithKey(label, keyLabel) {
   return label;
 }
 
+// Spelled pitch for the missed-notes log, sharps/flats included (e.g. 'F#4', 'Bb3').
+// Note-name quizzes: q.label is only the staff position ('F4' under a D Major key sig),
+// so take the letter + accidental from the correct answer and the octave from the label.
+// Fingering quizzes: the answer is a finger, and their labels are already spelled.
+// Flats are logged as 'b' (not '♭') to match Staff Hero's missed notes.
+function missedNoteName(r) {
+  const label = String(r.label || '');
+  const oct   = (label.match(/(\d+)$/) || [])[1] || '';
+  const ans   = String(r.correctAnswer || '').trim().match(/^([A-G])([#b♭]?)$/);
+  const name  = ans ? ans[1] + ans[2] + oct : label;
+  return name.replace(/♭/g, 'b');
+}
+
 async function autoSubmitScore() {
   if (_teacherMode) return; // never log teacher/class sessions
   const studentNumber = sessionStorage.getItem('studentNumber');
@@ -4908,7 +4921,7 @@ async function autoSubmitScore() {
   })() : 0;
   const missedList = results
     .filter(r => !r.correct)
-    .map(r => r.label + (r.keyLabel ? ' (' + r.keyLabel + ')' : ''))
+    .map(r => missedNoteName(r) + (r.keyLabel ? ' (' + r.keyLabel + ')' : ''))
     .join(',') || '';
 
   const el = document.getElementById('submit-status');
