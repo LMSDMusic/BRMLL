@@ -5029,7 +5029,7 @@ function renderScore() {
         ${results.map((r, i) => `
           <div class="result-item">
             <div>
-              <div class="q-label">Q${i + 1} · ${noteWithKey(r.label, r.keyLabel)}${r.keyLabel ? ' · ' + r.keyLabel : ''}</div>
+              <div class="q-label">Q${i + 1} · ${missedNoteName(r).replace(/b(\d)/, '♭$1')}${r.keyLabel ? ' · ' + r.keyLabel : ''}</div>
               <div class="r-note">${r.correct
                 ? r.chosen
                 : `You chose: ${r.chosen} &nbsp;→&nbsp; <span style="color:var(--green)">${r.correctAnswer}</span>`
