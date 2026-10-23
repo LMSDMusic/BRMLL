@@ -1126,6 +1126,24 @@ function beatToSyllable(startBeat, bpm) {
 
 // Schedules spoken counting syllables on every note attack in the rhythm.
 // Rests produce silence. Uses AudioBufferSource.start() for sample-accurate timing.
+// ── Round audio + timers ─────────────────────────────────────────────────────
+// A round schedules all its clicks/syllables on the audio clock up front, plus
+// setTimeouts for the pendulum, count-in words and round end. Everything goes
+// through roundOut() / roundTimeout() so stopRoundAudio() can cancel the lot
+// (New Rhythm / New Student in the class display, or leaving the game screen).
+let _roundBus = null, _roundTimers = [];
+function roundOut() {
+  if (!_roundBus) { _roundBus = actx.createGain(); _roundBus.connect(actx.destination); }
+  return _roundBus;
+}
+function roundTimeout(fn, ms) { const id = setTimeout(fn, ms); _roundTimers.push(id); return id; }
+function stopRoundAudio() {
+  if (_roundBus) { try { _roundBus.disconnect(); } catch (e) {} _roundBus = null; }
+  _roundTimers.forEach(clearTimeout); _roundTimers = [];
+  gamePhase = 'idle';
+  removePlaybar(); clearCountdown();
+}
+
 function scheduleCountingAudio(rhythm, contextStartTime, bpm) {
   rhythm.forEach(note => {
     if (note.type === 'qrest') return;           // rest → silence
@@ -1133,14 +1151,14 @@ function scheduleCountingAudio(rhythm, contextStartTime, bpm) {
     if (!syl || !countBuffers[syl]) return;      // file not loaded yet → skip
     const src = actx.createBufferSource();
     src.buffer = countBuffers[syl];
-    src.connect(actx.destination);
+    src.connect(roundOut());
     src.start(contextStartTime + (note.startBeat * BEAT_MS) / 1000);
   });
 }
 function playClick(accent, time) {
   time = time || actx.currentTime;
   const osc = actx.createOscillator(), g = actx.createGain();
-  osc.connect(g); g.connect(actx.destination);
+  osc.connect(g); g.connect(roundOut());
   osc.frequency.value = accent ? 1200 : 800; osc.type = 'square';
   g.gain.setValueAtTime(accent ? 0.3 : 0.15, time);
   g.gain.exponentialRampToValueAtTime(0.001, time + 0.04);
@@ -1233,7 +1251,7 @@ function showScreen(id) {
   document.getElementById(id).style.display = 'flex';
 }
 function goMenu() {
-  gamePhase = 'idle'; removePlaybar(); setRhythmHash('');
+  stopRoundAudio(); setRhythmHash('');
   if (_teacherMode) { showScreen('teacher-setup-screen'); } else { showScreen('menu-screen'); }
 }
 // ── PLAYBAR ───────────────────────────────────────────────────────────────────
@@ -1286,6 +1304,7 @@ function removePlaybar() {
 function retryLevel()  { chooseLevel(currentLevel); }
 
 function chooseLevel(lvl) {
+  stopRoundAudio();   // Restart mid-round: cancel the old round's clicks and timers
   currentLevel = lvl; roundIndex = 0; levelScores = []; roundLogs = [];
   levelStartTime = 0; levelElapsed = '';
   setRhythmHash('level' + lvl);
@@ -1876,7 +1895,7 @@ function clearCountdown() {
 function playNoteClick(time) {
   // Same sound as a player tap — sine at 600Hz, short decay
   const osc = actx.createOscillator(), g = actx.createGain();
-  osc.connect(g); g.connect(actx.destination);
+  osc.connect(g); g.connect(roundOut());
   osc.frequency.value = 600; osc.type = 'sine';
   g.gain.setValueAtTime(0.2, time);
   g.gain.exponentialRampToValueAtTime(0.001, time + 0.07);
@@ -1916,8 +1935,8 @@ function startTrainerRound(){
   initPendulum();
   for(let i=0;i<countInBeats;i++){
     playClick(i===0, actx.currentTime+(i*BEAT_MS)/1000);
-    setTimeout(pulseTimeSig, i*BEAT_MS);
-    setTimeout(swingPendulum, i*BEAT_MS);
+    roundTimeout(pulseTimeSig, i*BEAT_MS);
+    roundTimeout(swingPendulum, i*BEAT_MS);
   }
 
   // ── Phase 2: play demo ──────────────────────────────────────────────────────
@@ -1929,8 +1948,8 @@ function startTrainerRound(){
     scheduleCountingAudio(rhythm, actx.currentTime + demoStart / 1000, bpm);
     for(let i=0;i<totalBeats();i++){
       playClick(i%bpm===0, actx.currentTime+(demoStart+i*BEAT_MS)/1000);
-      setTimeout(swingPendulum, demoStart+i*BEAT_MS);
-      setTimeout(swingPendulum, demoStart+i*BEAT_MS);
+      roundTimeout(swingPendulum, demoStart+i*BEAT_MS);
+      roundTimeout(swingPendulum, demoStart+i*BEAT_MS);
     }
     startPlaybar(demoStart, totalMs);
   } else {
@@ -1946,14 +1965,14 @@ function startTrainerRound(){
     const noteMs     = demoStart + n.startBeat * BEAT_MS;
     if (!isTrainer) playNoteClick(actx.currentTime + noteMs/1000);
     const durationMs = Math.max(n.beats * BEAT_MS * 0.85, 120);
-    setTimeout(() => lightNoteGreen(noteIdx, durationMs), noteMs);
+    roundTimeout(() => lightNoteGreen(noteIdx, durationMs), noteMs);
   });
 
   // Clear "Listen" when demo ends, then show tap count-in
-  setTimeout(() => clearCountdown(), demoStart + totalMs);
+  roundTimeout(() => clearCountdown(), demoStart + totalMs);
 
   // Status shows TAP when demo ends and tap count-in begins
-  setTimeout(()=>{
+  roundTimeout(()=>{
     if(gamePhase==='idle'||gamePhase==='done') return;
     gamePhase='demo';
   }, demoStart);
@@ -1961,12 +1980,12 @@ function startTrainerRound(){
   // ── Phase 3: gap + second count-in ──
   const tapCountInStart = demoStart + totalMs + gapMs;
   // Revert to 'countdown' so early taps to the first note are accepted
-  setTimeout(() => { if (gamePhase === 'demo') gamePhase = 'countdown'; }, tapCountInStart);
+  roundTimeout(() => { if (gamePhase === 'demo') gamePhase = 'countdown'; }, tapCountInStart);
   for(let i=0;i<countInBeats;i++){
     const t = tapCountInStart + i*BEAT_MS;
     playClick(i===0, actx.currentTime+t/1000);
-    setTimeout(()=>{ if(gamePhase==='idle'||gamePhase==='done') return; flashCountdownWord(i, countInWords); }, t);
-    setTimeout(swingPendulum, t);
+    roundTimeout(()=>{ if(gamePhase==='idle'||gamePhase==='done') return; flashCountdownWord(i, countInWords); }, t);
+    roundTimeout(swingPendulum, t);
   }
 
   // ── Phase 4: tapping phase ──
@@ -1977,7 +1996,7 @@ function startTrainerRound(){
   for(let i=0;i<totalBeats();i++){
     const delay = tapStart + i*BEAT_MS;
     playClick(i%bpm===0, actx.currentTime+delay/1000);
-    setTimeout(()=>{
+    roundTimeout(()=>{
       if(gamePhase==='idle'||gamePhase==='done') return;
       if(i===0){
         gamePhase='playing';
@@ -1990,7 +2009,7 @@ function startTrainerRound(){
   }
 
   // ── End of round ──
-  setTimeout(()=>{
+  roundTimeout(()=>{
     if(gamePhase==='playing'||gamePhase==='countdown'||gamePhase==='demo'){
       gamePhase='done'; clearCountdown(); finishRound();
     }
@@ -2060,15 +2079,15 @@ function startRound(){
   initPendulum();
   for(let i=0;i<countInBeats;i++){
     playClick(i===0, actx.currentTime+(i*BEAT_MS)/1000);
-    setTimeout(()=>flashCountdownWord(i, countInWords), i*BEAT_MS);
-    setTimeout(pulseTimeSig, i*BEAT_MS);
-    setTimeout(swingPendulum, i*BEAT_MS);
+    roundTimeout(()=>flashCountdownWord(i, countInWords), i*BEAT_MS);
+    roundTimeout(pulseTimeSig, i*BEAT_MS);
+    roundTimeout(swingPendulum, i*BEAT_MS);
   }
   for(let i=0;i<totalBeats();i++){
     const delay=countInBeats*BEAT_MS+i*BEAT_MS;
     playClick(i%LEVELS[currentLevel].beats===0, actx.currentTime+delay/1000);
-    setTimeout(swingPendulum, delay);
-    setTimeout(()=>{
+    roundTimeout(swingPendulum, delay);
+    roundTimeout(()=>{
       if(gamePhase==='idle'||gamePhase==='done') return;
       if(i===0){
         gamePhase='playing';
@@ -2079,7 +2098,7 @@ function startRound(){
       }
     }, delay);
   }
-  setTimeout(()=>{
+  roundTimeout(()=>{
     if(gamePhase==='playing'||gamePhase==='countdown'){ gamePhase='done'; clearCountdown(); finishRound(); }
   }, countInBeats*BEAT_MS+totalBeats()*BEAT_MS+350+audioLatencyMs());
 }
@@ -2786,6 +2805,7 @@ function teacherApplySpeed(level) {
 }
 
 function teacherShowMedian() {
+  stopRoundAudio();
   const level = teacherBaseLevel(_teacherStudents);
   teacherApplySpeed(0); // median always plays at Slow
   chooseLevel(String(level));
@@ -2815,6 +2835,7 @@ function teacherNextRandomIdx() {
 
 function teacherShowRandom() {
   if (!_teacherStudents.length) return;
+  stopRoundAudio();   // a round in progress keeps clicking otherwise
   const idx = teacherNextRandomIdx();
   _teacherStudent = _teacherStudents[idx];
   const base = Math.max(1, Math.floor(_teacherStudent.highestLevel));
@@ -2825,6 +2846,7 @@ function teacherShowRandom() {
 }
 
 function teacherNewRhythm() {
+  stopRoundAudio();   // a round in progress keeps clicking otherwise
   // Regenerate rhythm at same level/student, re-render
   rhythmReady = false;
   const banner = document.getElementById('teacher-name-banner');
@@ -2833,6 +2855,15 @@ function teacherNewRhythm() {
   rhythm = generateRhythm(); renderNotation(rhythm);
   rhythmReady  = true;
   initPendulum();
+  // If a round was running it hid Start and disabled the nav — put them back
+  document.getElementById('status').className = '';
+  document.getElementById('status').textContent = '';
+  const btn = document.getElementById('btn');
+  btn.textContent = 'Start';
+  btn.onclick = LEVELS[currentLevel].trainerFor ? startTrainerRound : startRound;
+  btn.disabled = false;
+  btn.style.display = '';
+  document.querySelectorAll('.game-nav-btn').forEach(b => b.disabled = false);
 }
 
 function teacherTry() {
