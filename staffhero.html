@@ -19,7 +19,6 @@
   }
   #gameCanvas {
     display: block;
-    image-rendering: pixelated;
     border: 3px solid #444;
   }
 
@@ -580,8 +579,23 @@ function stopMicPipeline() {
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const W = 920, H = 520;
-canvas.width = W;
-canvas.height = H;
+// Render the canvas at the screen's pixel density (Chromebook display scaling,
+// browser zoom). Drawing code still works in W×H logical units — draw() applies
+// the DPR transform each frame. Previously the 920×520 bitmap was CSS-scaled with
+// image-rendering: pixelated, which dropped pixel rows at fractional zoom and
+// erased thin strokes (B looked like O, A lost its crossbar).
+let DPR = 1;
+function sizeCanvas() {
+  DPR = window.devicePixelRatio || 1;
+  canvas.width  = Math.round(W * DPR);
+  canvas.height = Math.round(H * DPR);
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+}
+sizeCanvas();
+window.addEventListener('resize', () => {
+  if ((window.devicePixelRatio || 1) !== DPR) sizeCanvas(); // zoom changed
+});
 
 // ─── STAFF LAYOUT ─────────────────────────────────────────────────────────────
 // Staff: 5 lines, each LINE_SPACING px apart.
@@ -4311,7 +4325,7 @@ function update(dt) {
 
 function draw(dt) { 
   // 2. Add the reset to stop the text from shifting
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
   if (gameState === 'title') { drawTitleScreen(); return; }
   if (gameState === 'octaveSelect') { drawOctaveSelectScreen(); return; }
