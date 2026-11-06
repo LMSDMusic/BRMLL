@@ -4314,15 +4314,18 @@ const Q4_6TH_BASS_FINGER_POOL = [
   { noteFile:'images/note13.png', answer:'1', answerString:'G', label:'G#2', clefImg:'images/bass3.png', clefLabel:'A Major' },
 ];
 
-// ── 7TH GRADE ORCHESTRA NOTE ID (levels 7.1–7.9, 7.11) ───────────────────
-// Five quiz pairs that add one key at a time. Each pool is every note within
+// ── 7TH GRADE ORCHESTRA NOTE ID (levels 7.1–7.9, 7.11–7.13) ──────────────
+// 7.1 / 7.2 are a review: the same quizzes as 5.7 / 5.8 (5th Grade Q4), in
+// their own 'g7-review' folder so scores log as 7.1 / 7.2, not 5.7 / 5.8.
+// Then five quiz pairs that add one key at a time. Each pool is every note within
 // the 7th grade range (same range as 6th Grade Q4) that belongs to at least
 // one of the pair's keys. Each question is shown in a randomly chosen key from
 // that pair's list that contains the note, so the key signature never needs
 // an accidental. Note files, strings and fingerings come from the 6.7/6.8
 // pools, and every 7th grade quiz uses the full 6.7/6.8 answer chart (all
 // notes/fingers shown, even ones not in the pool).
-// Level 7.10 is skipped (7.10 = 7.1 as a number); the last pair is 7.9 / 7.11.
+// Level 7.10 is skipped (7.10 = 7.1 as a number); the key-set pairs run
+// 7.3/7.4, 7.5/7.6, 7.7/7.8, 7.9/7.11, 7.12/7.13.
 const G7_KEYS = {
   D:  { img: '2',  label: 'D Major',  notes: ['D','E','F#','G','A','B','C#'] },
   G:  { img: '1',  label: 'G Major',  notes: ['G','A','B','C','D','E','F#'] },
@@ -4332,11 +4335,11 @@ const G7_KEYS = {
   Bb: { img: '-2', label: 'Bb Major', notes: ['Bb','C','D','Eb','F','G','A'] },
 };
 const G7_PAIRS = [
-  { quarter: 'p1', notesLevel: 7.1, fingerLevel: 7.2,  keys: ['D','G'],                    name: 'D & G' },
-  { quarter: 'p2', notesLevel: 7.3, fingerLevel: 7.4,  keys: ['D','G','C'],                name: 'D, G & C' },
-  { quarter: 'p3', notesLevel: 7.5, fingerLevel: 7.6,  keys: ['D','G','C','A'],            name: 'D, G, C & A' },
-  { quarter: 'p4', notesLevel: 7.7, fingerLevel: 7.8,  keys: ['D','G','C','A','F'],        name: 'D, G, C, A & F' },
-  { quarter: 'p5', notesLevel: 7.9, fingerLevel: 7.11, keys: ['D','G','C','A','F','Bb'],   name: 'D, G, C, A, F & Bb' },
+  { quarter: 'p1', notesLevel: 7.3,  fingerLevel: 7.4,  keys: ['D','G'],                  name: 'D & G' },
+  { quarter: 'p2', notesLevel: 7.5,  fingerLevel: 7.6,  keys: ['D','G','C'],              name: 'D, G & C' },
+  { quarter: 'p3', notesLevel: 7.7,  fingerLevel: 7.8,  keys: ['D','G','C','A'],          name: 'D, G, C & A' },
+  { quarter: 'p4', notesLevel: 7.9,  fingerLevel: 7.11, keys: ['D','G','C','A','F'],      name: 'D, G, C, A & F' },
+  { quarter: 'p5', notesLevel: 7.12, fingerLevel: 7.13, keys: ['D','G','C','A','F','Bb'], name: 'D, G, C, A, F & Bb' },
 ];
 // Per instrument: clef image prefix + the 6.7 notes pool and 6.8 fingering pool
 const G7_SOURCES = {
@@ -4406,6 +4409,13 @@ function g7BuildQuiz(instrId, keys, type) {
       quizzes: quizzes,
     });
   });
+  // 7.1 / 7.2 review: the 5th Grade Q4 quizzes (5.7 / 5.8) under their own folder id
+  var q4of5 = getFolder('q4-5th');
+  FOLDERS.push(Object.assign({}, q4of5, {
+    id: 'g7-review',
+    title: '7th Grade',
+    subtitle: '5th Grade Review',
+  }));
 })();
 
 const FOLDER_MAP = {
@@ -4417,6 +4427,7 @@ const FOLDER_MAP = {
   'orchestra|6th|q2': 'q2-6th',
   'orchestra|6th|q3': 'q3-6th',
   'orchestra|6th|q4': 'q4-6th',
+  'orchestra|7th|review': 'g7-review',
   'orchestra|7th|p1': 'g7-p1',
   'orchestra|7th|p2': 'g7-p2',
   'orchestra|7th|p3': 'g7-p3',
@@ -5097,17 +5108,20 @@ const LEVEL_SEQUENCE = [
   { level: 6.6, grade: '6th', quarter: 'q3', type: 'fingering', label: '6th Grade · Q3 · Fingering', orchOnly: true },
   { level: 6.7, grade: '6th', quarter: 'q4', type: 'notes',     label: '6th Grade · Q4 · Notes' },
   { level: 6.8, grade: '6th', quarter: 'q4', type: 'fingering', label: '6th Grade · Q4 · Fingering', orchOnly: true },
-  // 7th grade: one pair per key set. 7.10 is skipped (it equals 7.1 as a number).
-  { level: 7.1,  grade: '7th', quarter: 'p1', type: 'notes',     label: '7th Grade · D & G · Notes' },
-  { level: 7.2,  grade: '7th', quarter: 'p1', type: 'fingering', label: '7th Grade · D & G · Fingering', orchOnly: true },
-  { level: 7.3,  grade: '7th', quarter: 'p2', type: 'notes',     label: '7th Grade · D, G & C · Notes' },
-  { level: 7.4,  grade: '7th', quarter: 'p2', type: 'fingering', label: '7th Grade · D, G & C · Fingering', orchOnly: true },
-  { level: 7.5,  grade: '7th', quarter: 'p3', type: 'notes',     label: '7th Grade · + A Major · Notes' },
-  { level: 7.6,  grade: '7th', quarter: 'p3', type: 'fingering', label: '7th Grade · + A Major · Fingering', orchOnly: true },
-  { level: 7.7,  grade: '7th', quarter: 'p4', type: 'notes',     label: '7th Grade · + F Major · Notes' },
-  { level: 7.8,  grade: '7th', quarter: 'p4', type: 'fingering', label: '7th Grade · + F Major · Fingering', orchOnly: true },
-  { level: 7.9,  grade: '7th', quarter: 'p5', type: 'notes',     label: '7th Grade · + B♭ Major · Notes' },
-  { level: 7.11, grade: '7th', quarter: 'p5', type: 'fingering', label: '7th Grade · + B♭ Major · Fingering', orchOnly: true },
+  // 7th grade: 7.1/7.2 review 5.7/5.8, then one pair per key set.
+  // 7.10 is skipped (it equals 7.1 as a number).
+  { level: 7.1,  grade: '7th', quarter: 'review', type: 'notes',     label: '7th Grade · 5th Grade Review · Notes' },
+  { level: 7.2,  grade: '7th', quarter: 'review', type: 'fingering', label: '7th Grade · 5th Grade Review · Fingering', orchOnly: true },
+  { level: 7.3,  grade: '7th', quarter: 'p1', type: 'notes',     label: '7th Grade · D & G · Notes' },
+  { level: 7.4,  grade: '7th', quarter: 'p1', type: 'fingering', label: '7th Grade · D & G · Fingering', orchOnly: true },
+  { level: 7.5,  grade: '7th', quarter: 'p2', type: 'notes',     label: '7th Grade · D, G & C · Notes' },
+  { level: 7.6,  grade: '7th', quarter: 'p2', type: 'fingering', label: '7th Grade · D, G & C · Fingering', orchOnly: true },
+  { level: 7.7,  grade: '7th', quarter: 'p3', type: 'notes',     label: '7th Grade · + A Major · Notes' },
+  { level: 7.8,  grade: '7th', quarter: 'p3', type: 'fingering', label: '7th Grade · + A Major · Fingering', orchOnly: true },
+  { level: 7.9,  grade: '7th', quarter: 'p4', type: 'notes',     label: '7th Grade · + F Major · Notes' },
+  { level: 7.11, grade: '7th', quarter: 'p4', type: 'fingering', label: '7th Grade · + F Major · Fingering', orchOnly: true },
+  { level: 7.12, grade: '7th', quarter: 'p5', type: 'notes',     label: '7th Grade · + B♭ Major · Notes' },
+  { level: 7.13, grade: '7th', quarter: 'p5', type: 'fingering', label: '7th Grade · + B♭ Major · Fingering', orchOnly: true },
 ];
 
 // Band: Q1 = 5.1, Q2 = 5.2, Q3 = 5.3, Q4 = 5.4 (6th/7th grade band not built yet)
