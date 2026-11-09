@@ -83,6 +83,16 @@ const _urlLevel     = parseInt(_urlParams.get('level')) || 1;
 const _urlMenu      = _urlParams.get('menu') === 'true';
 const _maxLevel     = parseInt(_urlParams.get('maxLevel')) || null;
 const _bestLevel    = parseInt(_urlParams.get('bestLevel')) || 0;
+// Teacher-unlocked levels for this student's class, e.g. &open=8,9 (sent by dashboard.html).
+// These open in the level menu even though they're past the student's own maxLevel.
+const _openLevels   = new Set(String(_urlParams.get('open') || '').split(',').map(Number).filter(n => n > 0));
+// The student's own unlock frontier. Starts at the URL's maxLevel and moves up when
+// they finish their frontier level in this session (so NEXT LEVEL keeps working).
+let _sessionMax     = _maxLevel;
+function isLevelOpen(lvl) { return !_sessionMax || lvl <= _sessionMax || _openLevels.has(lvl); }
+// True when this level is only playable because the teacher unlocked it — the attempt
+// is logged as Unlocked so it doesn't move the student's own progress forward.
+function isTeacherUnlockedPlay() { return !ucActive && !!_sessionMax && currentLevel > _sessionMax; }
 // Roster spellings vary ("alto sax", "Horn", "percussion"…) — map to Staff Hero names
 const INSTRUMENT_ALIASES = {
   'violin':'Violin', 'viola':'Viola', 'cello':'Cello', 'violoncello':'Cello',
@@ -112,6 +122,7 @@ async function autoSubmitScore() {
   const percent = total > 0 ? Math.round((notesCorrect / total) * 100) : 0;
   const missed  = [...new Set(missedNotes)].join(',');
   const levelVal = ucActive ? 99 : currentLevel;
+  const unlocked = isTeacherUnlockedPlay();
   try {
     const res = await fetch(SCRIPT_URL, {
       method:   'POST',
@@ -124,7 +135,8 @@ async function autoSubmitScore() {
         score,
         percent,
         durationSeconds: Math.round(finalTime),
-        missedItems:     missed
+        missedItems:     missed,
+        unlocked
       }),
       redirect: 'follow'
     });
@@ -3508,10 +3520,10 @@ function drawLevelSelectScreen() {
       ctx.fillText(levelDef.title, cx + cardW / 2, cy + cardH / 2 + 4);
     }
 
-    levelSelectBtns.push({ level: lvl, x: cx, y: cy, w: cardW, h: cardH, locked: _maxLevel && lvl > _maxLevel });
+    levelSelectBtns.push({ level: lvl, x: cx, y: cy, w: cardW, h: cardH, locked: !isLevelOpen(lvl) });
 
     // Draw lock overlay if level is locked
-    if (_maxLevel && lvl > _maxLevel) {
+    if (!isLevelOpen(lvl)) {
       ctx.fillStyle = 'rgba(255, 224, 102, 0.12)';
       ctx.fillRect(cx, cy, cardW, cardH);
       drawLockIcon(cx + cardW / 2, cy + cardH / 2 - 2, 26);
@@ -4258,6 +4270,8 @@ function update(dt) {
         levelComplete = true;
         stopBackingTrack();
         autoSubmitScore();
+        // Finished the student's own frontier level → the next one is theirs now
+        if (_sessionMax && !ucActive && currentLevel === _sessionMax) _sessionMax = currentLevel + 1;
         // Both UC and regular levels use canvas score cards now
       }
       // ucBeatGame: flip already stopped backing track; beatAnim takes over
@@ -4512,7 +4526,8 @@ function draw(dt) {
 
     // Buttons: MENU  NEXT LEVEL
     const activeLevels = getLevelSet();
-    const hasNextLevel = activeLevels[currentLevel + 1] !== undefined;
+    // No NEXT LEVEL into a level that's still locked (e.g. after a teacher-unlocked level)
+    const hasNextLevel = activeLevels[currentLevel + 1] !== undefined && isLevelOpen(currentLevel + 1);
     const btnW2 = 160, btnH2 = 32, btnGap2 = 12;
     const numB = hasNextLevel ? 2 : 1;
     const totalBW2 = numB * btnW2 + (numB-1) * btnGap2;
@@ -4962,7 +4977,7 @@ window.addEventListener('keydown', (e) => {
     if (gameOver) { resetGame(); return; }
     if (levelComplete) {
       const activeLevels = getLevelSet();
-      if (activeLevels[currentLevel + 1]) { currentLevel++; scoreSubmitStatus = 'idle'; gameState = 'levelPreview'; }
+      if (activeLevels[currentLevel + 1] && isLevelOpen(currentLevel + 1)) { currentLevel++; scoreSubmitStatus = 'idle'; gameState = 'levelPreview'; }
       else { window.location.href = 'dashboard.html'; }
     }
     return;

@@ -502,7 +502,9 @@
     }
 
     // ── RENDER UP NEXT ───────────────────────────────────────
-    function renderUpNext(module, bestScore, theme, allScoresMap) {
+    // unlockLevel (optional): the teacher's most recent unlocked level for this module —
+    // Up Next opens that level instead of the student's own next level.
+    function renderUpNext(module, bestScore, theme, allScoresMap, unlockLevel) {
       const area = document.getElementById("upNextArea");
 
       if (!module) {
@@ -514,7 +516,9 @@
       const advanced    = bestScore && bestScore.bestPercent >= threshold;
 
       // Compute the suggested next level from the URL we'll link to
-      const nextUrl     = (module.filename === 'rhythm.html' && allScoresMap)
+      const nextUrl     = (unlockLevel && module.filename === 'staffhero.html')
+        ? buildStaffHeroUrl(bestScore, allScoresMap && allScoresMap[module.moduleId], unlockLevel)
+        : (module.filename === 'rhythm.html' && allScoresMap)
         ? buildRhythmNextUrl(allScoresMap[module.moduleId])
         : (module.filename === 'staffhero.html')
           ? buildStaffHeroUrl(bestScore, allScoresMap && allScoresMap[module.moduleId])
@@ -531,7 +535,9 @@
           ? "Level " + staffHeroLevelName(nextLevel)
           : "Level " + nextLevel;
 
-      const meta = IS_TEACHER ? "All levels unlocked" : nextLabel;
+      const meta = IS_TEACHER ? "All levels unlocked"
+                 : unlockLevel ? nextLabel + " · 🔓 Unlocked by your teacher"
+                 : nextLabel;
 
       const upNextUrl = nextUrl;
       area.innerHTML = `
@@ -697,15 +703,38 @@
 
         const modules = data.modules || [];
 
+        // Teacher-unlocked levels for this student's class (getProgress → unlocks:
+        // [{ moduleId, level, timestamp }]). Older Apps Script versions send none.
+        OPEN_LEVELS = {};
+        let latestUnlock = null;
+        (data.unlocks || []).forEach(u => {
+          const mod = modules.find(m => m.moduleId === u.moduleId);
+          const lvl = Number(u.level);
+          if (!mod || !lvl) return;
+          const list = OPEN_LEVELS[mod.filename] = OPEN_LEVELS[mod.filename] || [];
+          if (!list.includes(lvl)) list.push(lvl);
+          if (!latestUnlock || new Date(u.timestamp) > new Date(latestUnlock.timestamp))
+            latestUnlock = { mod, level: lvl, timestamp: u.timestamp };
+        });
+        Object.values(OPEN_LEVELS).forEach(l => l.sort((a, b) => a - b));
+
+        // The newest unlocked level is Up Next until the teacher sets Today's Module
+        // again (or unlocks another level) — whichever happened last wins.
+        const todaysTime = data.todaysModuleTime ? new Date(data.todaysModuleTime) : null;
+        const unlockWins = !!latestUnlock && !IS_TEACHER &&
+          (!todaysTime || isNaN(todaysTime) || new Date(latestUnlock.timestamp) > todaysTime);
+
         // Up Next — hidden entirely when the teacher set Today's Module to "None"
-        const hideUpNext = String(data.todaysModule || "").trim().toLowerCase() === TODAYS_NONE;
+        const hideUpNext = !unlockWins && String(data.todaysModule || "").trim().toLowerCase() === TODAYS_NONE;
         document.getElementById("upNextLabel").style.display = hideUpNext ? "none" : "";
         document.getElementById("upNextArea").style.display  = hideUpNext ? "none" : "";
         if (hideUpNext) { renderGrid(modules, bestScoresMap, allScoresMap); return; }
-        const upNextModule = pickUpNext(modules, bestScoresMap, data.todaysModule || null);
+        const upNextModule = unlockWins ? latestUnlock.mod
+                           : pickUpNext(modules, bestScoresMap, data.todaysModule || null);
         const upNextIndex  = modules.indexOf(upNextModule);
         const upNextTheme  = MODULE_THEMES[upNextIndex % MODULE_THEMES.length];
-        renderUpNext(upNextModule, bestScoresMap[upNextModule?.moduleId], upNextTheme, allScoresMap);
+        renderUpNext(upNextModule, bestScoresMap[upNextModule?.moduleId], upNextTheme, allScoresMap,
+                     unlockWins ? latestUnlock.level : null);
 
         // Module grid
         renderGrid(modules, bestScoresMap, allScoresMap);
@@ -778,24 +807,48 @@
     // Unlocking is based on the highest PASSED level, not the highest played,
     // so a game over on Level 3 no longer unlocks Level 4.
     // Level 99 = Ultimate Challenge — ignored for unlocking.
+    //
+    // Teacher-unlocked levels (Nov 2026): attempts a student makes on a level the
+    // teacher unlocked ahead of them are logged with Unlocked = "Y". Those passes
+    // don't move the student forward on their own (naturalPercent ignores them),
+    // but once the student's own progress reaches the level just below, an earlier
+    // unlocked pass counts — they don't have to redo it.
+    //   naturalPercent: best % from the student's own (not unlocked) attempts.
+    //   Older Apps Script versions don't send it → fall back to bestPercent.
     function staffHeroHighestPassed(bestScore, allEntries) {
       const entries   = (allEntries && allEntries.length) ? allEntries : (bestScore ? [bestScore] : []);
       const threshold = MASTERY_THRESHOLD["staffhero.html"] ?? DEFAULT_THRESHOLD;
       let highest = 0;
+      const passedAny = new Set();
       entries.forEach(e => {
         const lvl = Math.floor(e.level);
-        if (lvl > 0 && lvl < 99 && e.bestPercent >= threshold && lvl > highest) highest = lvl;
+        if (!(lvl > 0 && lvl < 99)) return;
+        const natural = e.naturalPercent !== undefined ? e.naturalPercent : e.bestPercent;
+        if (natural >= threshold && lvl > highest) highest = lvl;
+        if (e.bestPercent >= threshold) passedAny.add(lvl);
       });
+      // Chain through levels already passed while they were teacher-unlocked
+      while (passedAny.has(highest + 1)) highest++;
       return highest;
+    }
+
+    // Levels the teacher has unlocked for this student's class, by module filename
+    // (filled in renderAll from getProgress → unlocks). e.g. { "staffhero.html": [8, 9] }
+    let OPEN_LEVELS = {};
+    function openParam(filename) {
+      const lv = OPEN_LEVELS[filename] || [];
+      return lv.length ? "&open=" + lv.join(",") : "";
     }
 
     // Up Next URL for Staff Hero: next level after the highest passed one.
     // Includes maxLevel + bestLevel so the "Other Levels" menu is locked correctly.
-    function buildStaffHeroUrl(bestScore, allEntries) {
+    // atLevel (optional) = open a specific level instead (teacher-unlocked Up Next).
+    function buildStaffHeroUrl(bestScore, allEntries, atLevel) {
       const passed   = staffHeroHighestPassed(bestScore, allEntries);
       const maxLevel = passed + 1;   // one above highest passed
-      if (UNLOCK_ALL) return "staffhero.html?level=" + maxLevel;   // no maxLevel → nothing locked
-      return "staffhero.html?level=" + maxLevel + "&maxLevel=" + maxLevel + "&bestLevel=" + passed;
+      const level    = atLevel || maxLevel;
+      if (UNLOCK_ALL) return "staffhero.html?level=" + level;   // no maxLevel → nothing locked
+      return "staffhero.html?level=" + level + "&maxLevel=" + maxLevel + "&bestLevel=" + passed + openParam("staffhero.html");
     }
 
     // Builds the menu URL for rhythm module cards.
@@ -872,7 +925,7 @@
     function buildStaffHeroMenuUrl(bestScore, allEntries) {
       if (UNLOCK_ALL) return "staffhero.html?menu=true";   // no maxLevel → nothing locked
       const passed = staffHeroHighestPassed(bestScore, allEntries);
-      return "staffhero.html?menu=true&maxLevel=" + (passed + 1) + "&bestLevel=" + passed;
+      return "staffhero.html?menu=true&maxLevel=" + (passed + 1) + "&bestLevel=" + passed + openParam("staffhero.html");
     }
 
     // Pitch Up Next URL: goes straight to the quiz at the student's unlock frontier
@@ -924,7 +977,7 @@
         if (n >= 99) return buildStaffHeroMenuUrl(bestScore, allEntries);   // Ultimate Challenge → level menu
         if (UNLOCK_ALL) return "staffhero.html?level=" + n;
         const passed = staffHeroHighestPassed(bestScore, allEntries);
-        return "staffhero.html?level=" + n + "&maxLevel=" + (passed + 1) + "&bestLevel=" + passed;
+        return "staffhero.html?level=" + n + "&maxLevel=" + (passed + 1) + "&bestLevel=" + passed + openParam("staffhero.html");
       }
       return filename + "?level=" + lv;
     }
