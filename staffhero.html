@@ -813,12 +813,14 @@ const VIOLIN_LEVELS = {
   11: { pitches: ['G3','A3','Bb3','C4','D4','Eb4','F4','G4','A4','Bb4','C5','D5','Eb5','F5','G5','A5'],
        staffPos: ['G3','A3','B3','C4','D4','E4','F4','G4','A4','B4','C5','D5','E5','F5','G5','A5'],
        tonic: 'Bb3', keySig: 'Bb',
-       rows: [['E5','F5','G5','A5'], ['A4','B4','C5','D5'], ['D4','E4','F4','G4'], ['G3','A3','B3','C4']],
+       // Eb5 is low 4 on the A string — no E/Eb on the E string
+       rows: [['F5','G5','A5'], ['A4','B4','C5','D5','E5'], ['D4','E4','F4','G4'], ['G3','A3','B3','C4']],
        rowLabels: ['E String','A String','D String','G String'], title: 'All Strings – Bb Major' },
   12: { pitches: ['G3','Ab3','Bb3','C4','D4','Eb4','F4','G4','Ab4','Bb4','C5','D5','Eb5','F5','G5','Ab5'],
        staffPos: ['G3','A3','B3','C4','D4','E4','F4','G4','A4','B4','C5','D5','E5','F5','G5','A5'],
        tonic: 'Eb4', keySig: 'Eb',
-       rows: [['E5','F5','G5','A5'], ['A4','B4','C5','D5'], ['D4','E4','F4','G4'], ['G3','A3','B3','C4']],
+       // Eb5 = low 4 on A string, Ab4 = low 4 on D string — no open-string flats on E or A strings
+       rows: [['F5','G5','A5'], ['B4','C5','D5','E5'], ['D4','E4','F4','G4','A4'], ['G3','A3','B3','C4']],
        rowLabels: ['E String','A String','D String','G String'], title: 'All Strings – Eb Major' },
 };
 const VIOLA_LEVELS = {
@@ -874,7 +876,8 @@ const VIOLA_LEVELS = {
   12: { pitches: ['C3','D3','Eb3','F3','G3','Ab3','Bb3','C4','D4','Eb4','F4','G4','Ab4','Bb4','C5','D5'],
        staffPos: ['C3','D3','E3','F3','G3','A3','B3','C4','D4','E4','F4','G4','A4','B4','C5','D5'],
        tonic: 'Eb3', keySig: 'Eb',
-       rows: [['A4','B4','C5','D5'], ['D4','E4','F4','G4'], ['G3','A3','B3','C4'], ['C3','D3','E3','F3']],
+       // Ab4 = low 4 on D string — no Ab on the A string
+       rows: [['B4','C5','D5'], ['D4','E4','F4','G4','A4'], ['G3','A3','B3','C4'], ['C3','D3','E3','F3']],
        rowLabels: ['A String','D String','G String','C String'], title: 'All Strings – Eb Major' },
 };
 // Keep LEVELS as alias for any legacy references
@@ -933,7 +936,8 @@ const CELLO_LEVELS = {
   12: { pitches: ['C2','D2','Eb2','F2','G2','Ab2','Bb2','C3','D3','Eb3','F3','G3','Ab3','Bb3','C4','D4'],
        staffPos: ['C2','D2','E2','F2','G2','A2','B2','C3','D3','E3','F3','G3','A3','B3','C4','D4'],
        tonic: 'Eb2', keySig: 'Eb',
-       rows: [['A3','B3','C4','D4'], ['D3','E3','F3','G3'], ['G2','A2','B2','C3'], ['C2','D2','E2','F2']],
+       // Ab3 = x4 on D string — no Ab on the A string
+       rows: [['B3','C4','D4'], ['D3','E3','F3','G3','A3'], ['G2','A2','B2','C3'], ['C2','D2','E2','F2']],
        rowLabels: ['A String','D String','G String','C String'], title: 'All Strings – Eb Major' },
 };
 const BASS_LEVELS = {
@@ -987,10 +991,11 @@ const BASS_LEVELS = {
        tonic: 'Bb2', keySig: 'Bb',
        rows: [['G3','A3','B3','C4','D4'], ['D3','E3','F3'], ['A2','B2','C3'], ['E2','F2','G2']],
        rowLabels: ['G String','D String','A String','E String'], title: 'All Strings – Bb Major' },
-  12: { pitches: ['Eb2','F2','G2','Ab2','Bb2','C3','D3','Eb3','F3','G3','Ab3','Bb3','C4','D4'],
-       staffPos: ['E2','F2','G2','A2','B2','C3','D3','E3','F3','G3','A3','B3','C4','D4'],
-       tonic: 'Eb2', keySig: 'Eb',
-       rows: [['G3','A3','B3','C4','D4'], ['D3','E3','F3'], ['A2','B2','C3'], ['E2','F2','G2']],
+  12: { pitches: ['F2','G2','Ab2','Bb2','C3','D3','Eb3','F3','G3','Ab3','Bb3','C4','D4'],
+       staffPos: ['F2','G2','A2','B2','C3','D3','E3','F3','G3','A3','B3','C4','D4'],
+       tonic: 'Eb3', keySig: 'Eb',
+       // Eb2 removed (below open E — not playable). Ab2 = 4 on the E string — no Ab on the A string
+       rows: [['G3','A3','B3','C4','D4'], ['D3','E3','F3'], ['B2','C3'], ['F2','G2','A2']],
        rowLabels: ['G String','D String','A String','E String'], title: 'All Strings – Eb Major' },
 };
 const PIANO_LEVELS = {
@@ -2532,14 +2537,31 @@ function staffPosToPitch(staffPos) {
   return staffPos;
 }
 
-// Compute x positions for a row given variable spacing
-function rowXPositions(rowPitches, r, halfGap, wholeGap) {
-  // G# row: Nut → (halfGap) → G# → (halfGap) → A → (wholeGap) → B → (wholeGap) → C#
-  // Normal rows start at 0; G# row starts at halfGap so nut-to-G# = half step
+// Open-string pitch for a row: the natural note named in its row label ('A String' → A),
+// in the highest octave that is at or below the row's first note. Null if no string label.
+function rowOpenPitch(rowLabel, firstPitch) {
+  const m = /^([A-G]) String$/.exec(rowLabel || '');
+  if (!m || !NOTE_FREQ[firstPitch]) return null;
+  const oct = parseInt(firstPitch.replace(/^[A-G][#b]?/, ''), 10);
+  for (const o of [oct, oct - 1]) {
+    const cand = m[1] + o;
+    if (NOTE_FREQ[cand] && NOTE_FREQ[cand] <= NOTE_FREQ[firstPitch] * 1.001) return cand;
+  }
+  return null;
+}
+
+// Compute x positions for a row given variable spacing.
+// x = 0 is the open-string column (inside the nut box). If the row's first note isn't the
+// open string (G#/C# in A Major, F on the E string or Bb on the A string in flat keys,
+// bass E on the D string…), it's placed where it would sit after an invisible open-string circle,
+// so it lines up with notes the same distance from the nut on other strings.
+function rowXPositions(rowPitches, r, halfGap, wholeGap, rowLabel) {
   const firstPitch = staffPosToPitch(rowPitches[0]);
-  // Half steps from the nut need extra space (15px) vs halfGap (6px).
-  // Applies when G# is first (A major G string) or C# is first (A major C string — viola/cello).
-  const leadOffset = (/^G#\d/.test(firstPitch) || /^C#\d/.test(firstPitch)) ? 15 : 0;
+  const openPitch = rowOpenPitch(rowLabel, firstPitch);
+  let leadOffset = 0;
+  if (openPitch && openPitch !== firstPitch) {
+    leadOffset = r * 2 + (isHalfStep(openPitch, firstPitch) ? halfGap : wholeGap);
+  }
   const positions = [leadOffset];
   for (let i = 1; i < rowPitches.length; i++) {
     const spA = staffPosToPitch(rowPitches[i-1]);
@@ -2575,8 +2597,8 @@ function drawNoteButtons() {
   }
 
   const r = 25;
-  const halfGap = 6;   // gap between half-step circles
-  const wholeGap = 20; // gap between whole-step circles (double)
+  const halfGap = 18;  // gap between half-step circles
+  const wholeGap = 60; // gap between whole-step circles
   const rowH = r * 2 + 12;
   const totalRows = rows.length;
 
@@ -2588,38 +2610,74 @@ function drawNoteButtons() {
 
 
   // Calculate x positions for each row
-  const rowPositions = rows.map(rp => rowXPositions(rp, r, halfGap, wholeGap));
+  const rowPositions = rows.map((rp, i) => rowXPositions(rp, r, halfGap, wholeGap, isBand ? null : rowLabels[i]));
 
-  // Widest row total span (last x position of each row)
-  const maxRowW = Math.max(...rowPositions.map(pos => pos[pos.length - 1] || 0));
+  // Fingerboard x positions (from the open-string column) for the standard pattern
+  // open –W– 1 –W– high 2 –H– 3 –H– low 4. Used for tape lines and string length.
+  const isStr = isStringInstrument();
+  const FB_X = {
+    1: r * 2 + halfGap,                        // low 1
+    2: r * 2 + wholeGap,                       // 1st finger tape
+    4: r * 4 + wholeGap * 2,                   // high 2 tape
+    5: r * 6 + wholeGap * 2 + halfGap,         // 3rd finger tape
+    6: r * 8 + wholeGap * 2 + halfGap * 2,     // low 4 — where every string ends
+  };
+  // Tapes: violin/viola/cello at 1st, high 2nd, 3rd. Bass has no 2nd-finger tape: 1st and 4th.
+  const tapeX = !isStr ? [] : selectedInstrument === 'Bass' ? [FB_X[2], FB_X[4]] : [FB_X[2], FB_X[4], FB_X[5]];
+
+  // Widest row total span (last x position of each row); string instruments always reach low 4
+  const maxRowW = Math.max(isStr ? FB_X[6] : 0, ...rowPositions.map(pos => pos[pos.length - 1] || 0));
 
   // Left-align: anchor all rows so first circle aligns left
   const nutX = (W - maxRowW) / 2;
   const startX = nutX;
 
-  // Nut: vertical line connecting top and bottom string lines
+  // Nut: rectangle around the open-string column (string instruments). Drawn after the
+  // string lines (below) so it sits on top of them; circles are drawn last.
   const topStringY    = gridTop + r;
   const bottomStringY = gridTop + r + (totalRows - 1) * rowH;
-  ctx.strokeStyle = '#ffe066';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(startX - r - 6, topStringY);
-  ctx.lineTo(startX - r - 6, bottomStringY);
-  ctx.stroke();
+  const NUT_PAD = 5;
+  const nutBox = isStringInstrument() ? {
+    x: startX - r - NUT_PAD, y: topStringY - r - NUT_PAD,
+    w: (r + NUT_PAD) * 2,    h: bottomStringY - topStringY + (r + NUT_PAD) * 2,
+  } : null;
+
+  // String lines (from the nut's right edge), then tape lines, then the nut box,
+  // then labels + circles on top. String instruments: every string is the same length
+  // (out to the low-4 position, or the longest row if a row goes further, e.g. bass).
+  rows.forEach((rowPitches, rowIdx) => {
+    const cy = gridTop + r + rowIdx * rowH;
+    const xPos = rowPositions[rowIdx];
+    const rowEnd = isStr ? maxRowW : (xPos[xPos.length - 1] || 0);
+    ctx.strokeStyle = '#ffe066';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(nutBox ? nutBox.x + nutBox.w : startX - r - NUT_PAD, cy); // string starts at the nut's right edge
+    ctx.lineTo(startX + rowEnd + r + 6, cy);
+    ctx.stroke();
+  });
+  // Tape lines — vertical, across all strings
+  if (tapeX.length) {
+    ctx.strokeStyle = '#aaddff';
+    ctx.lineWidth = 3;
+    tapeX.forEach(tx => {
+      ctx.beginPath();
+      ctx.moveTo(startX + tx, topStringY - r * 0.6);
+      ctx.lineTo(startX + tx, bottomStringY + r * 0.6);
+      ctx.stroke();
+    });
+  }
+  if (nutBox) {
+    ctx.strokeStyle = '#ffe066';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(nutBox.x, nutBox.y, nutBox.w, nutBox.h);
+  }
 
   rows.forEach((rowPitches, rowIdx) => {
     const cy = gridTop + r + rowIdx * rowH;
     const xPos = rowPositions[rowIdx];
 
-    // String line — from nut to end of this row's last circle
-    const lineLeft  = startX - r - 6;
-    const lineRight = startX + (xPos[xPos.length - 1] || 0) + r + 6;
-    ctx.strokeStyle = '#ffe066';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(lineLeft, cy);
-    ctx.lineTo(lineRight, cy);
-    ctx.stroke();
+    const lineLeft  = startX - r - NUT_PAD;
 
     // Row label to the left of the nut
     if (rowLabels[rowIdx]) {
