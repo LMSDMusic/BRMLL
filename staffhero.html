@@ -724,6 +724,8 @@ const NOTE_Y_BASS = {
   'Eb3': staffLines[2] - LINE_SPACING * 0.5,  // same space as E3 (Eb = E-flat)
   'Ab3': staffLines[2] - LINE_SPACING * 2.0,  // same line as A3 (Ab = A-flat)
   'Bb3': staffLines[2] - LINE_SPACING * 2.5,  // same space as B3 (Bb = B-flat)
+  'F1':  staffLines[4] + LINE_SPACING * 4.0,  // 4th ledger line below bass staff (Tuba)
+  'G1':  staffLines[4] + LINE_SPACING * 3.5,  // space below 3rd ledger (Tuba)
   'A1':  staffLines[4] + LINE_SPACING * 3.0,  // 3rd ledger line below bass staff (Tuba)
   'Ab1': staffLines[4] + LINE_SPACING * 3.0,  // same as A1
   'B1':  staffLines[4] + LINE_SPACING * 2.5,  // space below 2nd ledger (Tuba)
@@ -1069,12 +1071,54 @@ const ALTO_SAX_LEVELS = {
        tonic: 'F4', keySig: 'C', concertKeySig: 'Eb',
        rows: [['E5','G5'], ['F4','G4','A4','B4','C5','D5']],
        rowLabels: ['High', 'Main register'], title: 'F4 – G5' },
-  6: { pitches: ['F#4','G4','A4','B4','C5','D5','E5','F#5','G5'],
+  6: { pitches: ['F#4','G4','A4','B4','C#5','D5','E5','F#5','G5'],
        staffPos: ['F4','G4','A4','B4','C5','D5','E5','F5','G5'],
-       concertPitches: ['A3','Bb3','C4','D4','Eb4','F4','G4','A4','Bb4'],
+       concertPitches: ['A3','Bb3','C4','D4','E4','F4','G4','A4','Bb4'],
        tonic: 'F#4', keySig: 'D', concertKeySig: 'F',
-       rows: [['E5','F#5','G5'], ['F#4','G4','A4','B4','C5','D5']],
+       rows: [['E5','F#5','G5'], ['F#4','G4','A4','B4','C#5','D5']],
        rowLabels: ['High', 'Main register'], title: 'F#4 – G5' },
+  7: { // Concert Eb Major
+       pitches: ['E4','F4','G4','A4','B4','C5','D5','E5','F5','G5'],
+       staffPos: ['E4','F4','G4','A4','B4','C5','D5','E5','F5','G5'],
+       concertPitches: ['G3','Ab3','Bb3','C4','D4','Eb4','F4','G4','Ab4','Bb4'],
+       tonic: 'C5', keySig: 'C', concertKeySig: 'Eb',
+       rows: [['E4','F4','G4','A4','B4','C5','D5','E5','F5','G5']],
+       rowLabels: [], title: 'E4 – G5' },
+  8: { // Concert F Major
+       pitches: ['E4','F#4','G4','A4','B4','C#5','D5','E5','F#5','G5','A5'],
+       staffPos: ['E4','F4','G4','A4','B4','C5','D5','E5','F5','G5','A5'],
+       concertPitches: ['G3','A3','Bb3','C4','D4','E4','F4','G4','A4','Bb4','C5'],
+       tonic: 'D5', keySig: 'D', concertKeySig: 'F',
+       rows: [['E4','F#4','G4','A4','B4','C#5','D5','E5','F#5','G5','A5']],
+       rowLabels: [], title: 'E4 – A5' },
+  9: { // Concert C Major
+       pitches: ['E4','F#4','G#4','A4','B4','C#5','D5','E5','F#5'],
+       staffPos: ['E4','F4','G4','A4','B4','C5','D5','E5','F5'],
+       concertPitches: ['G3','A3','B3','C4','D4','E4','F4','G4','A4'],
+       tonic: 'A4', keySig: 'A', concertKeySig: 'C',
+       rows: [['E4','F#4','G#4','A4','B4','C#5','D5','E5','F#5']],
+       rowLabels: [], title: 'E4 – F#5' },
+  10: { // Concert Ab Major
+       pitches: ['F4','G4','A4','Bb4','C5','D5','E5','F5','G5'],
+       staffPos: ['F4','G4','A4','B4','C5','D5','E5','F5','G5'],
+       concertPitches: ['Ab3','Bb3','C4','Db4','Eb4','F4','G4','Ab4','Bb4'],
+       tonic: 'F4', keySig: 'F', concertKeySig: 'Ab',
+       rows: [['F4','G4','A4','Bb4','C5','D5','E5','F5','G5']],
+       rowLabels: [], title: 'F4 – G5' },
+  11: { // Concert Bb Major
+       pitches: ['D4','E4','F#4','G4','A4','B4','C5','D5','E5','F#5','G5','A5'],
+       staffPos: ['D4','E4','F4','G4','A4','B4','C5','D5','E5','F5','G5','A5'],
+       concertPitches: ['F3','G3','A3','Bb3','C4','D4','Eb4','F4','G4','A4','Bb4','C5'],
+       tonic: 'G4', keySig: 'G', concertKeySig: 'Bb',
+       rows: [['D4','E4','F#4','G4','A4','B4','C5','D5','E5','F#5','G5','A5']],
+       rowLabels: [], title: 'D4 – A5' },
+  12: { // Concert Eb Major
+       pitches: ['D4','E4','F4','G4','A4','B4','C5','D5','E5','F5','G5','A5'],
+       staffPos: ['D4','E4','F4','G4','A4','B4','C5','D5','E5','F5','G5','A5'],
+       concertPitches: ['F3','G3','Ab3','Bb3','C4','D4','Eb4','F4','G4','Ab4','Bb4','C5'],
+       tonic: 'C5', keySig: 'C', concertKeySig: 'Eb',
+       rows: [['D4','E4','F4','G4','A4','B4','C5','D5','E5','F5','G5','A5']],
+       rowLabels: [], title: 'D4 – A5' },
 };
 
 const MALLET_HIGH_LEVELS = {
@@ -1114,6 +1158,36 @@ const MALLET_HIGH_LEVELS = {
          tonic: 'Ab4', keySig: 'Eb',
          rows: [['Ab5', 'Bb5'], ['Bb4', 'C5', 'D5', 'Eb5', 'F5', 'G5'], ['Ab4']],
          rowLabels: ['High register', 'Middle register', 'Low register'], title: 'Ab4 – Bb5 (Eb)' },
+  8: { // Concert F Major
+       pitches: ['F4','G4','A4','Bb4','C5','D5','E5','F5'],
+       staffPos: ['F4','G4','A4','B4','C5','D5','E5','F5'],
+       tonic: 'F4', keySig: 'F',
+       rows: [['F4','G4','A4','Bb4','C5','D5','E5','F5']],
+       rowLabels: [], title: 'F4 – F5' },
+  9: { // Concert C Major
+       pitches: ['D4','E4','F4','G4','A4','B4','C5','D5','E5','F5'],
+       staffPos: ['D4','E4','F4','G4','A4','B4','C5','D5','E5','F5'],
+       tonic: 'C5', keySig: 'C',
+       rows: [['D4','E4','F4','G4','A4','B4','C5','D5','E5','F5']],
+       rowLabels: [], title: 'D4 – F5' },
+  10: { // Concert Ab Major
+       pitches: ['Ab4','Bb4','C5','Db5','Eb5','F5','G5','Ab5','Bb5'],
+       staffPos: ['A4','B4','C5','D5','E5','F5','G5','A5','B5'],
+       tonic: 'Ab4', keySig: 'Ab',
+       rows: [['Ab4','Bb4','C5','Db5','Eb5','F5','G5','Ab5','Bb5']],
+       rowLabels: [], title: 'Ab4 – Bb5' },
+  11: { // Concert Bb Major
+       pitches: ['D4','Eb4','F4','G4','A4','Bb4','C5','D5','Eb5','F5','G5','A5','Bb5'],
+       staffPos: ['D4','E4','F4','G4','A4','B4','C5','D5','E5','F5','G5','A5','B5'],
+       tonic: 'Bb4', keySig: 'Bb',
+       rows: [['D4','Eb4','F4','G4','A4','Bb4','C5','D5','Eb5','F5','G5','A5','Bb5']],
+       rowLabels: [], title: 'D4 – Bb5' },
+  12: { // Concert Eb Major
+       pitches: ['D4','Eb4','F4','G4','Ab4','Bb4','C5','D5','Eb5','F5','G5','Ab5','Bb5'],
+       staffPos: ['D4','E4','F4','G4','A4','B4','C5','D5','E5','F5','G5','A5','B5'],
+       tonic: 'Eb4', keySig: 'Eb',
+       rows: [['D4','Eb4','F4','G4','Ab4','Bb4','C5','D5','Eb5','F5','G5','Ab5','Bb5']],
+       rowLabels: [], title: 'D4 – Bb5' },
 };
 
 const MALLET_LOW_LEVELS = {
@@ -1153,6 +1227,36 @@ const MALLET_LOW_LEVELS = {
          tonic: 'Ab3', keySig: 'Eb',
          rows: [['Ab4', 'Bb4'], ['Bb3', 'C4', 'D4', 'Eb4', 'F4', 'G4'], ['Ab3']],
          rowLabels: ['High register', 'Middle register', 'Low register'], title: 'Ab3 – Bb4 (Eb)' },
+  8: { // Concert F Major
+       pitches: ['F3','G3','A3','Bb3','C4','D4','E4','F4'],
+       staffPos: ['F3','G3','A3','B3','C4','D4','E4','F4'],
+       tonic: 'F3', keySig: 'F',
+       rows: [['F3','G3','A3','Bb3','C4','D4','E4','F4']],
+       rowLabels: [], title: 'F3 – F4' },
+  9: { // Concert C Major
+       pitches: ['D3','E3','F3','G3','A3','B3','C4','D4','E4','F4'],
+       staffPos: ['D3','E3','F3','G3','A3','B3','C4','D4','E4','F4'],
+       tonic: 'C4', keySig: 'C',
+       rows: [['D3','E3','F3','G3','A3','B3','C4','D4','E4','F4']],
+       rowLabels: [], title: 'D3 – F4' },
+  10: { // Concert Ab Major
+       pitches: ['Ab3','Bb3','C4','Db4','Eb4','F4','G4','Ab4','Bb4'],
+       staffPos: ['A3','B3','C4','D4','E4','F4','G4','A4','B4'],
+       tonic: 'Ab3', keySig: 'Ab',
+       rows: [['Ab3','Bb3','C4','Db4','Eb4','F4','G4','Ab4','Bb4']],
+       rowLabels: [], title: 'Ab3 – Bb4' },
+  11: { // Concert Bb Major
+       pitches: ['D3','Eb3','F3','G3','A3','Bb3','C4','D4','Eb4','F4','G4','A4','Bb4'],
+       staffPos: ['D3','E3','F3','G3','A3','B3','C4','D4','E4','F4','G4','A4','B4'],
+       tonic: 'Bb3', keySig: 'Bb',
+       rows: [['D3','Eb3','F3','G3','A3','Bb3','C4','D4','Eb4','F4','G4','A4','Bb4']],
+       rowLabels: [], title: 'D3 – Bb4' },
+  12: { // Concert Eb Major
+       pitches: ['D3','Eb3','F3','G3','Ab3','Bb3','C4','D4','Eb4','F4','G4','Ab4','Bb4'],
+       staffPos: ['D3','E3','F3','G3','A3','B3','C4','D4','E4','F4','G4','A4','B4'],
+       tonic: 'Eb3', keySig: 'Eb',
+       rows: [['D3','Eb3','F3','G3','Ab3','Bb3','C4','D4','Eb4','F4','G4','Ab4','Bb4']],
+       rowLabels: [], title: 'D3 – Bb4' },
 };
 
 const BARITONE_LEVELS = {
@@ -1174,19 +1278,55 @@ const BARITONE_LEVELS = {
        rowLabels: ['Upper', 'Lower register'], title: 'Bb2 – G3' },
   4: { pitches: ['A2','Bb2','C3','D3','E3','F3','G3','A3'],
        staffPos: ['A2','B2','C3','D3','E3','F3','G3','A3'],
-       tonic: 'F2', keySig: 'F',
+       tonic: 'F3', keySig: 'F',
        rows: [['G3','A3'], ['A2','Bb2','C3','D3','Eb3','F3']],
        rowLabels: ['Upper', 'Lower register'], title: 'A2 – A3' },
   5: { pitches: ['Ab2','Bb2','C3','D3','Eb3','F3','G3','Ab3'],
        staffPos: ['A2','B2','C3','D3','E3','F3','G3','A3'],
-       tonic: 'Eb2', keySig: 'Eb',
+       tonic: 'Eb3', keySig: 'Eb',
        rows: [['G3','Ab3'], ['Ab2','Bb2','C3','D3','Eb3','F3']],
        rowLabels: ['Upper', 'Lower register'], title: 'Ab2 – Ab3' },
   6: { pitches: ['Ab2','Bb2','C3','D3','Eb3','F3','G3','Ab3','Bb3'],
        staffPos: ['A2','B2','C3','D3','E3','F3','G3','A3','B3'],
-       tonic: 'Eb2', keySig: 'Eb',
+       tonic: 'Eb3', keySig: 'Eb',
        rows: [['G3','Ab3','Bb3'], ['Ab2','Bb2','C3','D3','Eb3','F3']],
        rowLabels: ['Upper', 'Lower register'], title: 'Ab2 – Bb3' },
+  7: { // Concert Bb Major
+       pitches: ['F2','G2','A2','Bb2','C3','D3','Eb3','F3','G3','A3','Bb3'],
+       staffPos: ['F2','G2','A2','B2','C3','D3','E3','F3','G3','A3','B3'],
+       tonic: 'Bb2', keySig: 'Bb',
+       rows: [['F2','G2','A2','Bb2','C3','D3','Eb3','F3','G3','A3','Bb3']],
+       rowLabels: [], title: 'F2 – Bb3' },
+  8: { // Concert F Major
+       pitches: ['F2','G2','A2','Bb2','C3','D3','E3','F3','G3','A3'],
+       staffPos: ['F2','G2','A2','B2','C3','D3','E3','F3','G3','A3'],
+       tonic: 'F2', keySig: 'F',
+       rows: [['F2','G2','A2','Bb2','C3','D3','E3','F3','G3','A3']],
+       rowLabels: [], title: 'F2 – A3' },
+  9: { // Concert C Major
+       pitches: ['G2','A2','B2','C3','D3','E3','F3','G3','A3','B3','C4'],
+       staffPos: ['G2','A2','B2','C3','D3','E3','F3','G3','A3','B3','C4'],
+       tonic: 'C3', keySig: 'C',
+       rows: [['G2','A2','B2','C3','D3','E3','F3','G3','A3','B3','C4']],
+       rowLabels: [], title: 'G2 – C4' },
+  10: { // Concert Ab Major
+       pitches: ['Ab2','Bb2','C3','Db3','Eb3','F3','G3','Ab3','Bb3'],
+       staffPos: ['A2','B2','C3','D3','E3','F3','G3','A3','B3'],
+       tonic: 'Ab2', keySig: 'Ab',
+       rows: [['Ab2','Bb2','C3','Db3','Eb3','F3','G3','Ab3','Bb3']],
+       rowLabels: [], title: 'Ab2 – Bb3' },
+  11: { // Concert Bb Major
+       pitches: ['F2','G2','A2','Bb2','C3','D3','Eb3','F3','G3','A3','Bb3','C4','D4'],
+       staffPos: ['F2','G2','A2','B2','C3','D3','E3','F3','G3','A3','B3','C4','D4'],
+       tonic: 'Bb2', keySig: 'Bb',
+       rows: [['F2','G2','A2','Bb2','C3','D3','Eb3','F3','G3','A3','Bb3','C4','D4']],
+       rowLabels: [], title: 'F2 – D4' },
+  12: { // Concert Eb Major
+       pitches: ['F2','G2','Ab2','Bb2','C3','D3','Eb3','F3','G3','Ab3','Bb3','C4','D4'],
+       staffPos: ['F2','G2','A2','B2','C3','D3','E3','F3','G3','A3','B3','C4','D4'],
+       tonic: 'Eb3', keySig: 'Eb',
+       rows: [['F2','G2','Ab2','Bb2','C3','D3','Eb3','F3','G3','Ab3','Bb3','C4','D4']],
+       rowLabels: [], title: 'F2 – D4' },
 };
 
 const CLARINET_LEVELS = {
@@ -1212,15 +1352,64 @@ const CLARINET_LEVELS = {
   4: { pitches: ['Bb3','C4','D4','E4','F4','G4','A4','Bb4'],
        staffPos: ['B3','C4','D4','E4','F4','G4','A4','B4'],
        concertPitches: ['Ab3','Bb3','C4','D4','Eb4','F4','G4','Ab4'],
-       tonic: 'Bb3', keySig: 'F', concertKeySig: 'C',
+       tonic: 'Bb3', keySig: 'F', concertKeySig: 'Eb',
        rows: [['Bb3','C4','D4','E4','F4','G4','A4','Bb4']],
        rowLabels: [], title: 'Bb3 – Bb4' },
   5: { pitches: ['Bb3','C4','D4','E4','F4','G4','A4','Bb4','C5'],
        staffPos: ['B3','C4','D4','E4','F4','G4','A4','B4','C5'],
        concertPitches: ['Ab3','Bb3','C4','D4','Eb4','F4','G4','Ab4','Bb4'],
-       tonic: 'Bb3', keySig: 'F', concertKeySig: 'C',
+       tonic: 'Bb3', keySig: 'F', concertKeySig: 'Eb',
        rows: [['Bb3','C4','D4','E4','F4','G4','A4','Bb4','C5']],
        rowLabels: [], title: 'Bb3 – C5' },
+  6: { // Concert Bb Major
+       pitches: ['C4','D4','E4','F4','G4','A4','B4','C5','D5'],
+       staffPos: ['C4','D4','E4','F4','G4','A4','B4','C5','D5'],
+       concertPitches: ['Bb3','C4','D4','Eb4','F4','G4','A4','Bb4','C5'],
+       tonic: 'C4', keySig: 'C', concertKeySig: 'Bb',
+       rows: [['C4','D4','E4','F4','G4','A4','B4','C5','D5']],
+       rowLabels: [], title: 'C4 – D5' },
+  7: { // Concert Eb Major
+       pitches: ['Bb3','C4','D4','E4','F4','G4','A4','Bb4','C5','D5'],
+       staffPos: ['B3','C4','D4','E4','F4','G4','A4','B4','C5','D5'],
+       concertPitches: ['Ab3','Bb3','C4','D4','Eb4','F4','G4','Ab4','Bb4','C5'],
+       tonic: 'F4', keySig: 'F', concertKeySig: 'Eb',
+       rows: [['Bb3','C4','D4','E4','F4','G4','A4','Bb4','C5','D5']],
+       rowLabels: [], title: 'Bb3 – D5' },
+  8: { // Concert F Major
+       pitches: ['C4','D4','E4','F#4','G4','A4','B4','C5','D5'],
+       staffPos: ['C4','D4','E4','F4','G4','A4','B4','C5','D5'],
+       concertPitches: ['Bb3','C4','D4','E4','F4','G4','A4','Bb4','C5'],
+       tonic: 'G4', keySig: 'G', concertKeySig: 'F',
+       rows: [['C4','D4','E4','F#4','G4','A4','B4','C5','D5']],
+       rowLabels: [], title: 'C4 – D5' },
+  9: { // Concert C Major
+       pitches: ['C#4','D4','E4','F#4','G4','A4','B4','C#5','D5'],
+       staffPos: ['C4','D4','E4','F4','G4','A4','B4','C5','D5'],
+       concertPitches: ['B3','C4','D4','E4','F4','G4','A4','B4','C5'],
+       tonic: 'D4', keySig: 'D', concertKeySig: 'C',
+       rows: [['C#4','D4','E4','F#4','G4','A4','B4','C#5','D5']],
+       rowLabels: [], title: 'C#4 – D5' },
+  10: { // Concert Ab Major
+       pitches: ['Bb3','C4','D4','Eb4','F4','G4','A4','Bb4','C5'],
+       staffPos: ['B3','C4','D4','E4','F4','G4','A4','B4','C5'],
+       concertPitches: ['Ab3','Bb3','C4','Db4','Eb4','F4','G4','Ab4','Bb4'],
+       tonic: 'Bb3', keySig: 'Bb', concertKeySig: 'Ab',
+       rows: [['Bb3','C4','D4','Eb4','F4','G4','A4','Bb4','C5']],
+       rowLabels: [], title: 'Bb3 – C5' },
+  11: { // Concert Bb Major
+       pitches: ['G3','A3','B3','C4','D4','E4','F4','G4','A4','B4','C5','D5'],
+       staffPos: ['G3','A3','B3','C4','D4','E4','F4','G4','A4','B4','C5','D5'],
+       concertPitches: ['F3','G3','A3','Bb3','C4','D4','Eb4','F4','G4','A4','Bb4','C5'],
+       tonic: 'C4', keySig: 'C', concertKeySig: 'Bb',
+       rows: [['G3','A3','B3','C4','D4','E4','F4','G4','A4','B4','C5','D5']],
+       rowLabels: [], title: 'G3 – D5' },
+  12: { // Concert Eb Major
+       pitches: ['A3','Bb3','C4','D4','E4','F4','G4','A4','Bb4','C5','D5'],
+       staffPos: ['A3','B3','C4','D4','E4','F4','G4','A4','B4','C5','D5'],
+       concertPitches: ['G3','Ab3','Bb3','C4','D4','Eb4','F4','G4','Ab4','Bb4','C5'],
+       tonic: 'F4', keySig: 'F', concertKeySig: 'Eb',
+       rows: [['A3','Bb3','C4','D4','E4','F4','G4','A4','Bb4','C5','D5']],
+       rowLabels: [], title: 'A3 – D5' },
 };
 
 const FLUTE_LEVELS = {
@@ -1259,6 +1448,36 @@ const FLUTE_LEVELS = {
        tonic: 'Ab4', keySig: 'Eb',
        rows: [['Ab5','Bb5'], ['Bb4','C5','D5','Eb5','F5','G5'], ['Ab4']],
        rowLabels: ['High register', 'Middle register', 'Low register'], title: 'Ab4 – Bb5 (Eb)' },
+  8: { // Concert F Major
+       pitches: ['F4','G4','A4','Bb4','C5','D5','E5','F5'],
+       staffPos: ['F4','G4','A4','B4','C5','D5','E5','F5'],
+       tonic: 'F4', keySig: 'F',
+       rows: [['F4','G4','A4','Bb4','C5','D5','E5','F5']],
+       rowLabels: [], title: 'F4 – F5' },
+  9: { // Concert C Major
+       pitches: ['D4','E4','F4','G4','A4','B4','C5','D5','E5','F5'],
+       staffPos: ['D4','E4','F4','G4','A4','B4','C5','D5','E5','F5'],
+       tonic: 'C5', keySig: 'C',
+       rows: [['D4','E4','F4','G4','A4','B4','C5','D5','E5','F5']],
+       rowLabels: [], title: 'D4 – F5' },
+  10: { // Concert Ab Major
+       pitches: ['Ab4','Bb4','C5','Db5','Eb5','F5','G5','Ab5','Bb5'],
+       staffPos: ['A4','B4','C5','D5','E5','F5','G5','A5','B5'],
+       tonic: 'Ab4', keySig: 'Ab',
+       rows: [['Ab4','Bb4','C5','Db5','Eb5','F5','G5','Ab5','Bb5']],
+       rowLabels: [], title: 'Ab4 – Bb5' },
+  11: { // Concert Bb Major
+       pitches: ['D4','Eb4','F4','G4','A4','Bb4','C5','D5','Eb5','F5','G5','A5','Bb5'],
+       staffPos: ['D4','E4','F4','G4','A4','B4','C5','D5','E5','F5','G5','A5','B5'],
+       tonic: 'Bb4', keySig: 'Bb',
+       rows: [['D4','Eb4','F4','G4','A4','Bb4','C5','D5','Eb5','F5','G5','A5','Bb5']],
+       rowLabels: [], title: 'D4 – Bb5' },
+  12: { // Concert Eb Major
+       pitches: ['D4','Eb4','F4','G4','Ab4','Bb4','C5','D5','Eb5','F5','G5','Ab5','Bb5'],
+       staffPos: ['D4','E4','F4','G4','A4','B4','C5','D5','E5','F5','G5','A5','B5'],
+       tonic: 'Eb4', keySig: 'Eb',
+       rows: [['D4','Eb4','F4','G4','Ab4','Bb4','C5','D5','Eb5','F5','G5','Ab5','Bb5']],
+       rowLabels: [], title: 'D4 – Bb5' },
 };
 
 const FRENCH_HORN_LEVELS = {
@@ -1306,6 +1525,41 @@ const FRENCH_HORN_LEVELS = {
        tonic: 'Bb4', keySig: 'Bb', concertKeySig: 'Eb',
        rows: [['Eb4','F4','G4','A4','Bb4','C5','D5','Eb5','F5']],
        rowLabels: [], title: 'Eb4 – F5' },
+  8: { // Concert F Major
+       pitches: ['C4','D4','E4','F4','G4','A4','B4','C5','D5','E5','F5'],
+       staffPos: ['C4','D4','E4','F4','G4','A4','B4','C5','D5','E5','F5'],
+       concertPitches: ['F3','G3','A3','Bb3','C4','D4','E4','F4','G4','A4','Bb4'],
+       tonic: 'C4', keySig: 'C', concertKeySig: 'F',
+       rows: [['C4','D4','E4','F4','G4','A4','B4','C5','D5','E5','F5']],
+       rowLabels: [], title: 'C4 – F5' },
+  9: { // Concert C Major
+       pitches: ['D4','E4','F#4','G4','A4','B4','C5','D5','E5'],
+       staffPos: ['D4','E4','F4','G4','A4','B4','C5','D5','E5'],
+       concertPitches: ['G3','A3','B3','C4','D4','E4','F4','G4','A4'],
+       tonic: 'G4', keySig: 'G', concertKeySig: 'C',
+       rows: [['D4','E4','F#4','G4','A4','B4','C5','D5','E5']],
+       rowLabels: [], title: 'D4 – E5' },
+  10: { // Concert Ab Major
+       pitches: ['Eb4','F4','G4','Ab4','Bb4','C5','D5','Eb5','F5'],
+       staffPos: ['E4','F4','G4','A4','B4','C5','D5','E5','F5'],
+       concertPitches: ['Ab3','Bb3','C4','Db4','Eb4','F4','G4','Ab4','Bb4'],
+       tonic: 'Eb4', keySig: 'Eb', concertKeySig: 'Ab',
+       rows: [['Eb4','F4','G4','Ab4','Bb4','C5','D5','Eb5','F5']],
+       rowLabels: [], title: 'Eb4 – F5' },
+  11: { // Concert Bb Major
+       pitches: ['C4','D4','E4','F4','G4','A4','Bb4','C5','D5','E5','F5'],
+       staffPos: ['C4','D4','E4','F4','G4','A4','B4','C5','D5','E5','F5'],
+       concertPitches: ['F3','G3','A3','Bb3','C4','D4','Eb4','F4','G4','A4','Bb4'],
+       tonic: 'F4', keySig: 'F', concertKeySig: 'Bb',
+       rows: [['C4','D4','E4','F4','G4','A4','Bb4','C5','D5','E5','F5']],
+       rowLabels: [], title: 'C4 – F5' },
+  12: { // Concert Eb Major
+       pitches: ['Bb3','C4','D4','Eb4','F4','G4','A4','Bb4','C5','D5','Eb5','F5'],
+       staffPos: ['B3','C4','D4','E4','F4','G4','A4','B4','C5','D5','E5','F5'],
+       concertPitches: ['Eb3','F3','G3','Ab3','Bb3','C4','D4','Eb4','F4','G4','Ab4','Bb4'],
+       tonic: 'Bb3', keySig: 'Bb', concertKeySig: 'Eb',
+       rows: [['Bb3','C4','D4','Eb4','F4','G4','A4','Bb4','C5','D5','Eb5','F5']],
+       rowLabels: [], title: 'Bb3 – F5' },
 };
 
 const TUBA_LEVELS = {
@@ -1340,6 +1594,42 @@ const TUBA_LEVELS = {
        tonic: 'Eb2', keySig: 'Eb',
        rows: [['Ab1','Bb1','C2','D2','Eb2','F2','G2','Ab2','Bb2']],
        rowLabels: [], title: 'Ab1 – Bb2' },
+  7: { // Concert Bb Major
+       pitches: ['F1','G1','A1','Bb1','C2','D2','Eb2','F2','G2','A2','Bb2'],
+       staffPos: ['F1','G1','A1','B1','C2','D2','E2','F2','G2','A2','B2'],
+       tonic: 'Bb1', keySig: 'Bb',
+       rows: [['F1','G1','A1','Bb1','C2','D2','Eb2','F2','G2','A2','Bb2']],
+       rowLabels: [], title: 'F1 – Bb2' },
+  8: { // Concert F Major
+       pitches: ['F1','G1','A1','Bb1','C2','D2','E2','F2','G2','A2'],
+       staffPos: ['F1','G1','A1','B1','C2','D2','E2','F2','G2','A2'],
+       tonic: 'F1', keySig: 'F',
+       rows: [['F1','G1','A1','Bb1','C2','D2','E2','F2','G2','A2']],
+       rowLabels: [], title: 'F1 – A2' },
+  9: { // Concert C Major
+       pitches: ['G1','A1','B1','C2','D2','E2','F2','G2','A2','B2','C3'],
+       staffPos: ['G1','A1','B1','C2','D2','E2','F2','G2','A2','B2','C3'],
+       tonic: 'C2', keySig: 'C',
+       rows: [['G1','A1','B1','C2','D2','E2','F2','G2','A2','B2','C3']],
+       rowLabels: [], title: 'G1 – C3' },
+  10: { // Concert Ab Major
+       pitches: ['Ab1','Bb1','C2','Db2','Eb2','F2','G2','Ab2','Bb2'],
+       staffPos: ['A1','B1','C2','D2','E2','F2','G2','A2','B2'],
+       tonic: 'Ab1', keySig: 'Ab',
+       rows: [['Ab1','Bb1','C2','Db2','Eb2','F2','G2','Ab2','Bb2']],
+       rowLabels: [], title: 'Ab1 – Bb2' },
+  11: { // Concert Bb Major
+       pitches: ['F1','G1','A1','Bb1','C2','D2','Eb2','F2','G2','A2','Bb2','C3','D3'],
+       staffPos: ['F1','G1','A1','B1','C2','D2','E2','F2','G2','A2','B2','C3','D3'],
+       tonic: 'Bb1', keySig: 'Bb',
+       rows: [['F1','G1','A1','Bb1','C2','D2','Eb2','F2','G2','A2','Bb2','C3','D3']],
+       rowLabels: [], title: 'F1 – D3' },
+  12: { // Concert Eb Major
+       pitches: ['F1','G1','Ab1','Bb1','C2','D2','Eb2','F2','G2','Ab2','Bb2','C3','D3'],
+       staffPos: ['F1','G1','A1','B1','C2','D2','E2','F2','G2','A2','B2','C3','D3'],
+       tonic: 'Eb2', keySig: 'Eb',
+       rows: [['F1','G1','Ab1','Bb1','C2','D2','Eb2','F2','G2','Ab2','Bb2','C3','D3']],
+       rowLabels: [], title: 'F1 – D3' },
 };
 
 // Percussion (roster "Percussion"): Mallet High and Mallet Low as separate levels,
@@ -1506,6 +1796,7 @@ const BACKING_PATTERNS = {
   'C':  [261.63, 392.00, 523.25, 392.00], // C4, G4, C5, G4
   'F':  [174.61, 261.63, 349.23, 261.63], // F3, C4, F4, C4
   'A':  [220.00, 329.63, 440.00, 329.63], // A3, E4, A4, E4
+  'Ab': [207.65, 311.13, 415.30, 311.13], // Ab3, Eb4, Ab4, Eb4
 };
 
 function getBackingFreqs() {
@@ -1812,7 +2103,7 @@ const HERO_GAP = 12; // px above the notehead centre
 // For notes below the staff, land the hero on the bottom staff line instead
 const BELOW_STAFF_TREBLE = new Set(['G3','A3','B3','C4','C3','D3','E3','F3']); // staffPos values
 const BELOW_STAFF_ALTO   = new Set(['C3','D3']);
-const BELOW_STAFF_BASS   = new Set(['C2','D2','E2','B1','A1']);
+const BELOW_STAFF_BASS   = new Set(['C2','D2','E2','B1','A1','G1','F1']);
 
 function heroLandingY(note) {
   let belowStaff = false;
@@ -2038,7 +2329,12 @@ function _drawKeySignatureImpl(x, keySig) {
     } else if (keySig === 'Eb') {
       ctx.fillText('♭', x,      staffLines[3] + LINE_SPACING * 0.75 - 10); // Bb
       ctx.fillText('♭', x + 14, staffLines[1] + LINE_SPACING * 0.75);      // Eb
-      ctx.fillText('♭', x + 33, staffLines[3] - LINE_SPACING * 0.25 - 15 + 20); // Ab
+      ctx.fillText('♭', x + 33, staffLines[3] + LINE_SPACING * 0.5 + 9.5); // Ab (bottom space)
+    } else if (keySig === 'Ab') {
+      ctx.fillText('♭', x,      staffLines[3] + LINE_SPACING * 0.75 - 10); // Bb
+      ctx.fillText('♭', x + 14, staffLines[1] + LINE_SPACING * 0.75);      // Eb
+      ctx.fillText('♭', x + 33, staffLines[3] + LINE_SPACING * 0.5 + 9.5); // Ab (bottom space)
+      ctx.fillText('♭', x + 49, staffLines[2] + LINE_SPACING * 0.5 - 2);  // Db
     } else if (keySig === 'F') {
       ctx.fillText('♭', x,      staffLines[3] + LINE_SPACING * 0.75 - 5); // Bb
     } else if (keySig === 'A') {
@@ -2051,6 +2347,12 @@ function _drawKeySignatureImpl(x, keySig) {
       ctx.fillText('♯', x,      staffLines[1] + LINE_SPACING * 0.57);      // F#
       if (keySig !== 'G') ctx.fillText('♯', x + 15, staffLines[2] + LINE_SPACING * 0.9 + 3); // C#
     }
+
+  } else if (isAltoClef && ['F','Bb','Eb','Ab'].includes(keySig)) {
+    // ── Alto clef flats: Bb (B3, 2nd space), Eb (E4, 4th line), Ab (A3, 2nd line)
+    ctx.fillText('♭', x, staffLines[2] + LINE_SPACING * 0.5 + 9.5);                       // Bb
+    if (keySig !== 'F')  ctx.fillText('♭', x + 20, staffLines[1] + 9.5);                  // Eb
+    if (keySig === 'Eb' || keySig === 'Ab') ctx.fillText('♭', x + 39, staffLines[3] + 9.5); // Ab
 
   } else if (isAltoClef) {
     // ── Alto clef ─────────────────────────────────────────────────────────────
@@ -2067,7 +2369,12 @@ function _drawKeySignatureImpl(x, keySig) {
     if (keySig === 'Eb') {
       ctx.fillText('♭', x,      staffLines[2] + LINE_SPACING * 0.75 - 5);  // Bb
       ctx.fillText('♭', x + 20, staffLines[0] + LINE_SPACING * 0.5 + 8);   // Eb
-      ctx.fillText('♭', x + 39, staffLines[3] + LINE_SPACING * 0.75 - 17 + 20); // Ab
+      ctx.fillText('♭', x + 39, staffLines[3] - LINE_SPACING * 0.5 + 9.5); // Ab (2nd space)
+    } else if (keySig === 'Ab') {
+      ctx.fillText('♭', x,      staffLines[2] + LINE_SPACING * 0.75 - 5);  // Bb
+      ctx.fillText('♭', x + 20, staffLines[0] + LINE_SPACING * 0.5 + 8);   // Eb
+      ctx.fillText('♭', x + 39, staffLines[3] - LINE_SPACING * 0.5 + 9.5); // Ab (2nd space)
+      ctx.fillText('♭', x + 58, staffLines[1] + LINE_SPACING * 0.5 - 2);   // Db
     } else if (keySig === 'Bb') {
       ctx.fillText('♭', x,      staffLines[2] + LINE_SPACING * 0.75 - 5);  // Bb
       ctx.fillText('♭', x + 19, staffLines[0] + LINE_SPACING * 0.75 + 1);  // Eb
@@ -2206,6 +2513,10 @@ function drawNote(note, camX) {
     // Tuba: B1 (space below 2nd ledger) and A1 (on 3rd ledger)
     if ((note.staffPos||note.pitch) === 'B1') {
       [1, 2].forEach(n => { ctx.beginPath(); ctx.moveTo(sx - 16, bassBtm + LINE_SPACING * n); ctx.lineTo(sx + 16, bassBtm + LINE_SPACING * n); ctx.stroke(); });
+    }
+    if (['G1','F1'].includes(note.staffPos||note.pitch)) {
+      const nLed = (note.staffPos||note.pitch) === 'F1' ? 4 : 3;
+      for (let n = 1; n <= nLed; n++) { ctx.beginPath(); ctx.moveTo(sx - 16, bassBtm + LINE_SPACING * n); ctx.lineTo(sx + 16, bassBtm + LINE_SPACING * n); ctx.stroke(); }
     }
     if ((note.staffPos||note.pitch) === 'A1') {
       [1, 2, 3].forEach(n => { ctx.beginPath(); ctx.moveTo(sx - 16, bassBtm + LINE_SPACING * n); ctx.lineTo(sx + 16, bassBtm + LINE_SPACING * n); ctx.stroke(); });
@@ -3511,7 +3822,9 @@ function drawLevelSelectScreen() {
   // max 3 columns; Percussion's 14 levels use 4 columns so High/Low pairs sit side by side
   const cols = levelNums.length > 9 ? 4 : Math.min(levelNums.length, 3);
   const rows = Math.ceil(levelNums.length / cols);
-  const cardW = cols === 4 ? 200 : 230, cardH = 62, cardGapX = 14, cardGapY = 12;
+  // Percussion has 24 levels (High/Low × 12) — use shorter cards so 6 rows fit
+  const compactCards = levelNums.length > 16;
+  const cardW = cols === 4 ? 200 : 230, cardH = compactCards ? 40 : 62, cardGapX = 14, cardGapY = compactCards ? 8 : 12;
   const gridW = cols * cardW + (cols - 1) * cardGapX;
   const gridH = rows * cardH + (rows - 1) * cardGapY;
   const gridX = W / 2 - gridW / 2;
@@ -3542,6 +3855,7 @@ function drawLevelSelectScreen() {
       levelDef.keySig === 'F'  ? 'F Major'  :
       levelDef.keySig === 'Bb' ? 'Bb Major' :
       levelDef.keySig === 'Eb' ? 'Eb Major' :
+      levelDef.keySig === 'Ab' ? 'Ab Major' :
       levelDef.keySig === 'C'  ? 'C Major' : 'D Major';
 
     // Shadow
@@ -3572,10 +3886,10 @@ function drawLevelSelectScreen() {
     // Level title centred in card
     if (levelDef && levelDef.title) {
       ctx.fillStyle = '#fff';
-      ctx.font = '9px "Press Start 2P"';
+      ctx.font = compactCards ? '7px "Press Start 2P"' : '9px "Press Start 2P"';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(levelDef.title, cx + cardW / 2, cy + cardH / 2 + 4);
+      ctx.fillText(levelDef.title, cx + cardW / 2, compactCards ? cy + cardH - 11 : cy + cardH / 2 + 4);
     }
 
     levelSelectBtns.push({ level: lvl, x: cx, y: cy, w: cardW, h: cardH, locked: !isLevelOpen(lvl) });
@@ -3584,7 +3898,7 @@ function drawLevelSelectScreen() {
     if (!isLevelOpen(lvl)) {
       ctx.fillStyle = 'rgba(255, 224, 102, 0.12)';
       ctx.fillRect(cx, cy, cardW, cardH);
-      drawLockIcon(cx + cardW / 2, cy + cardH / 2 - 2, 26);
+      drawLockIcon(cx + cardW / 2, cy + cardH / 2 - 2, compactCards ? 18 : 26);
     }
   });
 
@@ -3738,6 +4052,7 @@ function drawLevelPreviewScreen() {
     _previewLS.keySig === 'F'  ? 'F MAJOR'  :
     _previewLS.keySig === 'Bb' ? 'Bb MAJOR' :
     _previewLS.keySig === 'Eb' ? 'Eb MAJOR' :
+    _previewLS.keySig === 'Ab' ? 'Ab MAJOR' :
     _previewLS.keySig === 'C'  ? 'C MAJOR' : 'D MAJOR';
   ctx.fillText(`${selectedInstrument.toUpperCase()}  ·  ${clefName}  ·  ${_keySigName}`, W / 2, 70);
 
@@ -3820,6 +4135,7 @@ function drawLevelPreviewScreen() {
   };
   // Bass clef preview: bottom line psl[4]=G2, psl[3]=B2, psl[2]=D3, psl[1]=F3, psl[0]=A3
   const pNoteY_bass = {
+    'F1':  psl[4] + LS * 4.0,  'G1':  psl[4] + LS * 3.5,   // Tuba
     'A1':  psl[4] + LS * 3.0,  'Ab1': psl[4] + LS * 3.0,   // Tuba
     'B1':  psl[4] + LS * 2.5,  'Bb1': psl[4] + LS * 2.5,
     'Eb2': psl[4] + LS * 1.0,
@@ -3895,14 +4211,29 @@ function drawLevelPreviewScreen() {
     } else if (_previewKeySig === 'Eb') {
       ctx.fillText('♭', kx,      psl[3] + LS * 0.75 - 5); // Bb (B2, 2nd line)
       ctx.fillText('♭', kx + 14, psl[1] + LS * 0.75); // Eb (4th line)
-      ctx.fillText('♭', kx + 28, psl[3] - LS * 0.25 - 10); // Ab (space above Bb)
+      ctx.fillText('♭', kx + 28, psl[3] + LS * 0.5 + 5.5); // Ab (bottom space)
+    } else if (_previewKeySig === 'Ab') {
+      ctx.fillText('♭', kx,      psl[3] + LS * 0.75 - 5); // Bb
+      ctx.fillText('♭', kx + 14, psl[1] + LS * 0.75); // Eb
+      ctx.fillText('♭', kx + 28, psl[3] + LS * 0.5 + 5.5); // Ab (bottom space)
+      ctx.fillText('♭', kx + 42, psl[2] + LS * 0.5 - 2); // Db
     } else if (_previewKeySig === 'F') {
       ctx.fillText('♭', kx,      psl[3] + LS * 0.75 - 5); // Bb
     }
+  } else if (selectedInstrument === 'Viola' && ['F','Bb','Eb'].includes(_previewKeySig)) {
+    // Alto clef flats: Bb (B3, 2nd space), Eb (E4, 4th line), Ab (A3, 2nd line)
+    ctx.fillText('♭', kx, psl[2] + LS * 0.5 + 5.5);                         // Bb
+    if (_previewKeySig !== 'F')  ctx.fillText('♭', kx + 14, psl[1] + 5.5);  // Eb
+    if (_previewKeySig === 'Eb') ctx.fillText('♭', kx + 28, psl[3] + 5.5);  // Ab
   } else if (_previewKeySig === 'Eb') {
     ctx.fillText('♭', kx,      psl[2] + LS * 0.75 - 5); // Bb (B4, 3rd line)
     ctx.fillText('♭', kx + 14, psl[0] + LS * 0.5);  // Eb (top space)
     ctx.fillText('♭', kx + 28, psl[3] + LS * 0.75 - 10); // Ab (G4, 2nd line)
+  } else if (_previewKeySig === 'Ab') {
+    ctx.fillText('♭', kx,      psl[2] + LS * 0.75 - 5); // Bb
+    ctx.fillText('♭', kx + 14, psl[0] + LS * 0.5);  // Eb
+    ctx.fillText('♭', kx + 28, psl[3] + LS * 0.75 - 10); // Ab
+    ctx.fillText('♭', kx + 42, psl[1] + LS * 0.5 - 2);  // Db
   } else if (_previewKeySig === 'Bb') {
     ctx.fillText('♭', kx,      psl[2] + LS * 0.75 - 5); // Bb on middle line (treble)
     ctx.fillText('♭', kx + 14, psl[0] + LS * 0.75); // Eb on top space (treble)
@@ -3924,7 +4255,7 @@ function drawLevelPreviewScreen() {
     } else if (_previewKeySig === 'Eb') {
       ctx.fillText('♭', kx,      psl[3] + LS * 0.75 - 5); // Bb
       ctx.fillText('♭', kx + 14, psl[1] + LS * 0.75); // Eb
-      ctx.fillText('♭', kx + 28, psl[3] + LS * 0.25 - 10); // Ab
+      ctx.fillText('♭', kx + 28, psl[3] + LS * 0.5 + 5.5); // Ab (bottom space)
     } else if (_previewKeySig === 'F') {
       ctx.fillText('♭', kx,      psl[3] + LS * 0.75 - 5); // Bb
     } else if (_previewKeySig === 'A') {
@@ -4005,6 +4336,10 @@ function drawLevelPreviewScreen() {
         ctx.beginPath(); ctx.moveTo(nx - 10, pBottomLine + LS); ctx.lineTo(nx + 10, pBottomLine + LS); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(nx - 10, pBottomLine + LS * 2); ctx.lineTo(nx + 10, pBottomLine + LS * 2); ctx.stroke();
       }
+      if (['F3','E3','D3','C3'].includes(sp)) {
+        const nLed = (sp === 'F3' || sp === 'E3') ? 3 : 4;
+        for (let k = 1; k <= nLed; k++) { ctx.beginPath(); ctx.moveTo(nx - 10, pBottomLine + LS * k); ctx.lineTo(nx + 10, pBottomLine + LS * k); ctx.stroke(); }
+      }
     }
 
     // Ledger lines BELOW bass staff in preview (cello/bass level 6, Tuba)
@@ -4014,8 +4349,8 @@ function drawLevelPreviewScreen() {
       if (sp === 'E2' || sp === 'D2') {
         ctx.beginPath(); ctx.moveTo(nx - 10, psl[4] + LS); ctx.lineTo(nx + 10, psl[4] + LS); ctx.stroke();
       }
-      if (sp === 'B1' || sp === 'A1') {
-        const n = sp === 'A1' ? 3 : 2;
+      if (['B1','A1','G1','F1'].includes(sp)) {
+        const n = sp === 'F1' ? 4 : (sp === 'A1' || sp === 'G1') ? 3 : 2;
         for (let k = 1; k <= n; k++) { ctx.beginPath(); ctx.moveTo(nx - 10, psl[4] + LS * k); ctx.lineTo(nx + 10, psl[4] + LS * k); ctx.stroke(); }
       }
       if (sp === 'C2') {
@@ -4103,32 +4438,37 @@ function drawLevelPreviewScreen() {
     const activeLevels = getLevelSet();
     const levelNums = Object.keys(activeLevels).map(Number);
     const dbW = 60, dbH = 28, dbGap = 10;
-    const totalDbW = levelNums.length * dbW + (levelNums.length - 1) * dbGap;
+    const perRow = 12; // wrap so Percussion's 24 levels fit
+    const dbRows = Math.ceil(levelNums.length / perRow);
+    const rowCount = Math.min(levelNums.length, perRow);
+    const totalDbW = rowCount * dbW + (rowCount - 1) * dbGap;
     const dbStartX = W / 2 - totalDbW / 2;
     const dbY = 16;
+    const panelH = dbRows * dbH + (dbRows - 1) * dbGap;
 
     // Panel background
     ctx.save();
     ctx.fillStyle = 'rgba(0,0,0,0.85)';
-    ctx.fillRect(dbStartX - 14, dbY - 10, totalDbW + 28, dbH + 28);
+    ctx.fillRect(dbStartX - 14, dbY - 10, totalDbW + 28, panelH + 28);
     ctx.strokeStyle = '#ff44bb';
     ctx.lineWidth = 1.5;
-    ctx.strokeRect(dbStartX - 14, dbY - 10, totalDbW + 28, dbH + 28);
+    ctx.strokeRect(dbStartX - 14, dbY - 10, totalDbW + 28, panelH + 28);
 
     // Label
     ctx.fillStyle = '#ff44bb';
     ctx.font = '6px "Press Start 2P"';
     ctx.textAlign = 'center';
-    ctx.fillText('DEV: JUMP TO LEVEL', W / 2, dbY + dbH + 14);
+    ctx.fillText('DEV: JUMP TO LEVEL', W / 2, dbY + panelH + 14);
     ctx.restore();
 
     devLevelBtns = [];
     levelNums.forEach((lvl, i) => {
-      const bx = dbStartX + i * (dbW + dbGap);
+      const bx = dbStartX + (i % perRow) * (dbW + dbGap);
+      const by = dbY + Math.floor(i / perRow) * (dbH + dbGap);
       const hov = hoveredBtn === `DEV_LVL_${lvl}`;
       const sel = lvl === currentLevel;
-      drawNesButton(`L${lvl}`, bx, dbY, dbW, dbH, hov, sel);
-      devLevelBtns.push({ level: lvl, x: bx, y: dbY, w: dbW, h: dbH });
+      drawNesButton(`L${lvl}`, bx, by, dbW, dbH, hov, sel);
+      devLevelBtns.push({ level: lvl, x: bx, y: by, w: dbW, h: dbH });
     });
   }
 }
