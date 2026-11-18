@@ -535,7 +535,8 @@
           ? "Level " + staffHeroLevelName(nextLevel)
           : "Level " + nextLevel;
 
-      const meta = IS_TEACHER ? "All levels unlocked"
+      const meta = module.filename === SIGHT_READING_FILE ? sightReadingMeta()
+                 : IS_TEACHER ? "All levels unlocked"
                  : unlockLevel ? nextLabel + " · 🔓 Unlocked by your teacher"
                  : nextLabel;
 
@@ -580,6 +581,7 @@
           metaHtml = "Not Started";
         }
         if (IS_TEACHER) metaHtml = "All levels unlocked";
+        if (mod.filename === SIGHT_READING_FILE) metaHtml = sightReadingMeta();
 
         const card = document.createElement("a");
         card.className   = "module-card";
@@ -701,7 +703,11 @@
           bestScoresMap[mid] = arr[0];
         });
 
-        const modules = data.modules || [];
+        // Sight Reading is strings-only for now: hide it from band students
+        SIGHT_READING_TIME = data.sightReadingTime || null;
+        const isOrchestra = getEnsembleForInstrument(sessionStorage.getItem("studentInstrument")) === "orchestra";
+        const modules = (data.modules || []).filter(m =>
+          m.filename !== SIGHT_READING_FILE || IS_TEACHER || isOrchestra);
 
         // Teacher-unlocked levels for this student's class (getProgress → unlocks:
         // [{ moduleId, level, timestamp }]). Older Apps Script versions send none.
@@ -721,15 +727,24 @@
         // The newest unlocked level is Up Next until the teacher sets Today's Module
         // again (or unlocks another level) — whichever happened last wins.
         const todaysTime = data.todaysModuleTime ? new Date(data.todaysModuleTime) : null;
-        const unlockWins = !!latestUnlock && !IS_TEACHER &&
+        let unlockWins = !!latestUnlock && !IS_TEACHER &&
           (!todaysTime || isNaN(todaysTime) || new Date(latestUnlock.timestamp) > todaysTime);
 
+        // A newly pushed sight-reading excerpt is Up Next when it's the newest thing
+        const srModule = modules.find(m => m.filename === SIGHT_READING_FILE);
+        const srTime   = SIGHT_READING_TIME ? new Date(SIGHT_READING_TIME) : null;
+        const srWins   = !!srModule && !IS_TEACHER && !!srTime && !isNaN(srTime) &&
+          (!todaysTime || isNaN(todaysTime) || srTime > todaysTime) &&
+          (!latestUnlock || srTime > new Date(latestUnlock.timestamp));
+        if (srWins) unlockWins = false;
+
         // Up Next — hidden entirely when the teacher set Today's Module to "None"
-        const hideUpNext = !unlockWins && String(data.todaysModule || "").trim().toLowerCase() === TODAYS_NONE;
+        const hideUpNext = !unlockWins && !srWins && String(data.todaysModule || "").trim().toLowerCase() === TODAYS_NONE;
         document.getElementById("upNextLabel").style.display = hideUpNext ? "none" : "";
         document.getElementById("upNextArea").style.display  = hideUpNext ? "none" : "";
         if (hideUpNext) { renderGrid(modules, bestScoresMap, allScoresMap); return; }
-        const upNextModule = unlockWins ? latestUnlock.mod
+        const upNextModule = srWins ? srModule
+                           : unlockWins ? latestUnlock.mod
                            : pickUpNext(modules, bestScoresMap, data.todaysModule || null);
         const upNextIndex  = modules.indexOf(upNextModule);
         const upNextTheme  = MODULE_THEMES[upNextIndex % MODULE_THEMES.length];
@@ -751,6 +766,21 @@
       "pitch.html"     : 86,   // module ID in sheet: note_id — must match PITCH_PASS_PCT in pitch.html
     };
     const DEFAULT_THRESHOLD = 81;
+
+    // ── SIGHT READING (Nov 2026) ─────────────────────────────
+    // No levels: the teacher pushes an excerpt to a class (SightReading sheet).
+    // Shown to orchestra students and teachers only; a new push becomes Up Next
+    // if it's newer than Today's Module and any unlock.
+    const SIGHT_READING_FILE = "sightreading.html";
+    let SIGHT_READING_TIME = null;   // when this student's class last got an excerpt (getProgress)
+    function fmtShortDate(iso) {
+      const d = new Date(iso);
+      return isNaN(d) ? "" : d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    }
+    function sightReadingMeta() {
+      if (IS_TEACHER) return "Make & push excerpts";
+      return SIGHT_READING_TIME ? "New excerpt · " + fmtShortDate(SIGHT_READING_TIME) : "Waiting for your teacher";
+    }
 
     // Today's Module value the teacher dashboard saves for "None" (must match teacher.html)
     const TODAYS_NONE = "none";
@@ -786,6 +816,7 @@
     }
 
     function buildModuleUrl(filename, bestScore) {
+      if (filename === SIGHT_READING_FILE) return SIGHT_READING_FILE;
       if (filename === "rhythm.html") return buildRhythmUrl(bestScore);
       if (filename === "pitch.html")  return buildPitchUrl(bestScore);
       // For staffhero: always include maxLevel + bestLevel so "Other Levels"

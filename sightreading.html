@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sight Reading Generator – BRMLL</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/opensheetmusicdisplay@1.9.9/build/opensheetmusicdisplay.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
+<style>
+  :root {
+    --blue: #2f5bd3;
+    --blue-light: #eaf0ff;
+    --text: #1d2433;
+    --muted: #6b7489;
+    --border: #d9deea;
+    --bg: #f4f6fb;
+    --card: #ffffff;
+    --warn-bg: #fff6e0;
+    --warn: #8a5a00;
+    --err-bg: #fdecec;
+    --err: #a12626;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'DM Sans', system-ui, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    height: 100vh;
+    overflow: hidden;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    height: 100vh;
+  }
+
+  /* ── Teacher settings panel ── */
+  .settings {
+    background: var(--card);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 16px 18px 24px;
+  }
+  .settings h2 {
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 10px;
+  }
+  .panel-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0 0 2px;
+  }
+  .panel-sub { font-size: 0.8rem; color: var(--muted); margin: 0 0 14px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field.full { grid-column: 1 / -1; }
+  .field label { font-size: 0.75rem; font-weight: 600; color: var(--muted); }
+  select, input[type=number] {
+    font-family: inherit;
+    font-size: 0.9rem;
+    padding: 6px 8px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--text);
+  }
+  .check-line { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 500; margin: 4px 0 12px; }
+  .divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+  fieldset.rgroup {
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    margin: 0 0 10px;
+    padding: 4px 8px 6px;
+    position: relative;
+  }
+  fieldset.rgroup legend { font-size: 0.78rem; font-weight: 600; padding: 0 4px; }
+  .rgroup-btns { position: absolute; top: -13px; right: 6px; display: flex; gap: 4px; background: var(--card); padding: 0 3px; }
+  .rgroup-btns button {
+    font-family: inherit; font-size: 0.68rem; font-weight: 600;
+    border: 1px solid var(--border); background: #fff; color: var(--muted);
+    border-radius: 6px; padding: 1px 6px; cursor: pointer;
+  }
+  .rgroup-btns button:hover { border-color: var(--blue); color: var(--blue); }
+  .rcells { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+  .rcell { display: flex; align-items: center; gap: 3px; cursor: pointer; }
+  .rcell.disabled { opacity: 0.3; cursor: not-allowed; }
+  .rcell svg { display: block; }
+
+  .btn {
+    font-family: inherit; font-weight: 700; font-size: 0.95rem;
+    border: none; border-radius: 10px; padding: 11px 14px; cursor: pointer;
+    background: var(--blue); color: #fff; width: 100%;
+  }
+  .btn:hover { filter: brightness(1.08); }
+  .btn-sm {
+    font-family: inherit; font-weight: 600; font-size: 0.8rem;
+    border: 1.5px solid var(--blue); color: var(--blue); background: #fff;
+    border-radius: 18px; padding: 5px 12px; cursor: pointer;
+  }
+  .btn-sm:hover, .btn-sm.on { background: var(--blue); color: #fff; }
+  .msg { font-size: 0.8rem; border-radius: 8px; padding: 8px 10px; margin-top: 10px; display: none; }
+  .msg.warn { display: block; background: var(--warn-bg); color: var(--warn); }
+  .msg.err  { display: block; background: var(--err-bg); color: var(--err); }
+  .tools { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+
+  /* ── Excerpt (student) area ── */
+  .main { display: flex; flex-direction: column; overflow: hidden; }
+  .topbar {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 12px 20px; background: var(--card); border-bottom: 1px solid var(--border);
+  }
+  .excerpt-title { font-size: 1.1rem; font-weight: 700; }
+  .excerpt-meta { font-size: 0.85rem; color: var(--muted); }
+  .spacer { flex: 1; }
+  .student-bar {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 10px 20px; background: var(--blue-light); border-bottom: 1px solid var(--border);
+    font-size: 0.85rem;
+  }
+  .student-bar .tag {
+    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--blue);
+  }
+  .play-btn {
+    font-family: inherit; font-weight: 700; font-size: 0.9rem;
+    border: none; border-radius: 20px; padding: 7px 18px; cursor: pointer;
+    background: var(--blue); color: #fff; min-width: 92px;
+  }
+  .play-btn.stop { background: #c0392b; }
+  .play-btn:disabled { opacity: 0.5; cursor: default; }
+  .speed { display: flex; align-items: center; gap: 6px; }
+  .speed input { width: 140px; }
+  .speed-val { min-width: 92px; font-weight: 600; }
+  .muted-note { color: var(--muted); font-style: italic; }
+
+  .score-wrap { flex: 1; overflow-y: auto; padding: 14px 20px 30px; }
+  .score-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 6px 10px 10px; margin-bottom: 14px;
+  }
+  .score-card .inst-label { font-size: 0.75rem; font-weight: 700; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; padding: 6px 4px 0; }
+  .score { position: relative; }
+  .smooth-bar {
+    position: absolute; width: 4px; border-radius: 2px;
+    background: rgba(47, 91, 211, 0.55); display: none; pointer-events: none; z-index: 5;
+  }
+  .empty { color: var(--muted); text-align: center; margin-top: 80px; }
+
+  /* push panel */
+  .class-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+  .class-row { display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: start; font-size: 0.82rem; padding: 5px 6px; border-radius: 6px; cursor: pointer; }
+  .class-row:hover { background: var(--blue-light); }
+  .class-row .cname { font-weight: 700; }
+  .class-row .cnow { color: var(--muted); font-size: 0.74rem; }
+  .list-btns { display: flex; gap: 6px; margin-bottom: 6px; }
+  .recent-item { border: 1.5px solid var(--border); border-radius: 8px; padding: 7px 9px; margin-bottom: 6px; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; }
+  .recent-item .r-text { flex: 1; }
+  .recent-item .r-sub { color: var(--muted); font-size: 0.72rem; }
+  .msg.ok { display: block; background: #e8f6ee; color: #1d6b3f; }
+  .back-link { font-size: 0.85rem; font-weight: 600; color: var(--blue); text-decoration: none; margin-right: 6px; }
+  .new-banner {
+    display: none; align-items: center; gap: 12px; padding: 10px 20px;
+    background: #fff6e0; border-bottom: 1px solid #f0d9a0; font-weight: 600; font-size: 0.9rem;
+  }
+  .new-banner.show { display: flex; }
+
+  /* student view: no teacher panel */
+  body.student-view .layout { grid-template-columns: 1fr; }
+  body.student-view .settings,
+  body.student-view .teacher-only { display: none !important; }
+
+  dialog { border: none; border-radius: 12px; padding: 18px; width: 560px; max-width: 90vw; }
+  dialog textarea { width: 100%; height: 220px; font-family: monospace; font-size: 0.75rem; }
+  dialog .dlg-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ═════════════ TEACHER SETTINGS ═════════════ -->
+  <aside class="settings">
+    <p class="panel-title">Sight Reading Generator</p>
+    <p class="panel-sub">Teacher settings · test build</p>
+
+    <h2>Music</h2>
+    <div class="row">
+      <div class="field">
+        <label for="selMeasures">Length (bars)</label>
+        <select id="selMeasures"></select>
+      </div>
+      <div class="field">
+        <label for="selTime">Time signature</label>
+        <select id="selTime"></select>
+      </div>
+      <div class="field">
+        <label for="selTonic">Tonic</label>
+        <select id="selTonic"></select>
+      </div>
+      <div class="field">
+        <label for="selScale">Scale</label>
+        <select id="selScale"></select>
+      </div>
+      <div class="field">
+        <label for="selMin">Lowest note</label>
+        <select id="selMin"></select>
+      </div>
+      <div class="field">
+        <label for="selMax">Highest note</label>
+        <select id="selMax"></select>
+      </div>
+      <div class="field full" style="margin-top:-4px">
+        <span style="font-size:0.72rem;color:var(--muted)">Range is the written melody. Each instrument is moved by its octave setting below (bass = sounding pitch).</span>
+      </div>
+      <div class="field">
+        <label for="selInterval">Largest interval</label>
+        <select id="selInterval"></select>
+      </div>
+      <div class="field">
+        <label for="inpTempo">Tempo (BPM)</label>
+        <input type="number" id="inpTempo" min="30" max="240" value="80">
+      </div>
+      <div class="field">
+        <label for="selRepeat">Repetition</label>
+        <select id="selRepeat"></select>
+      </div>
+    </div>
+    <h2 style="margin-top:6px">Octaves</h2>
+    <div class="row" style="grid-template-columns:repeat(4,1fr);gap:6px">
+      <div class="field"><label for="oct_violin">Violin</label><select id="oct_violin" class="octsel"></select></div>
+      <div class="field"><label for="oct_viola">Viola</label><select id="oct_viola" class="octsel"></select></div>
+      <div class="field"><label for="oct_cello">Cello</label><select id="oct_cello" class="octsel"></select></div>
+      <div class="field"><label for="oct_bass">Bass</label><select id="oct_bass" class="octsel"></select></div>
+    </div>
+    <label class="check-line"><input type="checkbox" id="chkPlayback" checked> Allow students to play it back</label>
+
+    <div class="divider"></div>
+    <h2 id="rhythmHeading">Rhythms</h2>
+    <div id="rhythmPanel"></div>
+
+    <button class="btn" id="btnGenerate">Generate Excerpt</button>
+    <div class="msg" id="msg"></div>
+
+    <div class="divider"></div>
+    <h2>Push to classes</h2>
+    <div class="list-btns">
+      <button class="btn-sm" id="btnClassAll" type="button">All</button>
+      <button class="btn-sm" id="btnClassNone" type="button">None</button>
+    </div>
+    <div class="class-list" id="classList"><span class="muted-note">Loading classes…</span></div>
+    <button class="btn" id="btnPush">Push excerpt to selected classes</button>
+    <div class="msg" id="pushMsg"></div>
+
+    <div class="divider"></div>
+    <h2>Recent excerpts</h2>
+    <div id="recentList"><span class="muted-note" style="font-size:0.8rem">Nothing pushed yet.</span></div>
+
+    <div class="divider"></div>
+    <div class="tools">
+      <button class="btn-sm" id="btnXml">Download MusicXML</button>
+    </div>
+  </aside>
+
+  <!-- ═════════════ EXCERPT / STUDENT VIEW ═════════════ -->
+  <main class="main">
+    <div class="topbar">
+      <a class="back-link" href="dashboard.html">← Dashboard</a>
+      <div>
+        <div class="excerpt-title" id="excerptTitle">No excerpt yet</div>
+        <div class="excerpt-meta" id="excerptMeta">Choose settings and click Generate.</div>
+      </div>
+      <div class="spacer"></div>
+      <div class="field teacher-only" style="flex-direction:row;align-items:center;gap:8px">
+        <label for="selInst" style="font-size:0.85rem">Instrument</label>
+        <select id="selInst">
+          <option value="violin">Violin</option>
+          <option value="viola">Viola</option>
+          <option value="cello">Cello</option>
+          <option value="bass">Bass</option>
+        </select>
+      </div>
+      <button class="btn-sm teacher-only" id="btnAll">Show all 4</button>
+    </div>
+
+    <div class="student-bar" id="studentBar">
+      <span class="tag">Student controls</span>
+      <span id="playControls">
+        <span style="display:inline-flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <button class="play-btn" id="btnPlay" disabled>▶ Play</button>
+          <span class="speed">
+            <label for="rngSpeed">Speed</label>
+            <input type="range" id="rngSpeed" min="50" max="150" step="5" value="100">
+            <span class="speed-val" id="speedVal">100%</span>
+          </span>
+          <label class="check-line" style="margin:0"><input type="checkbox" id="chkMetro" checked> Metronome</label>
+          <label class="check-line" style="margin:0"><input type="checkbox" id="chkSmooth" checked> Cursor</label>
+          <label class="check-line" style="margin:0"><input type="checkbox" id="chkChords" checked> Chords</label>
+        </span>
+      </span>
+      <span id="playOff" class="muted-note" style="display:none">Playback is turned off for this excerpt.</span>
+    </div>
+
+    <div class="new-banner" id="newBanner">
+      <span>🎵 New excerpt from your teacher!</span>
+      <button class="btn-sm on" id="btnLoadNew">Load it</button>
+    </div>
+
+    <div class="score-wrap" id="scoreWrap">
+      <div class="empty" id="emptyMsg">Your excerpt will appear here.</div>
+    </div>
+  </main>
+</div>
+
+
+<script>
+// ════════════════════════════════════════════════════════════════
+//  SIGHT READING GENERATOR  (BRMLL)  — standalone test build
+//  Excerpt = plain JS object (saved/pushed as JSON)
+//        → MusicXML string per instrument → OSMD render
+//        → Tone.js piano playback from the excerpt data
+// ════════════════════════════════════════════════════════════════
+
+// ── CONSTANTS ───────────────────────────────────────────────────
+const DIV = 12;                          // MusicXML divisions per quarter (allows 16ths + triplets)
+const LETTERS = ['C','D','E','F','G','A','B'];
+const NAT = [0, 2, 4, 5, 7, 9, 11];      // semitones of natural letters above C
+const LETTER_FIFTHS = [0, 2, 4, -1, 1, 3, 5];
+
+const SCALES = {
+  major:      { name: 'Major',          steps: [0,2,4,5,7,9,11], fifthsOffset:  0, mode: 'major' },
+  natural:    { name: 'Natural Minor',  steps: [0,2,3,5,7,8,10], fifthsOffset: -3, mode: 'minor' },
+  harmonic:   { name: 'Harmonic Minor', steps: [0,2,3,5,7,8,11], fifthsOffset: -3, mode: 'minor' },
+  dorian:     { name: 'Dorian',         steps: [0,2,3,5,7,9,10], fifthsOffset: -2, mode: 'dorian' },
+  mixolydian: { name: 'Mixolydian',     steps: [0,2,4,5,7,9,10], fifthsOffset: -1, mode: 'mixolydian' },
+};
+// Scale degree (0-based) that gives each mode its colour; used at least once when possible
+const CHARACTER_DEGREE = { dorian: 5, mixolydian: 6, harmonic: 6 };
+
+const TONICS = [
+  ['C',0,0],['C#',0,1],['Db',1,-1],['D',1,0],['D#',1,1],['Eb',2,-1],['E',2,0],['F',3,0],
+  ['F#',3,1],['Gb',4,-1],['G',4,0],['G#',4,1],['Ab',5,-1],['A',5,0],['A#',5,1],['Bb',6,-1],['B',6,0],
+].map(([name, letter, alter]) => ({ name, letter, alter }));
+
+const METERS = {
+  '4/4':  { num: 4,  den: 4, beats: 4, beatTicks: 12, compound: false },
+  '3/4':  { num: 3,  den: 4, beats: 3, beatTicks: 12, compound: false },
+  '2/4':  { num: 2,  den: 4, beats: 2, beatTicks: 12, compound: false },
+  '6/8':  { num: 6,  den: 8, beats: 2, beatTicks: 18, compound: true  },
+  '3/8':  { num: 3,  den: 8, beats: 1, beatTicks: 18, compound: true  },
+  '12/8': { num: 12, den: 8, beats: 4, beatTicks: 18, compound: true  },
+};
+
+const INTERVALS = ['2nd','3rd','4th','5th','6th','7th','Octave','9th','10th']; // value = diatonic steps (index+1)
+
+const INSTRUMENTS = {
+  violin: { name: 'Violin', clef: { sign: 'G', line: 2 } },
+  viola:  { name: 'Viola',  clef: { sign: 'C', line: 3 } },
+  cello:  { name: 'Cello',  clef: { sign: 'F', line: 4 } },
+  bass:   { name: 'Bass',   clef: { sign: 'F', line: 4 } },
+};
+
+// ── RHYTHM CELLS ────────────────────────────────────────────────
+// code letters: w h q e s = whole/half/quarter/eighth/16th; '.' dotted; 'r' rest; 't' triplet
+const BASE_TICKS = { w: 48, h: 24, q: 12, e: 6, s: 3 };
+const TYPE_NAME  = { w: 'whole', h: 'half', q: 'quarter', e: 'eighth', s: '16th' };
+function ev(code) {
+  const t = code[0];
+  const dot = code.includes('.'), rest = code.includes('r'), tup = code.includes('t');
+  let d = BASE_TICKS[t];
+  if (dot) d *= 1.5;
+  if (tup) d = d * 2 / 3;
+  return { d, type: TYPE_NAME[t], dot, rest, tup };
+}
+function mkCell(id, codes) {
+  const events = codes.map(ev);
+  return { id, events, len: events.reduce((a, e) => a + e.d, 0) };
+}
+
+const SIMPLE_GROUPS = [
+  { name: 'Basic Notes', cells: [mkCell('w',['w']), mkCell('h',['h']), mkCell('q',['q'])] },
+  { name: 'Basic Rests', cells: [mkCell('wr',['wr']), mkCell('hr',['hr']), mkCell('qr',['qr'])] },
+  { name: 'Simple Beamed Notes', cells: [mkCell('ee',['e','e']), mkCell('ssss',['s','s','s','s'])] },
+  { name: 'Mixed Beamed Notes', cells: [mkCell('sse',['s','s','e']), mkCell('ess',['e','s','s']), mkCell('ses',['s','e','s'])] },
+  { name: 'Tuplets', cells: [mkCell('qt3',['qt','qt','qt']), mkCell('et3',['et','et','et'])] },
+  { name: 'Dotted Note Combinations', cells: [mkCell('h.',['h.']), mkCell('q.e',['q.','e']), mkCell('eq.',['e','q.']), mkCell('e.s',['e.','s']), mkCell('se.',['s','e.'])] },
+  { name: '8th Rest Combinations', cells: [mkCell('e-er',['e','er']), mkCell('er-e',['er','e']), mkCell('ss-er',['s','s','er']), mkCell('er-ss',['er','s','s'])] },
+  { name: 'Syncopated Combinations', cells: [mkCell('eqe',['e','q','e']), mkCell('eqqe',['e','q','q','e']), mkCell('eqqqe',['e','q','q','q','e'])] },
+];
+const COMPOUND_GROUPS = [
+  { name: 'Basic Notes', cells: [mkCell('h.',['h.']), mkCell('q.',['q.']), mkCell('qe',['q','e']), mkCell('eq',['e','q'])] },
+  { name: 'Basic Rests', cells: [mkCell('h.r',['h.r']), mkCell('q.r',['q.r'])] },
+  { name: 'Beamed 8ths', cells: [mkCell('eee',['e','e','e'])] },
+  { name: '16th Combinations', cells: [mkCell('ssee',['s','s','e','e']), mkCell('esse',['e','s','s','e']), mkCell('eess',['e','e','s','s']), mkCell('ssssss',['s','s','s','s','s','s'])] },
+  { name: 'Dotted Combinations', cells: [mkCell('e.se',['e.','s','e'])] },
+  { name: '8th Rest Combinations', cells: [mkCell('er-q',['er','q']), mkCell('q-er',['q','er']), mkCell('e-er-e',['e','er','e'])] },
+];
+const DEFAULT_CHECKED = ['S:w','S:h','S:q','S:qr','S:ee','C:q.','C:qe','C:eee','C:h.'];
+
+// Beam info for one cell's events (MusicXML <beam> values per level)
+function computeBeams(events) {
+  const levels = e => (e.rest || e.type === 'quarter' || e.type === 'half' || e.type === 'whole') ? 0 : (e.type === '16th' ? 2 : 1);
+  const out = events.map(() => []);
+  let i = 0;
+  while (i < events.length) {
+    if (levels(events[i]) === 0) { i++; continue; }
+    let j = i;
+    while (j + 1 < events.length && levels(events[j + 1]) > 0) j++;
+    if (j > i) {                          // a beamable run of 2+
+      for (let k = i; k <= j; k++) {
+        out[k][0] = k === i ? 'begin' : k === j ? 'end' : 'continue';
+        if (levels(events[k]) === 2) {
+          const prev2 = k > i && levels(events[k - 1]) === 2;
+          const next2 = k < j && levels(events[k + 1]) === 2;
+          if (prev2 && next2) out[k][1] = 'continue';
+          else if (prev2) out[k][1] = 'end';
+          else if (next2) out[k][1] = 'begin';
+          else out[k][1] = (k === j || (k > i && events[k - 1].dot)) ? 'backward hook' : 'forward hook';
+        }
+      }
+    }
+    i = j + 1;
+  }
+  return out;
+}
+
+// ── RHYTHM PLACEMENT RULES ──────────────────────────────────────
+function cellBeats(cell, meter) { return cell.len / meter.beatTicks; }
+function placementOk(b, pos, meter) {
+  if (b === 1) return true;
+  if (pos === 0) return true;
+  if (b === 2 && meter.beats === 4 && pos === 2) return true;   // beat 3 of 4/4, 12/8
+  if (b === 2 && meter.beats === 3 && pos === 1) return true;   // beat 2 of 3/4
+  return false;
+}
+function cellFitsMeter(cell, meter) {
+  const b = cellBeats(cell, meter);
+  return Number.isInteger(b) && b <= meter.beats;
+}
+const isFullRest = c => c.events.length === 1 && c.events[0].rest && c.id === 'wr';
+const endsOnRest = c => c.events[c.events.length - 1].rest;
+const startsOnRest = c => c.events[0].rest;
+const isSustained = c => c.events.length === 1 && !c.events[0].rest;
+
+function weightedPick(items, weightFn) {
+  const ws = items.map(weightFn);
+  const total = ws.reduce((a, b) => a + b, 0);
+  if (total <= 0) return items[Math.floor(Math.random() * items.length)];
+  let r = Math.random() * total;
+  for (let i = 0; i < items.length; i++) { r -= ws[i]; if (r <= 0) return items[i]; }
+  return items[items.length - 1];
+}
+
+// ── PHRASES & REPETITION ────────────────────────────────────────
+// 4-bar phrases; a leftover single bar joins the previous phrase.
+function planPhrases(n) {
+  if (n <= 4) return [{ start: 0, len: n }];
+  const out = [];
+  for (let s = 0; s < n; s += 4) out.push({ start: s, len: Math.min(4, n - s) });
+  if (out.length > 1 && out[out.length - 1].len === 1) { out.pop(); out[out.length - 1].len += 1; }
+  return out;
+}
+// rhythm: chance a bar reuses the rhythm of a matching earlier bar
+// pitchBars: how many opening bars of each later phrase copy phrase 1 exactly (rhythm + notes)
+const REPEAT = {
+  low:    { name: 'Low',    rhythm: 0.12, pitchBars: 0 },
+  medium: { name: 'Medium', rhythm: 0.4,  pitchBars: 1 },
+  high:   { name: 'High',   rhythm: 0.7,  pitchBars: 2 },
+};
+
+function pickEnder(meter, cells, fallback) {
+  const fitsAtEnd = c => { const b = cellBeats(c, meter); return b <= meter.beats && placementOk(b, meter.beats - b, meter); };
+  const enders = cells.filter(c => isSustained(c) && fitsAtEnd(c)).sort((a, b) => b.len - a.len);
+  if (enders.length) return enders[0];
+  const others = cells.filter(c => !endsOnRest(c) && !startsOnRest(c) && fitsAtEnd(c));
+  return others.length ? others[Math.floor(Math.random() * others.length)] : fallback;
+}
+
+function generateRhythmOnce(meter, cells, nMeasures, phrases, rep) {
+  const fallback = meter.compound ? mkCell('q.', ['q.']) : mkCell('q', ['q']);
+  const used = new Set();
+  const bars = new Array(nMeasures);
+  const copyOf = new Array(nMeasures).fill(-1);
+  const pitchCopy = new Array(nMeasures).fill(false);
+  const phraseOf = [], posIn = [], isEnd = [];
+  phrases.forEach((p, pi) => { for (let j = 0; j < p.len; j++) { phraseOf[p.start + j] = pi; posIn[p.start + j] = j; isEnd[p.start + j] = j === p.len - 1; } });
+  const ctx = { prevRest: false, first: true };
+
+  const canUse = (c, pos, limit, m) => {
+    const b = cellBeats(c, meter);
+    if (pos + b > limit || !placementOk(b, pos, meter)) return false;
+    if (isFullRest(c)) return m > 0 && !isEnd[m] && nMeasures > 2;
+    if (startsOnRest(c) && (ctx.prevRest || ctx.first)) return false;
+    return true;
+  };
+  const copyOk = src => !(startsOnRest(bars[src][0]) && ctx.prevRest);
+  const take = (m, list) => {
+    bars[m] = list;
+    ctx.prevRest = endsOnRest(list[list.length - 1]);
+    ctx.first = false;
+  };
+
+  for (let m = 0; m < nMeasures; m++) {
+    const pi = phraseOf[m], j = posIn[m];
+    // 1) copy from phrase 1's matching bar
+    if (pi > 0 && j < phrases[0].len) {
+      const src = phrases[0].start + j;
+      if (isEnd[src] === isEnd[m] && copyOk(src)) {
+        const forced = j < rep.pitchBars && j < phrases[pi].len - 2;   // never touch the cadence bars
+        if (forced || Math.random() < rep.rhythm) {
+          take(m, bars[src].slice()); copyOf[m] = src; pitchCopy[m] = forced; continue;
+        }
+      }
+    }
+    // 2) inside a phrase, bar 3 can echo bar 1's rhythm
+    if (j === 2 && !isEnd[m] && copyOk(m - 2) && Math.random() < rep.rhythm * 0.6) {
+      take(m, bars[m - 2].slice()); copyOf[m] = m - 2; continue;
+    }
+    // 3) fresh bar; phrase-ending bars finish on a long note
+    let limit = meter.beats, finalCell = null;
+    if (isEnd[m]) { finalCell = pickEnder(meter, cells, fallback); limit = meter.beats - cellBeats(finalCell, meter); }
+    const out = [];
+    let pos = 0;
+    while (pos < limit) {
+      const cands = cells.filter(c => canUse(c, pos, limit, m));
+      const c = cands.length
+        ? weightedPick(cands, c => (used.has(c.id) ? 1 : 2.5) * (isFullRest(c) ? 0.25 : 1))
+        : fallback;
+      out.push(c);
+      if (c !== fallback) used.add(c.id);
+      ctx.prevRest = endsOnRest(c); ctx.first = false;
+      pos += cellBeats(c, meter);
+    }
+    if (finalCell) {
+      if (startsOnRest(finalCell) && (ctx.prevRest || ctx.first)) finalCell = fallback;
+      out.push(finalCell);
+      if (finalCell !== fallback) used.add(finalCell.id);
+    }
+    take(m, out);
+  }
+  return { measures: bars, used, copyOf, pitchCopy };
+}
+
+function generateRhythm(meter, cells, nMeasures, phrases, rep) {
+  let best = null;
+  for (let t = 0; t < 80; t++) {
+    const r = generateRhythmOnce(meter, cells, nMeasures, phrases, rep);
+    if (!best || r.used.size > best.used.size) best = r;
+    if (best.used.size === cells.length) break;
+  }
+  return best;
+}
+
+// ── KEY / PITCH ENGINE ──────────────────────────────────────────
+function makeKey(tonic, scaleId) {
+  const scale = SCALES[scaleId];
+  const tonicMidi4 = 60 + NAT[tonic.letter] + tonic.alter;
+  const fifths = LETTER_FIFTHS[tonic.letter] + 7 * tonic.alter + scale.fifthsOffset;
+  const midiOf = k => {
+    const deg = ((k % 7) + 7) % 7, oct = Math.floor(k / 7);
+    return tonicMidi4 + scale.steps[deg] + 12 * oct;
+  };
+  const spell = k => {
+    const deg = ((k % 7) + 7) % 7, oct = Math.floor(k / 7);
+    const li = tonic.letter + deg;
+    const letter = li % 7;
+    const octave = 4 + oct + Math.floor(li / 7);
+    const midi = midiOf(k);
+    const natMidi = 12 * (octave + 1) + NAT[letter];
+    return { l: letter, a: midi - natMidi, o: octave, m: midi };
+  };
+  return { tonic, scaleId, scale, fifths, midiOf, spell, deg: k => ((k % 7) + 7) % 7 };
+}
+
+const ALLOWED_SEMIS = { 0: [0], 1: [1, 2], 2: [3, 4], 3: [5], 4: [7], 5: [8, 9], 6: [10, 11] };
+const STEP_WEIGHT = [0.7, 6, 3, 1.6, 1.2, 0.6, 0.25, 0.5, 0.25, 0.25];
+
+function generatePitches(N, key, minMidi, maxMidi, maxSteps) {
+  const ks = [];
+  for (let k = -40; k <= 40; k++) { const m = key.midiOf(k); if (m >= minMidi && m <= maxMidi) ks.push(k); }
+  if (!ks.length) return { error: 'No notes of this scale fit in the chosen range.' };
+  const kMin = ks[0], kMax = ks[ks.length - 1];
+  const center = (kMin + kMax) / 2, half = Math.max(1, (kMax - kMin) / 2);
+  const tonics = ks.filter(k => key.deg(k) === 0);
+  const warnings = [];
+  if (!tonics.length) warnings.push('The range has no tonic, so the excerpt can’t end on it.');
+
+  const okInt = (a, b) => {
+    const st = Math.abs(b - a);
+    if (st > maxSteps) return false;
+    const se = Math.abs(key.midiOf(b) - key.midiOf(a));
+    const s = st % 7, o = Math.floor(st / 7);
+    return ALLOWED_SEMIS[s].some(x => x + 12 * o === se);
+  };
+  const gravity = k => 1.2 - 0.7 * Math.min(1, Math.abs(k - center) / half);
+  const nextFrom = seq => {
+    const a = seq[seq.length - 1];
+    const prevMove = seq.length > 1 ? a - seq[seq.length - 2] : 0;
+    const twoRepeats = seq.length > 1 && prevMove === 0;
+    return ks.filter(b => okInt(a, b) && !(twoRepeats && b === a)).map(b => {
+      const mv = b - a, st = Math.abs(mv);
+      let w = STEP_WEIGHT[st] * gravity(b);
+      if (Math.abs(prevMove) >= 3) {          // after a leap, step back the other way
+        w *= (Math.sign(mv) === -Math.sign(prevMove) && st >= 1 && st <= 2) ? 6 : 0.15;
+      }
+      return { b, w };
+    });
+  };
+  const pickNear = list => weightedPick(list, k => gravity(k) ** 2);
+
+  const charDeg = CHARACTER_DEGREE[key.scaleId];
+  let best = null;
+  for (let attempt = 0; attempt < 600; attempt++) {
+    let seq;
+    if (N === 1) {
+      seq = [tonics.length ? pickNear(tonics) : pickNear(ks)];
+    } else {
+      seq = [];
+      if (N >= 3) {
+        const starts = ks.filter(k => [0, 2, 4].includes(key.deg(k)));
+        seq.push(pickNear(starts.length ? starts : ks));
+        let dead = false;
+        while (seq.length < N - 2) {
+          const c = nextFrom(seq);
+          if (!c.length) { dead = true; break; }
+          seq.push(weightedPick(c, x => x.w).b);
+        }
+        if (dead) continue;
+      }
+      // penultimate + final
+      if (tonics.length) {
+        const pairs = [];
+        for (const t of tonics) for (const p of [t - 1, t + 1]) {
+          if (p < kMin || p > kMax) continue;
+          if (seq.length && !okInt(seq[seq.length - 1], p)) continue;
+          if (seq.length >= 2 && seq[seq.length - 1] === seq[seq.length - 2] && seq[seq.length - 1] === p) continue;
+          pairs.push([p, t]);
+        }
+        if (!pairs.length) continue;
+        const pr = weightedPick(pairs, ([p]) => {
+          if (!seq.length) return gravity(p);
+          const st = Math.abs(p - seq[seq.length - 1]);
+          return STEP_WEIGHT[st] * gravity(p);
+        });
+        seq.push(pr[0], pr[1]);
+      } else {
+        while (seq.length < N) {
+          const c = seq.length ? nextFrom(seq) : ks.map(b => ({ b, w: 1 }));
+          if (!c.length) break;
+          seq.push(weightedPick(c, x => x.w).b);
+        }
+        if (seq.length < N) continue;
+      }
+    }
+    const hasChar = charDeg === undefined || N < 6 || seq.some(k => key.deg(k) === charDeg);
+    if (hasChar) { best = seq; break; }
+    if (!best) best = seq;
+  }
+  if (!best) return { error: 'Couldn’t fit a melody in this range with this interval limit. Try a wider range or larger interval.' };
+  return { ks: best, warnings };
+}
+
+// ── CHORD PLAN ──────────────────────────────────────────────────
+// Chord roots as scale degrees (0 = tonic). 'open' phrases end on a half cadence, 'close' on the tonic.
+const PROGRESSIONS = {
+  major:      { open: [[0,3,0,4],[0,5,1,4],[0,3,1,4],[0,5,3,4],[0,1,0,4]], close: [[0,3,4,0],[0,5,4,0],[0,1,4,0],[0,3,4,0]] },
+  natural:    { open: [[0,3,0,4],[0,5,3,4],[0,3,5,4]],                     close: [[0,3,4,0],[0,5,4,0]] },
+  harmonic:   { open: [[0,3,0,4],[0,5,3,4],[0,3,5,4]],                     close: [[0,3,4,0],[0,5,4,0]] },
+  dorian:     { open: [[0,3,0,6],[0,3,6,3],[0,6,0,3]],                     close: [[0,3,6,0],[0,6,3,0]] },
+  mixolydian: { open: [[0,6,0,3],[0,6,3,4],[0,3,0,6]],                     close: [[0,3,6,0],[0,6,3,0],[0,6,4,0]] },
+};
+const rnd = arr => arr[Math.floor(Math.random() * arr.length)];
+function phraseChords(L, final, prog) {
+  const t = rnd(final ? prog.close : prog.open);
+  if (L === 1) return [final ? 0 : t[3]];
+  if (L === 2) return final ? [t[2], 0] : [0, t[3]];
+  if (L === 3) return [0, t[2], t[3]];
+  if (L === 4) return t.slice();
+  const out = [t[0], t[1]];
+  while (out.length < L - 2) out.push(rnd([0, t[1]]));
+  out.push(t[2], t[3]);
+  return out;
+}
+function planChords(nMeasures, phrases, scaleId, copyOf, pitchCopy) {
+  if (nMeasures === 1) return [0];
+  const prog = PROGRESSIONS[scaleId];
+  const chords = [];
+  phrases.forEach((p, pi) => chords.push(...phraseChords(p.len, pi === phrases.length - 1, prog)));
+  for (let m = 0; m < nMeasures; m++) if (pitchCopy[m]) chords[m] = chords[copyOf[m]];
+  return chords;
+}
+const chordDegrees = root => [root % 7, (root + 2) % 7, (root + 4) % 7];
+
+// ── MELODY ──────────────────────────────────────────────────────
+// Counterpoint-style rules (Open Music Theory, cantus firmus) + chord tones on strong beats,
+// passing/neighbour tones by step on weak beats. Many candidates are generated and scored.
+const MEL_STEP_W = [0.8, 6, 3, 1.4, 1.0, 0.5, 0.06, 0.35, 0.12, 0.12]; // index = diatonic steps; 7ths rare
+
+function generateMelody(notes, chords, key, minMidi, maxMidi, maxSteps) {
+  const N = notes.length;
+  const ks = [];
+  for (let k = -40; k <= 40; k++) { const m = key.midiOf(k); if (m >= minMidi && m <= maxMidi) ks.push(k); }
+  if (!ks.length) return { error: 'No notes of this scale fit in the chosen range.' };
+  const kMin = ks[0], kMax = ks[ks.length - 1];
+  const center = (kMin + kMax) / 2, half = Math.max(1, (kMax - kMin) / 2);
+  const tonics = ks.filter(k => key.deg(k) === 0);
+  const cadenceOk = tonics.length > 0;
+  const warnings = cadenceOk ? [] : ['The range has no tonic, so the excerpt can’t end on it.'];
+  const hasLT = key.scaleId === 'major' || key.scaleId === 'harmonic';
+  const charDeg = CHARACTER_DEGREE[key.scaleId];
+  const deg = key.deg;
+  const isCT = (k, bar) => chordDegrees(chords[bar]).includes(deg(k));
+  const okInt = (a, b) => {
+    const st = Math.abs(b - a);
+    if (st > maxSteps) return false;
+    const se = Math.abs(key.midiOf(b) - key.midiOf(a));
+    return ALLOWED_SEMIS[st % 7].some(x => x + 12 * Math.floor(st / 7) === se);
+  };
+  const gravity = k => 1.2 - 0.75 * Math.min(1, Math.abs(k - center) / half);   // melodic regression
+
+  if (N === 1) {
+    const pool = cadenceOk ? tonics : ks;
+    return { ks: [weightedPick(pool, gravity)], warnings };
+  }
+
+  function attempt() {
+    const seq = [];
+    let needResolve = false;
+    for (let i = 0; i < N; i++) {
+      const n = notes[i];
+      const prev = seq[i - 1];
+      if (n.copyFrom >= 0) {                          // repeated opening of a phrase
+        const k = seq[n.copyFrom];
+        if (i > 0 && !okInt(prev, k)) return null;
+        if (needResolve && Math.abs(k - prev) !== 1) return null;
+        seq.push(k); needResolve = false; continue;
+      }
+      let cands = i === 0 ? ks.filter(k => isCT(k, n.bar)) : ks.filter(k => okInt(prev, k));
+      if (n.final && cadenceOk) cands = cands.filter(k => deg(k) === 0 && Math.abs(k - prev) === 1);
+      else if (n.penult && cadenceOk) cands = cands.filter(k => (deg(k) === 1 && ks.includes(k - 1)) || (deg(k) === 6 && ks.includes(k + 1)));
+      else if (n.phraseEnd) cands = cands.filter(k => isCT(k, n.bar));
+      if (needResolve) cands = cands.filter(k => Math.abs(k - prev) === 1);
+      // leading tone goes up to the tonic (unless it just moves inside the same V chord)
+      if (i > 0 && hasLT && deg(prev) === 6) {
+        const sameChord = notes[i - 1].bar === n.bar && isCT(prev, n.bar) && !n.phraseEnd;
+        cands = cands.filter(k => k === prev + 1 || (sameChord && isCT(k, n.bar) && Math.abs(k - prev) <= 2));
+      }
+      const pm = i >= 2 ? seq[i - 1] - seq[i - 2] : 0;
+      const pm2 = i >= 3 ? seq[i - 2] - seq[i - 3] : 0;
+      const items = [];
+      for (const k of cands) {
+        const mv = i ? k - prev : 0, st = Math.abs(mv);
+        const ct = isCT(k, n.bar);
+        let w = i ? MEL_STEP_W[st] : 1;
+        if (i > 0 && !ct && st !== 1 && !n.penult) continue;          // non-chord tones only by step
+        if (n.downbeat || n.long) w *= ct ? 3 : 0.12;
+        else if (n.onBeat) w *= ct ? 2 : 0.5;
+        if (n.short && st >= 2) w *= (ct && st === 2) ? 0.3 : 0.05;    // fast notes move by step
+        if (Math.abs(pm) >= 3) w *= (Math.sign(mv) === -Math.sign(pm) && st >= 1 && st <= 2) ? 6 : 0.15; // recover leaps
+        if (st >= 2 && Math.abs(pm) >= 2) {                              // consecutive leaps
+          if (Math.sign(mv) === Math.sign(pm)) {
+            const triad = ct && isCT(prev, n.bar) && isCT(seq[i - 2], n.bar);
+            w *= triad ? 0.5 : 0.05;
+          }
+          if (Math.abs(pm2) >= 2) w *= 0.1;                             // never 3 leaps in a row
+        }
+        if (i >= 2 && mv === 0 && pm === 0) continue;                    // max 2 of the same note in a row
+        w *= gravity(k);
+        if (w > 0) items.push({ k, w });
+      }
+      if (!items.length) return null;
+      const k = weightedPick(items, x => x.w).k;
+      seq.push(k);
+      needResolve = !isCT(k, n.bar) && i < N - 1 && !n.penult;
+    }
+    return seq;
+  }
+
+  function score(seq) {
+    let p = 0;
+    let leaps = 0, run = 0, lastDir = 0;
+    for (let i = 1; i < N; i++) {
+      const mv = seq[i] - seq[i - 1];
+      if (Math.abs(mv) >= 2) leaps++;
+      const dir = Math.sign(mv);
+      run = dir !== 0 && dir === lastDir ? run + 1 : 1;
+      if (run > 6) p += 0.5;                                             // endless scale runs
+      if (dir) lastDir = dir;
+      if (!isCT(seq[i - 1], notes[i - 1].bar) && Math.abs(mv) !== 1) p += 2; // unresolved non-chord tone
+    }
+    const ratio = leaps / (N - 1);
+    if (ratio > 0.4) p += (ratio - 0.4) * 15;
+    if (ratio < 0.1 && N > 8) p += 1;                                    // a little variety
+    // single climax, not at the end, not at the very start
+    const max = Math.max(...seq);
+    const idx = seq.map((k, i) => (k === max ? i : -1)).filter(i => i >= 0);
+    let groups = 0;
+    idx.forEach((v, j) => { if (j === 0 || idx[j - 1] !== v - 1) groups++; });
+    p += (groups - 1) * 2.5;
+    if (idx.includes(N - 1)) p += 4;
+    if (N > 5 && idx[0] / (N - 1) < 0.2) p += 1.5;
+    if (idx[0] > 0 && Math.abs(seq[idx[0]] - seq[idx[0] - 1]) >= 2) p -= 0.5; // leap to the climax
+    const span = max - Math.min(...seq);
+    if (span < Math.min(4, kMax - kMin)) p += 2;
+    if (charDeg !== undefined && N >= 6 && !seq.some(k => deg(k) === charDeg)) p += 3;
+    return p + Math.random() * 0.6;
+  }
+
+  let best = null, bestScore = Infinity, found = 0;
+  for (let t = 0; t < 400 && found < 150; t++) {
+    const seq = attempt();
+    if (!seq) continue;
+    found++;
+    const s = score(seq);
+    if (s < bestScore) { bestScore = s; best = seq; }
+  }
+  if (!best) return null;     // caller falls back to the simple generator
+  return { ks: best, warnings };
+}
+
+// ── BUILD AN EXCERPT ────────────────────────────────────────────
+const DEFAULT_OCTAVES = { violin: 0, viola: 0, cello: -1, bass: -2 };
+const LOWEST_SOUNDING = { violin: 55, viola: 48, cello: 36, bass: 28 };   // G3, C3, C2, E1
+
+function buildExcerpt(settings) {
+  const meter = METERS[settings.time];
+  const prefix = meter.compound ? 'C:' : 'S:';
+  const groups = meter.compound ? COMPOUND_GROUPS : SIMPLE_GROUPS;
+  const cells = groups.flatMap(g => g.cells).filter(c => settings.rhythms.includes(prefix + c.id) && cellFitsMeter(c, meter));
+  if (!cells.length) return { error: 'Pick at least one rhythm that fits this time signature.' };
+  if (!cells.some(c => c.events.some(e => !e.rest))) return { error: 'Pick at least one rhythm with notes (not only rests).' };
+  if (settings.rangeMin >= settings.rangeMax) return { error: 'The lowest note must be below the highest note.' };
+
+  const nM = settings.measures;
+  const rep = REPEAT[settings.repetition] || REPEAT.medium;
+  const phrases = planPhrases(nM);
+  const tonic = TONICS.find(t => t.name === settings.tonic);
+  const key = makeKey(tonic, settings.scale);
+
+  let rh = null, chords = null, notes = null, mel = null;
+  for (let tries = 0; tries < 6 && !mel; tries++) {
+    rh = generateRhythm(meter, cells, nM, phrases, rep);
+    chords = planChords(nM, phrases, settings.scale, rh.copyOf, rh.pitchCopy);
+    // note list with metric info
+    notes = [];
+    const barNoteIdx = [];
+    rh.measures.forEach((cellsInBar, m) => {
+      barNoteIdx[m] = [];
+      let pos = 0;
+      for (const c of cellsInBar) for (const e of c.events) {
+        if (!e.rest) {
+          barNoteIdx[m].push(notes.length);
+          notes.push({
+            bar: m, d: e.d,
+            downbeat: pos === 0,
+            onBeat: Math.abs(pos % meter.beatTicks) < 1e-9,
+            long: e.d >= meter.beatTicks,
+            short: e.d <= 4,
+            copyFrom: -1,
+          });
+        }
+        pos += e.d;
+      }
+    });
+    rh.measures.forEach((_, m) => {
+      if (rh.pitchCopy[m]) barNoteIdx[m].forEach((ni, j) => { notes[ni].copyFrom = barNoteIdx[rh.copyOf[m]][j]; });
+    });
+    phrases.forEach(p => {
+      for (let m = p.start + p.len - 1; m >= p.start; m--) {
+        if (barNoteIdx[m].length) { notes[barNoteIdx[m][barNoteIdx[m].length - 1]].phraseEnd = true; break; }
+      }
+    });
+    if (notes.length) {
+      notes[notes.length - 1].final = true;
+      notes[notes.length - 1].copyFrom = -1;
+      if (notes.length > 1) { notes[notes.length - 2].penult = true; notes[notes.length - 2].copyFrom = -1; }
+    }
+    mel = generateMelody(notes, chords, key, settings.rangeMin, settings.rangeMax, settings.maxInterval);
+  }
+  let pitchKs, warnings;
+  if (mel && mel.error) return { error: mel.error };
+  if (mel) { pitchKs = mel.ks; warnings = [...mel.warnings]; }
+  else {
+    const pr = generatePitches(notes.length, key, settings.rangeMin, settings.rangeMax, settings.maxInterval);
+    if (pr.error) return { error: pr.error };
+    pitchKs = pr.ks; warnings = [...pr.warnings];
+  }
+
+  let pi = 0;
+  const measures = rh.measures.map(cellsInBar => {
+    const evs = [];
+    for (const c of cellsInBar) {
+      const beams = computeBeams(c.events);
+      c.events.forEach((e, i) => {
+        const o = { d: e.d, type: e.type };
+        if (e.dot) o.dot = 1;
+        if (e.rest) o.rest = 1;
+        if (isFullRest(c)) o.full = 1;
+        if (e.tup) o.tup = i === 0 ? 'start' : i === c.events.length - 1 ? 'stop' : 'mid';
+        if (beams[i].length) o.beams = beams[i];
+        if (!e.rest) o.p = key.spell(pitchKs[pi++]);
+        evs.push(o);
+      });
+    }
+    return evs;
+  });
+
+  // chord voicings for playback (sounding MIDI, root position around G2–F#3)
+  const chordNotes = chords.map(root => {
+    let k = root;
+    while (key.midiOf(k) >= 55) k -= 7;
+    while (key.midiOf(k) < 43) k += 7;
+    return [k, k + 2, k + 4].map(key.midiOf);
+  });
+
+  if (Math.abs(key.fifths) > 7) {
+    warnings.push(`${tonic.name} ${key.scale.name} needs ${Math.abs(key.fifths)} ${key.fifths > 0 ? 'sharps' : 'flats'}, so there’s no key signature. Every accidental (including double ${key.fifths > 0 ? 'sharps' : 'flats'}) is written in.`);
+  }
+  const excerpt = {
+    v: 2,
+    created: new Date().toISOString(),
+    settings: { ...settings },
+    keyName: `${tonic.name} ${key.scale.name}`,
+    fifths: key.fifths,
+    mode: key.scale.mode,
+    phrases,
+    chords,
+    chordNotes,
+    measures,
+  };
+  // warn when an octave setting puts notes below an instrument's lowest open string
+  const low = Math.min(...measures.flat().filter(e => e.p).map(e => e.p.m));
+  for (const inst of Object.keys(INSTRUMENTS)) {
+    const s = instrumentShift(excerpt, inst);
+    const lowest = low + s.written + s.sound;
+    if (lowest < LOWEST_SOUNDING[inst]) warnings.push(`${INSTRUMENTS[inst].name}: some notes are below the lowest open string. Raise its octave setting.`);
+  }
+  return { excerpt, warnings };
+}
+
+// ── INSTRUMENT OCTAVES ──────────────────────────────────────────
+// Base pitches are the generated range. Octave settings are relative to that (bass = sounding octave;
+// bass is written an octave higher than it sounds).
+function instrumentShift(excerpt, inst) {
+  const o = ((excerpt.settings.octaves || DEFAULT_OCTAVES)[inst]) ?? DEFAULT_OCTAVES[inst];
+  if (inst === 'bass') return { written: (o + 1) * 12, sound: -12 };
+  return { written: o * 12, sound: 0 };
+}
+
+// ── MUSICXML ────────────────────────────────────────────────────
+// Chord symbol (MusicXML <harmony>) for a chord root given as a scale degree
+function harmonyXML(excerpt, root) {
+  const tonic = TONICS.find(t => t.name === excerpt.settings.tonic);
+  if (!tonic) return '';
+  const key = makeKey(tonic, excerpt.settings.scale);
+  const r = key.spell(root);
+  const third = ((key.midiOf(root + 2) - key.midiOf(root)) % 12 + 12) % 12;
+  const fifth = ((key.midiOf(root + 4) - key.midiOf(root)) % 12 + 12) % 12;
+  const kind = third === 4 ? (fifth === 8 ? 'augmented' : 'major') : (fifth === 6 ? 'diminished' : 'minor');
+  return `<harmony print-frame="no"><root><root-step>${LETTERS[r.l]}</root-step>${r.a ? `<root-alter>${r.a}</root-alter>` : ''}</root><kind>${kind}</kind></harmony>\n`;
+}
+
+function excerptToMusicXML(excerpt, inst, showChords = false) {
+  const meter = METERS[excerpt.settings.time];
+  const shift = instrumentShift(excerpt, inst);
+  const oct = shift.written / 12;
+  const I = INSTRUMENTS[inst];
+  const fifths = Math.abs(excerpt.fifths) > 7 ? 0 : excerpt.fifths;
+  const tempo = excerpt.settings.tempo;
+  let x = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n';
+  x += '<score-partwise version="3.1">\n';
+  x += `<part-list><score-part id="P1"><part-name>${I.name}</part-name></score-part></part-list>\n<part id="P1">\n`;
+  excerpt.measures.forEach((bar, mi) => {
+    x += `<measure number="${mi + 1}">\n`;
+    if (mi > 0 && mi % 4 === 0) x += '<print new-system="yes"/>\n';
+    if (mi === 0) {
+      x += `<attributes><divisions>${DIV}</divisions><key><fifths>${fifths}</fifths></key>`;
+      x += `<time><beats>${meter.num}</beats><beat-type>${meter.den}</beat-type></time>`;
+      x += `<clef><sign>${I.clef.sign}</sign><line>${I.clef.line}</line></clef></attributes>\n`;
+      x += `<direction placement="above"><direction-type><metronome><beat-unit>quarter</beat-unit>${meter.compound ? '<beat-unit-dot/>' : ''}<per-minute>${tempo}</per-minute></metronome></direction-type><sound tempo="${meter.compound ? tempo * 1.5 : tempo}"/></direction>\n`;
+    }
+    if (showChords && excerpt.chords && excerpt.chords[mi] !== undefined) x += harmonyXML(excerpt, excerpt.chords[mi]);
+    for (const e of bar) {
+      x += '<note>';
+      if (e.rest) x += e.full ? '<rest measure="yes"/>' : '<rest/>';
+      else {
+        x += `<pitch><step>${LETTERS[e.p.l]}</step>${e.p.a ? `<alter>${e.p.a}</alter>` : ''}<octave>${e.p.o + oct}</octave></pitch>`;
+      }
+      x += `<duration>${e.d}</duration><voice>1</voice>`;
+      if (!e.full) x += `<type>${e.type}</type>`;
+      if (e.dot) x += '<dot/>';
+      if (e.tup) x += '<time-modification><actual-notes>3</actual-notes><normal-notes>2</normal-notes></time-modification>';
+      if (e.beams) e.beams.forEach((b, i) => { if (b) x += `<beam number="${i + 1}">${b}</beam>`; });
+      if (e.tup === 'start') x += `<notations><tuplet type="start" bracket="${e.type === 'quarter' ? 'yes' : 'no'}"/></notations>`;
+      if (e.tup === 'stop') x += '<notations><tuplet type="stop"/></notations>';
+      x += '</note>\n';
+    }
+    if (mi === excerpt.measures.length - 1) x += '<barline location="right"><bar-style>light-heavy</bar-style></barline>\n';
+    x += '</measure>\n';
+  });
+  x += '</part>\n</score-partwise>\n';
+  return x;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  UI
+// ════════════════════════════════════════════════════════════════
+const $ = id => document.getElementById(id);
+let checked = new Set(DEFAULT_CHECKED);
+let current = null;            // current excerpt
+let showAll = false;
+const views = {};              // inst -> { osmd, el, bar }
+
+function midiName(m) { return LETTERS[NAT.indexOf(m % 12)] + (Math.floor(m / 12) - 1); }
+
+function fillSelects() {
+  for (let i = 1; i <= 16; i++) $('selMeasures').add(new Option(i, i));
+  Object.keys(METERS).forEach(t => $('selTime').add(new Option(t, t)));
+  TONICS.forEach(t => $('selTonic').add(new Option(t.name, t.name)));
+  Object.entries(SCALES).forEach(([id, s]) => $('selScale').add(new Option(s.name, id)));
+  for (let m = 48; m <= 84; m++) {
+    if (!NAT.includes(m % 12)) continue;
+    $('selMin').add(new Option(midiName(m), m));
+    $('selMax').add(new Option(midiName(m), m));
+  }
+  INTERVALS.forEach((n, i) => $('selInterval').add(new Option(n, i + 1)));
+  Object.entries(REPEAT).forEach(([id, r]) => $('selRepeat').add(new Option(r.name, id)));
+  for (const inst of Object.keys(INSTRUMENTS)) {
+    for (let o = 3; o >= -3; o--) $('oct_' + inst).add(new Option(o > 0 ? '+' + o : String(o), o));
+    $('oct_' + inst).value = DEFAULT_OCTAVES[inst];
+  }
+  $('selRepeat').value = 'medium';
+  // defaults
+  $('selMeasures').value = 8; $('selTime').value = '4/4'; $('selTonic').value = 'D'; $('selScale').value = 'major';
+  $('selMin').value = 55; $('selMax').value = 74; $('selInterval').value = 4;
+}
+
+function getSettings() {
+  return {
+    measures: +$('selMeasures').value,
+    time: $('selTime').value,
+    tonic: $('selTonic').value,
+    scale: $('selScale').value,
+    rangeMin: +$('selMin').value,
+    rangeMax: +$('selMax').value,
+    maxInterval: +$('selInterval').value,
+    tempo: Math.max(30, Math.min(240, +$('inpTempo').value || 80)),
+    playback: $('chkPlayback').checked,
+    repetition: $('selRepeat').value,
+    octaves: Object.fromEntries(Object.keys(INSTRUMENTS).map(i => [i, +$('oct_' + i).value])),
+    rhythms: [...checked],
+  };
+}
+function saveSettings() {
+  try { localStorage.setItem('brmll_sightreading_settings', JSON.stringify(getSettings())); } catch (e) {}
+}
+function loadSettings() {
+  try {
+    const s = JSON.parse(localStorage.getItem('brmll_sightreading_settings') || 'null');
+    if (!s) return;
+    $('selMeasures').value = s.measures; $('selTime').value = s.time; $('selTonic').value = s.tonic;
+    $('selScale').value = s.scale; $('selMin').value = s.rangeMin; $('selMax').value = s.rangeMax;
+    $('selInterval').value = s.maxInterval; $('inpTempo').value = s.tempo; $('chkPlayback').checked = s.playback;
+    if (s.repetition) $('selRepeat').value = s.repetition;
+    if (s.octaves) for (const i of Object.keys(INSTRUMENTS)) if (s.octaves[i] !== undefined) $('oct_' + i).value = s.octaves[i];
+    if (Array.isArray(s.rhythms)) checked = new Set(s.rhythms);
+  } catch (e) {}
+}
+
+// ── Mini rhythm icons (hand-drawn SVG) ──
+function cellIcon(cell) {
+  const NS = 'http://www.w3.org/2000/svg';
+  const H = 40, BASE = 30, STEM_TOP = 9;
+  const gap = 13;
+  let x = 6;
+  const parts = [];
+  const xs = [];
+  const beams = computeBeams(cell.events);
+  cell.events.forEach((e, i) => {
+    xs.push(x);
+    x += gap + (e.dot ? 5 : 0) + (e.type === 'whole' || e.type === 'half' ? 3 : 0);
+  });
+  const W = x - gap + 16;
+  const stemX = i => xs[i] + 4.3;   // right edge of the (tilted) note head
+  cell.events.forEach((e, i) => {
+    const cx = xs[i] + 0.5;
+    if (e.rest) {
+      const ry = 20;
+      if (e.type === 'whole') parts.push(`<line x1="${cx-6}" y1="${ry-3}" x2="${cx+9}" y2="${ry-3}" stroke="#333" stroke-width="1"/><rect x="${cx-3}" y="${ry-3}" width="9" height="4" fill="#111"/>`);
+      else if (e.type === 'half') parts.push(`<line x1="${cx-6}" y1="${ry+1}" x2="${cx+9}" y2="${ry+1}" stroke="#333" stroke-width="1"/><rect x="${cx-3}" y="${ry-3}" width="9" height="4" fill="#111"/>`);
+      else if (e.type === 'quarter') parts.push(`<path d="M${cx} ${ry-9} l4 5 l-3 4 l4 5 c-3 -1 -5 0 -3 4 c-4 -3 -3 -6 1 -5 l-4 -4 l3 -4 z" fill="#111"/>`);
+      else parts.push(`<circle cx="${cx+1}" cy="${ry-4}" r="2.1" fill="#111"/><path d="M${cx+1} ${ry-2} q3 1 6 -3 l-4 12" stroke="#111" stroke-width="1.4" fill="none"/>`);
+      if (e.dot) parts.push(`<circle cx="${cx+11}" cy="${ry-2}" r="1.5" fill="#111"/>`);
+      return;
+    }
+    const open = e.type === 'whole' || e.type === 'half';
+    parts.push(`<ellipse cx="${cx}" cy="${BASE}" rx="4.4" ry="3.2" transform="rotate(-20 ${cx} ${BASE})" fill="${open ? '#fff' : '#111'}" stroke="#111" stroke-width="${open ? 1.5 : 1}"/>`);
+    if (e.type !== 'whole') parts.push(`<line x1="${stemX(i)}" y1="${BASE - 1}" x2="${stemX(i)}" y2="${STEM_TOP}" stroke="#111" stroke-width="1.2"/>`);
+    if (e.dot) parts.push(`<circle cx="${cx + 8.5}" cy="${BASE}" r="1.5" fill="#111"/>`);
+    const nFlags = e.type === 'eighth' ? 1 : e.type === '16th' ? 2 : 0;
+    if (nFlags && !beams[i].length) {
+      for (let f = 0; f < nFlags; f++) {
+        const y = STEM_TOP + f * 5;
+        parts.push(`<path d="M${stemX(i)} ${y} c1 4 7 5 5 12" stroke="#111" stroke-width="1.4" fill="none"/>`);
+      }
+    }
+  });
+  // beams
+  for (let lvl = 0; lvl < 2; lvl++) {
+    const y = STEM_TOP + lvl * 5;
+    let start = null;
+    beams.forEach((b, i) => {
+      const v = b[lvl];
+      if (v === 'begin') start = i;
+      else if (v === 'end' && start !== null) { parts.push(`<rect x="${stemX(start)-0.6}" y="${y}" width="${stemX(i)-stemX(start)+1.2}" height="3" fill="#111"/>`); start = null; }
+      else if (v === 'forward hook') parts.push(`<rect x="${stemX(i)-0.6}" y="${y}" width="6" height="3" fill="#111"/>`);
+      else if (v === 'backward hook') parts.push(`<rect x="${stemX(i)-5.4}" y="${y}" width="6" height="3" fill="#111"/>`);
+    });
+  }
+  if (cell.events[0].tup) {
+    const x1 = xs[0], x2 = xs[xs.length - 1] + 6, mid = (x1 + x2) / 2;
+    if (cell.events[0].type === 'quarter') parts.push(`<path d="M${x1} 6 v-3 h${x2-x1} v3" stroke="#111" stroke-width="0.8" fill="none"/>`);
+    parts.push(`<text x="${mid}" y="${cell.events[0].type === 'quarter' ? 6 : 7}" font-size="8" font-style="italic" font-weight="700" text-anchor="middle" fill="#111" style="paint-order:stroke" stroke="#fff" stroke-width="2">3</text>`);
+  }
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('width', W); svg.setAttribute('height', H); svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = parts.join('');
+  return svg;
+}
+
+function buildRhythmPanel() {
+  const meter = METERS[$('selTime').value];
+  const prefix = meter.compound ? 'C:' : 'S:';
+  const groups = meter.compound ? COMPOUND_GROUPS : SIMPLE_GROUPS;
+  $('rhythmHeading').textContent = `Rhythms · ${meter.compound ? 'compound' : 'simple'} meter (${$('selTime').value})`;
+  const panel = $('rhythmPanel');
+  panel.innerHTML = '';
+  for (const g of groups) {
+    const fs = document.createElement('fieldset');
+    fs.className = 'rgroup';
+    fs.innerHTML = `<legend>${g.name}</legend><div class="rgroup-btns"><button type="button" data-a="all">All</button><button type="button" data-a="none">None</button></div>`;
+    const wrap = document.createElement('div');
+    wrap.className = 'rcells';
+    for (const c of g.cells) {
+      const key = prefix + c.id;
+      const fits = cellFitsMeter(c, meter);
+      const lab = document.createElement('label');
+      lab.className = 'rcell' + (fits ? '' : ' disabled');
+      lab.title = fits ? '' : `Doesn’t fit in ${$('selTime').value}`;
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = checked.has(key);
+      cb.disabled = !fits;
+      cb.addEventListener('change', () => { cb.checked ? checked.add(key) : checked.delete(key); saveSettings(); });
+      lab.appendChild(cb);
+      lab.appendChild(cellIcon(c));
+      wrap.appendChild(lab);
+    }
+    fs.appendChild(wrap);
+    fs.querySelectorAll('.rgroup-btns button').forEach(b => b.addEventListener('click', () => {
+      for (const c of g.cells) {
+        if (!cellFitsMeter(c, meter)) continue;
+        b.dataset.a === 'all' ? checked.add(prefix + c.id) : checked.delete(prefix + c.id);
+      }
+      saveSettings();
+      buildRhythmPanel();
+    }));
+    panel.appendChild(fs);
+  }
+}
+
+function showMsg(text, kind) {
+  const m = $('msg');
+  m.className = 'msg' + (text ? ' ' + kind : '');
+  m.innerHTML = text || '';
+}
+
+// ── Rendering ──
+function makeOSMD(el) {
+  const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(el, {
+    backend: 'svg',
+    autoResize: false,
+    drawTitle: false, drawSubtitle: false, drawComposer: false, drawLyricist: false,
+    drawCredits: false, drawPartNames: false, drawPartAbbreviations: false,
+    drawMeasureNumbers: true,
+    autoBeam: false,
+    followCursor: false,
+    cursorsOptions: [{ type: 0, color: '#2f5bd3', alpha: 0.35, follow: false }],
+  });
+  osmd.EngravingRules.RenderXMeasuresPerLineAkaSystem = 4;
+  return osmd;
+}
+
+async function renderCurrent() {
+  stopPlayback();
+  const wrap = $('scoreWrap');
+  wrap.innerHTML = '';
+  for (const k in views) delete views[k];
+  if (!current) { wrap.innerHTML = `<div class="empty">${emptyText}</div>`; return; }
+
+  const selected = $('selInst').value;
+  const insts = showAll ? Object.keys(INSTRUMENTS) : [selected];
+  for (const inst of insts) {
+    const card = document.createElement('div');
+    card.className = 'score-card';
+    if (showAll) card.innerHTML = `<div class="inst-label">${INSTRUMENTS[inst].name}${inst === selected ? ' · playback' : ''}</div>`;
+    const el = document.createElement('div');
+    el.className = 'score';
+    card.appendChild(el);
+    wrap.appendChild(card);
+    const osmd = makeOSMD(el);
+    await osmd.load(excerptToMusicXML(current, inst, $('chkChords').checked));
+    // every line full width with 4 bars; shrink if a line had to wrap early (e.g. busy 12/8)
+    const nBars = current.measures.length;
+    osmd.EngravingRules.StretchLastSystemLine = nBars > 4;
+    const wantLines = Math.ceil(nBars / 4);
+    const lineCount = () => osmd.GraphicSheet.MusicPages.reduce((n, pg) => n + pg.MusicSystems.length, 0);
+    osmd.zoom = 1.0;
+    osmd.render();
+    while (lineCount() > wantLines && osmd.zoom > 0.65) {
+      osmd.zoom = Math.round((osmd.zoom - 0.1) * 100) / 100;
+      osmd.render();
+    }
+    const bar = document.createElement('div');
+    bar.className = 'smooth-bar';
+    el.appendChild(bar);
+    views[inst] = { osmd, el, bar };
+  }
+  const meter = METERS[current.settings.time];
+  $('excerptTitle').textContent = current.keyName;
+  $('excerptMeta').textContent = `${current.settings.time} · ${current.measures.length} bar${current.measures.length > 1 ? 's' : ''} · ${meter.compound ? '♩.' : '♩'} = ${current.settings.tempo}`;
+  if (!IS_TEACHER && currentStamp) $('excerptMeta').textContent += ` · Sent ${fmtWhen(currentStamp)}`;
+  updatePlaybackAvailability();
+}
+
+function updatePlaybackAvailability() {
+  const allowed = current ? current.settings.playback : true;
+  $('playControls').style.display = allowed ? '' : 'none';
+  $('playOff').style.display = allowed ? 'none' : '';
+  $('btnPlay').disabled = !current;
+  updateSpeedLabel();
+}
+
+function updateSpeedLabel() {
+  const pct = +$('rngSpeed').value;
+  const tempo = current ? current.settings.tempo : +$('inpTempo').value;
+  $('speedVal').textContent = `${pct}% (${Math.round(tempo * pct / 100)} BPM)`;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  PLAYBACK
+// ════════════════════════════════════════════════════════════════
+let sampler = null, samplerReady = null, clickSynth = null;
+let playing = false, rafId = null;
+
+function initAudio() {
+  if (samplerReady) return samplerReady;
+  samplerReady = new Promise(resolve => {
+    sampler = new Tone.Sampler({
+      urls: {
+        A0: 'A0.mp3', C1: 'C1.mp3', 'D#1': 'Ds1.mp3', 'F#1': 'Fs1.mp3', A1: 'A1.mp3',
+        C2: 'C2.mp3', 'D#2': 'Ds2.mp3', 'F#2': 'Fs2.mp3', A2: 'A2.mp3',
+        C3: 'C3.mp3', 'D#3': 'Ds3.mp3', 'F#3': 'Fs3.mp3', A3: 'A3.mp3',
+        C4: 'C4.mp3', 'D#4': 'Ds4.mp3', 'F#4': 'Fs4.mp3', A4: 'A4.mp3',
+        C5: 'C5.mp3', 'D#5': 'Ds5.mp3', 'F#5': 'Fs5.mp3', A5: 'A5.mp3',
+        C6: 'C6.mp3', 'D#6': 'Ds6.mp3', 'F#6': 'Fs6.mp3', A6: 'A6.mp3',
+        C7: 'C7.mp3', 'D#7': 'Ds7.mp3', 'F#7': 'Fs7.mp3', A7: 'A7.mp3', C8: 'C8.mp3',
+      },
+      release: 1,
+      baseUrl: 'https://tonejs.github.io/audio/salamander/',
+      onload: () => resolve(),
+    }).toDestination();
+    clickSynth = new Tone.Synth({
+      oscillator: { type: 'square' },
+      envelope: { attack: 0.001, decay: 0.04, sustain: 0, release: 0.02 },
+      volume: -14,
+    }).toDestination();
+  });
+  return samplerReady;
+}
+
+// Flatten excerpt into timed events (ticks)
+function timeline(excerpt) {
+  const list = [];
+  let t = 0;
+  excerpt.measures.forEach((bar, mi) => bar.forEach(e => { list.push({ ...e, start: t, mi }); t += e.d; }));
+  return { list, total: t };
+}
+
+// Cursor x/y for every note/rest, read from OSMD's cursor
+function cursorPositions(view) {
+  const c = view.osmd.cursor;
+  c.show(); c.reset();
+  const pos = [];
+  let guard = 0;
+  while (!c.Iterator.EndReached && guard++ < 2000) {
+    const el = c.cursorElement;
+    const w = el.width || parseFloat(el.style.width) || 10;
+    pos.push({
+      x: parseFloat(el.style.left) + w / 2 - 2,      // centre of the note
+      y: parseFloat(el.style.top),
+      h: el.height || parseFloat(el.style.height) || 60,
+    });
+    c.next();
+  }
+  c.reset();
+  c.hide();
+  return pos;
+}
+// Right edge (px) of each measure, for gliding the smooth cursor to the end of a line
+function measureRightEdges(view) {
+  const unit = 10 * view.osmd.zoom;
+  return view.osmd.GraphicSheet.MeasureList.map(staffMeasures => {
+    const gm = staffMeasures[0];
+    const ps = gm.PositionAndShape;
+    return (ps.AbsolutePosition.x + ps.BorderRight) * unit;
+  });
+}
+
+async function startPlayback() {
+  if (!current || playing) return;
+  const view = views[$('selInst').value];
+  if (!view) return;
+  $('btnPlay').textContent = 'Loading…';
+  $('btnPlay').disabled = true;
+  await Tone.start();
+  await initAudio();
+  $('btnPlay').disabled = false;
+
+  const meter = METERS[current.settings.time];
+  const bpm = current.settings.tempo * (+$('rngSpeed').value / 100);
+  const secPerTick = 60 / (bpm * meter.beatTicks);
+  const countInTicks = meter.beats * meter.beatTicks;
+  const { list, total } = timeline(current);
+  const shift = instrumentShift(current, $('selInst').value);
+  const smooth = $('chkSmooth').checked;
+  const metro = $('chkMetro').checked;
+
+  const positions = cursorPositions(view);
+  const rights = measureRightEdges(view);
+  const cursorOk = positions.length === list.length;
+
+  Tone.Transport.stop();
+  Tone.Transport.cancel();
+  Tone.Transport.position = 0;
+
+  // count-in (always) + metronome during the excerpt (optional)
+  const totalBeats = meter.beats + (metro ? Math.round(total / meter.beatTicks) : 0);
+  for (let b = 0; b < totalBeats; b++) {
+    const accent = b % meter.beats === 0;
+    Tone.Transport.schedule(time => clickSynth.triggerAttackRelease(accent ? 'C7' : 'G6', 0.03, time), b * meter.beatTicks * secPerTick);
+  }
+  for (const e of list) {
+    if (e.rest) continue;
+    const midi = e.p.m + shift.written + shift.sound;
+    const startSec = (countInTicks + e.start) * secPerTick;
+    const durSec = Math.max(0.08, e.d * secPerTick * 0.92);
+    Tone.Transport.schedule(time => sampler.triggerAttackRelease(Tone.Frequency(midi, 'midi').toNote(), durSec, time), startSec);
+  }
+  // quiet chord on each bar
+  if ($('chkChords').checked && current.chordNotes) {
+    const barTicks = meter.beats * meter.beatTicks;
+    current.chordNotes.forEach((notes, m) => {
+      const startSec = (countInTicks + m * barTicks) * secPerTick;
+      const durSec = barTicks * secPerTick * 0.96;
+      const names = notes.map(n => Tone.Frequency(n, 'midi').toNote());
+      Tone.Transport.schedule(time => sampler.triggerAttackRelease(names, durSec, time, 0.28), startSec);
+    });
+  }
+  const endSec = (countInTicks + total) * secPerTick + 0.4;
+  Tone.Transport.schedule(() => Tone.Draw.schedule(() => stopPlayback(), Tone.now()), endSec);
+
+  playing = true;
+  $('btnPlay').textContent = '■ Stop';
+  $('btnPlay').classList.add('stop');
+
+  let lastIdx = -1;
+  const showCursor = cursorOk && smooth;
+  if (showCursor) {
+    const p = positions[0];
+    Object.assign(view.bar.style, { left: p.x + 'px', top: p.y + 'px', height: p.h + 'px', display: 'block' });
+  }
+
+  Tone.Transport.start('+0.05');
+
+  const frame = () => {
+    if (!playing) return;
+    const tick = Tone.Transport.seconds / secPerTick - countInTicks;
+    if (showCursor && tick >= 0) {
+      let idx = lastIdx < 0 ? 0 : lastIdx;
+      while (idx + 1 < list.length && list[idx + 1].start <= tick) idx++;
+      const e = list[idx], p = positions[idx];
+      const frac = Math.min(1, (tick - e.start) / e.d);
+      let nx;
+      const n = positions[idx + 1];
+      if (n && Math.abs(n.y - p.y) < 2) nx = n.x;          // next note on the same line
+      else nx = rights[e.mi] - 4;                           // glide to end of the line
+      Object.assign(view.bar.style, { left: (p.x + (nx - p.x) * frac) + 'px', top: p.y + 'px', height: p.h + 'px' });
+      lastIdx = idx;
+    }
+    rafId = requestAnimationFrame(frame);
+  };
+  rafId = requestAnimationFrame(frame);
+}
+
+function stopPlayback() {
+  playing = false;
+  if (rafId) cancelAnimationFrame(rafId);
+  rafId = null;
+  try { Tone.Transport.stop(); Tone.Transport.cancel(); } catch (e) {}
+  if (sampler) try { sampler.releaseAll(); } catch (e) {}
+  for (const v of Object.values(views)) {
+    v.bar.style.display = 'none';
+    try { v.osmd.cursor.hide(); } catch (e) {}
+  }
+  $('btnPlay').textContent = '▶ Play';
+  $('btnPlay').classList.remove('stop');
+}
+
+// ════════════════════════════════════════════════════════════════
+//  EVENTS
+// ════════════════════════════════════════════════════════════════
+function generate() {
+  saveSettings();
+  const res = buildExcerpt(getSettings());
+  if (res.error) { showMsg(res.error, 'err'); return; }
+  current = res.excerpt;
+  showMsg(res.warnings.join('<br>'), 'warn');
+  renderCurrent();
+}
+
+function download(name, text, type) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type }));
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+function init() {
+  fillSelects();
+  loadSettings();
+  buildRhythmPanel();
+  updateSpeedLabel();
+
+  $('selTime').addEventListener('change', () => { buildRhythmPanel(); saveSettings(); });
+  ['selMeasures','selTonic','selScale','selMin','selMax','selInterval','inpTempo','chkPlayback','selRepeat',
+   'oct_violin','oct_viola','oct_cello','oct_bass']
+    .forEach(id => $(id).addEventListener('change', saveSettings));
+  $('btnGenerate').addEventListener('click', generate);
+  $('selInst').addEventListener('change', renderCurrent);
+  $('btnAll').addEventListener('click', () => {
+    showAll = !showAll;
+    $('btnAll').classList.toggle('on', showAll);
+    renderCurrent();
+  });
+  $('btnPlay').addEventListener('click', () => playing ? stopPlayback() : startPlayback());
+  $('rngSpeed').addEventListener('input', () => { updateSpeedLabel(); if (playing) stopPlayback(); });
+  $('chkSmooth').addEventListener('change', () => { if (playing) stopPlayback(); });
+  $('chkChords').addEventListener('change', () => { if (current) renderCurrent(); });
+
+  $('btnXml').addEventListener('click', () => {
+    if (!current) return showMsg('Generate an excerpt first.', 'err');
+    const inst = $('selInst').value;
+    download(`sightreading-${inst}.musicxml`, excerptToMusicXML(current, inst, $('chkChords').checked), 'application/vnd.recordare.musicxml+xml');
+  });
+
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => { if (current && !playing) renderCurrent(); }, 250);
+  });
+}
+// ════════════════════════════════════════════════════════════════
+//  SESSION, TEACHER PUSH PANEL, STUDENT VIEW
+// ════════════════════════════════════════════════════════════════
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx_REo7dnRZo3fny_xv3uyhCUlImo4-4RM3x8W9Nu0JQHvBNv3HYRlzquLzm-PVCxzg/exec';
+const SESSION = {
+  number:     sessionStorage.getItem('studentNumber'),
+  cls:        sessionStorage.getItem('studentClass') || '',
+  instrument: sessionStorage.getItem('studentInstrument') || '',
+};
+const IS_TEACHER = SESSION.cls.trim().toLowerCase() === 'teacher';
+const POLL_MS = 25000;
+
+let currentStamp = null;      // student: timestamp of the excerpt on screen
+let pendingStamp = null;      // student: newer push waiting behind the banner
+let emptyText = 'Your excerpt will appear here.';
+
+function instrumentKey(name) {
+  const n = String(name || '').trim().toLowerCase();
+  if (n === 'violin') return 'violin';
+  if (n === 'viola') return 'viola';
+  if (n === 'cello' || n === 'violoncello') return 'cello';
+  if (['bass', 'string bass', 'double bass', 'upright bass'].includes(n)) return 'bass';
+  return null;
+}
+
+async function api(body) {
+  const res = await fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(body),
+    redirect: 'follow',
+  });
+  if (!res.ok) throw new Error('Network error');
+  const data = await res.json();
+  if (!data.success) throw new Error(data.error || 'Unknown error');
+  return data;
+}
+
+function fmtWhen(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d)) return '';
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ', ' +
+         d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+}
+const escHtml = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// ── Teacher: classes + recent pushes ──
+let selectedClasses = new Set();
+let recentExcerpts = [];
+
+function renderStatus(data) {
+  const list = $('classList');
+  if (!data.current || !data.current.length) {
+    list.innerHTML = '<span class="muted-note" style="font-size:0.8rem">No classes found in the Students sheet.</span>';
+  } else {
+    list.innerHTML = '';
+    data.current.forEach(c => {
+      const row = document.createElement('label');
+      row.className = 'class-row';
+      const now = c.timestamp ? `${escHtml(c.keyName)} · ${c.bars} bar${c.bars === 1 ? '' : 's'} · ${fmtWhen(c.timestamp)}` : 'Nothing pushed yet';
+      row.innerHTML = `<input type="checkbox" ${selectedClasses.has(c.class) ? 'checked' : ''}>
+        <span><span class="cname">${escHtml(c.class)}</span><br><span class="cnow">Now: ${now}</span></span>`;
+      row.querySelector('input').addEventListener('change', e => {
+        e.target.checked ? selectedClasses.add(c.class) : selectedClasses.delete(c.class);
+      });
+      list.appendChild(row);
+    });
+  }
+  recentExcerpts = data.recent || [];
+  const rl = $('recentList');
+  if (!recentExcerpts.length) {
+    rl.innerHTML = '<span class="muted-note" style="font-size:0.8rem">Nothing pushed yet.</span>';
+    return;
+  }
+  rl.innerHTML = '';
+  recentExcerpts.forEach((r, i) => {
+    const div = document.createElement('div');
+    div.className = 'recent-item';
+    div.innerHTML = `<div class="r-text"><b>${escHtml(r.keyName)}</b> · ${r.bars} bar${r.bars === 1 ? '' : 's'}
+      <div class="r-sub">${escHtml(r.classes.join(', '))} · ${fmtWhen(r.timestamp)}</div></div>
+      <button class="btn-sm" type="button">Open</button>`;
+    div.querySelector('button').addEventListener('click', () => {
+      current = JSON.parse(JSON.stringify(r.excerpt));
+      showMsg('Opened an earlier excerpt. Pick classes and push to send it again.', 'warn');
+      renderCurrent();
+    });
+    rl.appendChild(div);
+  });
+}
+
+async function loadStatus() {
+  try { renderStatus(await api({ action: 'getSightReadingStatus' })); }
+  catch (e) { $('classList').innerHTML = '<span class="muted-note" style="font-size:0.8rem">Couldn’t load classes. Refresh to try again.</span>'; }
+}
+
+function pushMsg(text, kind) {
+  const m = $('pushMsg');
+  m.className = 'msg' + (text ? ' ' + kind : '');
+  m.textContent = text || '';
+}
+
+async function pushExcerpt() {
+  if (!current) return pushMsg('Generate an excerpt first.', 'err');
+  const classes = [...selectedClasses];
+  if (!classes.length) return pushMsg('Pick at least one class.', 'err');
+  const btn = $('btnPush');
+  btn.disabled = true; btn.textContent = 'Pushing…';
+  try {
+    const data = await api({ action: 'pushSightReading', classes, excerpt: current });
+    renderStatus(data);
+    pushMsg(`Sent to ${classes.join(', ')}.`, 'ok');
+  } catch (e) {
+    pushMsg(e.message === 'excerpt_too_large'
+      ? 'This excerpt is too big to save. Try fewer bars or fewer 16th notes.'
+      : 'Couldn’t push. Check your connection and try again.', 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Push excerpt to selected classes';
+  }
+}
+
+// ── Student: load + watch for new pushes ──
+async function loadStudentExcerpt() {
+  try {
+    const data = await api({ action: 'getSightReading', studentNumber: SESSION.number });
+    $('newBanner').classList.remove('show');
+    pendingStamp = null;
+    if (!data.excerpt) {
+      current = null; currentStamp = null;
+      $('excerptTitle').textContent = 'No excerpt yet';
+      $('excerptMeta').textContent = 'Your teacher hasn’t sent one yet. Check back soon!';
+      emptyText = 'Your teacher hasn’t sent an excerpt yet. This page will let you know when one arrives.';
+      renderCurrent();
+      updatePlaybackAvailability();
+      return;
+    }
+    current = data.excerpt;
+    currentStamp = data.timestamp;
+    await renderCurrent();
+  } catch (e) {
+    $('excerptTitle').textContent = 'Couldn’t load';
+    $('excerptMeta').textContent = 'Check your connection and refresh the page.';
+  }
+}
+
+async function pollForNew() {
+  if (document.visibilityState !== 'visible') return;
+  try {
+    const data = await api({ action: 'getSightReading', studentNumber: SESSION.number, timeOnly: true });
+    if (!data.timestamp || data.timestamp === currentStamp || data.timestamp === pendingStamp) return;
+    if (!current) { loadStudentExcerpt(); return; }     // nothing on screen: just load it
+    pendingStamp = data.timestamp;
+    $('newBanner').classList.add('show');
+  } catch (e) { /* try again next time */ }
+}
+
+function startup() {
+  if (!SESSION.number) { window.location.href = 'index.html'; return; }
+  const myInst = instrumentKey(SESSION.instrument);
+  if (myInst) $('selInst').value = myInst;
+
+  if (IS_TEACHER) {
+    init();
+    $('excerptMeta').textContent = 'Choose settings and click Generate.';
+    $('btnPush').addEventListener('click', pushExcerpt);
+    $('btnClassAll').addEventListener('click', () => {
+      document.querySelectorAll('#classList input').forEach(cb => { cb.checked = true; });
+      document.querySelectorAll('#classList .cname').forEach(n => selectedClasses.add(n.textContent));
+    });
+    $('btnClassNone').addEventListener('click', () => {
+      document.querySelectorAll('#classList input').forEach(cb => { cb.checked = false; });
+      selectedClasses.clear();
+    });
+    // changing these after generating updates the excerpt that will be pushed
+    $('chkPlayback').addEventListener('change', () => {
+      if (current) { current.settings.playback = $('chkPlayback').checked; updatePlaybackAvailability(); }
+    });
+    $('inpTempo').addEventListener('change', () => {
+      if (current) { current.settings.tempo = Math.max(30, Math.min(240, +$('inpTempo').value || 80)); renderCurrent(); }
+    });
+    loadStatus();
+    return;
+  }
+
+  // ── student ──
+  document.body.classList.add('student-view');
+  showAll = false;
+  emptyText = 'Loading your excerpt…';
+  $('excerptTitle').textContent = 'Sight Reading';
+  $('excerptMeta').textContent = 'Loading…';
+  $('btnPlay').addEventListener('click', () => playing ? stopPlayback() : startPlayback());
+  $('rngSpeed').addEventListener('input', () => { updateSpeedLabel(); if (playing) stopPlayback(); });
+  $('chkSmooth').addEventListener('change', () => { if (playing) stopPlayback(); });
+  $('chkChords').addEventListener('change', () => { if (current) renderCurrent(); });
+  $('btnLoadNew').addEventListener('click', loadStudentExcerpt);
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => { if (current && !playing) renderCurrent(); }, 250);
+  });
+  updateSpeedLabel();
+  loadStudentExcerpt();
+  setInterval(pollForNew, POLL_MS);
+}
+startup();
+</script>
+</body>
+</html>
