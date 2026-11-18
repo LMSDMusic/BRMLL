@@ -1660,6 +1660,7 @@ function startup() {
 
   // ── student ──
   document.body.classList.add('student-view');
+  $('chkChords').checked = false;     // students start without chords (symbols + playback)
   showAll = false;
   emptyText = 'Loading your excerpt…';
   $('excerptTitle').textContent = 'Sight Reading';
